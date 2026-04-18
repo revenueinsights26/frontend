@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!-- Revenue Insights icon only — dark badge -->
+  <rect width="80" height="80" rx="14" fill="#0f172a"/>
+  <rect x="10" y="52" width="10" height="18" rx="2.5" fill="#B5D4F4"/>
+  <rect x="24" y="40" width="10" height="30" rx="2.5" fill="#85B7EB"/>
+  <rect x="38" y="24" width="10" height="46" rx="2.5" fill="#378ADD"/>
+  <rect x="52" y="10" width="10" height="60" rx="2.5" fill="#ffffff"/>
+  <circle cx="57" cy="10" r="5" fill="#ffffff"/>
+</svg>

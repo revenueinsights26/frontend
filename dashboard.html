@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Revenue Insights - Hotel Performance Dashboard</title>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER WITH LOGO -->
+  <div class="dashboard-header">
+    <div class="logo-area">
+      <img src="images/revenue-insights-icon.svg" alt="Revenue Insights" class="dashboard-logo">
+      <div>
+        <div class="dashboard-logo-text">Revenue <span>Insights</span></div>
+        <div class="dashboard-tagline">Price with confidence</div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="logout" id="btnLogout">Logout</button>
+    </div>
+  </div>
+
+  <h1>Hotel Performance Summary</h1>
+  <p class="subtle">Compare, forecast, and optimize your pricing</p>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <input id="hotelId" placeholder="Hotel ID (e.g., HOTEL001)" />
+    <button id="btnLoad" class="btn-primary">Load Snapshot</button>
+    <button id="btnUpload" class="btn-secondary">📤 Upload Data</button>
+    <button id="btnRateIntel" class="btn-outline">📊 Rate Intelligence</button>
+  </div>
+
+  <!-- KPI CARDS with variances -->
+  <div id="kpis" class="kpis" hidden>
+    <!-- KPIs injected by app.js -->
+  </div>
+
+  <!-- MONTH SCROLLER -->
+  <div id="monthNav" class="month-nav" hidden>
+    <button id="prevMonth">‹</button>
+    <span id="monthLabel">—</span>
+    <button id="nextMonth">›</button>
+  </div>
+
+  <!-- TREND CHARTS -->
+  <div id="charts" class="charts" hidden>
+    <div class="chart-card">
+      <h3>Occupancy % Trend</h3>
+      <canvas id="occChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>ADR Trend</h3>
+      <canvas id="adrChart"></canvas>
+    </div>
+  </div>
+
+  <!-- DAY-OF-WEEK SECTION -->
+  <div id="dowSection" hidden>
+    <h2>Day-of-Week Patterns</h2>
+
+    <div class="charts">
+      <div class="chart-card">
+        <h4>Avg Occupancy % by Day</h4>
+        <canvas id="dowOccChart"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <h4>Avg ADR by Day</h4>
+        <canvas id="dowAdrChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAILED DAY-BY-DAY TABLE -->
+  <div id="detailedSection" hidden>
+    <!-- Container will be dynamically populated by app.js -->
+  </div>
+
+</div>
+
+<!-- Logic -->
+<script src="app.js"></script>
+
+<script>
+  // Add button handlers
+  document.addEventListener("DOMContentLoaded", () => {
+    const btnUpload = document.getElementById("btnUpload");
+    if (btnUpload) {
+      btnUpload.addEventListener("click", () => {
+        window.location.href = "upload.html";
+      });
+    }
+    
+    const btnRateIntel = document.getElementById("btnRateIntel");
+    if (btnRateIntel) {
+      btnRateIntel.addEventListener("click", () => {
+        window.location.href = "rate-intelligence.html";
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

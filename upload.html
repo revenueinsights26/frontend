@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Upload Data</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <h1>Upload Data</h1>
+  <p class="subtle">Upload hotel performance and competitor rates, then analyse.</p>
+
+  <!-- Rooms available input -->
+  <div class="card" style="margin-bottom:16px;">
+    <h2 style="margin:0 0 6px;">Hotel Setup</h2>
+    <p class="subtle" style="margin:0 0 10px;">This is used to calculate occupancy % accurately.</p>
+    <label style="font-size:13px;font-weight:600;">Total Rooms Available</label>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+      <input
+        type="number"
+        id="roomsAvailable"
+        min="1"
+        placeholder="e.g. 120"
+        style="width:160px;padding:10px;border:1px solid #d1d5db;border-radius:6px;"
+      />
+      <span class="subtle" style="margin:0;">rooms</span>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Upload Hotel Data</h2>
+      <p class="subtle">Daily: date, rooms sold, room revenue.</p>
+      <input type="file" id="hotelFile" accept=".xlsx,.xls" />
+    </div>
+    <div class="card">
+      <h2>Upload Comp Data</h2>
+      <p class="subtle">Stay date + your rate + competitor rates.</p>
+      <input type="file" id="compFile" accept=".xlsx,.xls" />
+    </div>
+  </div>
+
+  <div style="margin-top:16px;">
+    <button id="btnUpload">Update & Analyse</button>
+    <button class="btn-secondary" id="btnCancel" type="button">Cancel</button>
+  </div>
+</div>
+<script src="upload.js"></script>
+<script>
+  // Pre-fill saved value if it exists
+  const saved = localStorage.getItem("roomsAvailable");
+  if (saved) document.getElementById("roomsAvailable").value = saved;
+
+  document.getElementById("btnCancel").addEventListener("click", () => {
+    window.location.href = "dashboard.html";
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Owner Login - Revenue Insights</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    .login-card {
+      max-width: 440px;
+      width: 100%;
+      background: white;
+      border-radius: 16px;
+      padding: 48px 40px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      text-align: center;
+      border: 1px solid #e9ecef;
+    }
+    
+    .login-icon {
+      font-size: 48px;
+      margin-bottom: 20px;
+      opacity: 0.8;
+    }
+    
+    .login-title {
+      font-size: 28px;
+      font-weight: 600;
+      margin: 0 0 8px 0;
+      color: #1a1a2e;
+    }
+    
+    .login-subtitle {
+      color: #6c757d;
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+    
+    .trial-badge {
+      background: #e8f5e9;
+      color: #2e7d32;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-bottom: 24px;
+      display: inline-block;
+    }
+    
+    .input-group {
+      text-align: left;
+      margin-bottom: 24px;
+    }
+    
+    .input-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #495057;
+      margin-bottom: 8px;
+    }
+    
+    .input-field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: monospace;
+      background: #fafbfc;
+    }
+    
+    .input-field:focus {
+      outline: none;
+      border-color: #1a1a2e;
+      background: white;
+    }
+    
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: #1a1a2e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .login-btn:hover {
+      background: #2d2d44;
+    }
+    
+    .help-text {
+      margin-top: 24px;
+      font-size: 12px;
+      color: #6c757d;
+    }
+    
+    .help-text a {
+      color: #1a1a2e;
+      text-decoration: none;
+    }
+    
+    .help-text a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-icon">🔑</div>
+    <h1 class="login-title">Owner Access</h1>
+    <p class="login-subtitle">Enter your token to access your dashboard</p>
+    
+    <div id="trialMessage" style="display: none;">
+      <div class="trial-badge">🎉 30-Day Free Trial Active</div>
+    </div>
+    
+    <div class="input-group">
+      <label class="input-label">Access Token</label>
+      <input type="password" id="tokenInput" class="input-field" placeholder="Enter your token" autocomplete="off" />
+    </div>
+    
+    <button id="btnContinue" class="login-btn">Access Dashboard →</button>
+    
+    <div class="help-text">
+      Don't have a token? <a href="index.html">Start free trial →</a><br>
+      Questions? <a href="mailto:info@revenueinsights.co.za">info@revenueinsights.co.za</a>
+    </div>
+  </div>
+  
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('trial') === 'true' || localStorage.getItem("trialStarted") === "true") {
+      document.getElementById("trialMessage").style.display = "block";
+    }
+    
+    document.getElementById("btnContinue").addEventListener("click", () => {
+      const token = document.getElementById("tokenInput").value.trim();
+      if (!token) {
+        const input = document.getElementById("tokenInput");
+        input.style.borderColor = "#dc2626";
+        setTimeout(() => { input.style.borderColor = "#dee2e6"; }, 2000);
+        return;
+      }
+      localStorage.setItem("ownerToken", token);
+      if (localStorage.getItem("trialStarted") === "true") localStorage.setItem("isTrial", "true");
+      window.location.href = "dashboard.html";
+    });
+    
+    document.getElementById("tokenInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") document.getElementById("btnContinue").click();
+    });
+    
+    document.getElementById("tokenInput").addEventListener("focus", () => {
+      document.getElementById("tokenInput").style.borderColor = "#dee2e6";
+    });
+  </script>
+</body>
+</html>
