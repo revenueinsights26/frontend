@@ -4,7 +4,7 @@ console.log("app.js loaded");
 // Config
 // ─────────────────────────────────────────────
 const API = window.location.hostname === 'localhost' 
-  ? "http://localhost:8000" 
+  ? "https://backend-x5sw.onrender.com";
   : "https://your-app.onrender.com";
 
 // ─────────────────────────────────────────────
