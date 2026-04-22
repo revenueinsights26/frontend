@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Backend</title>
+</head>
+<body>
+    <h1>Backend Test</h1>
+    <button onclick="testBackend()">Test Backend</button>
+    <pre id="result"></pre>
+
+    <script>
+        const API = "https://backend-x5sw.onrender.com";
+        const TOKEN = "9MfYQDx1lVGWFFiQ_D9ibK7lMnruUU6-1jDqapC2if4";
+
+        async function testBackend() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Testing...';
+            
+            try {
+                // Test 1: Root endpoint
+                const rootRes = await fetch(API + '/');
+                const rootData = await rootRes.json();
+                resultDiv.textContent = 'Root endpoint: ' + JSON.stringify(rootData, null, 2) + '\n\n';
+                
+                // Test 2: Hotel dashboard with token
+                const hotelRes = await fetch(API + '/hotel_dashboard_history/HOTEL001', {
+                    headers: {
+                        'X-Owner-Token': TOKEN
+                    }
+                });
+                const hotelData = await hotelRes.json();
+                resultDiv.textContent += 'Hotel dashboard: ' + JSON.stringify(hotelData, null, 2);
+                
+            } catch (error) {
+                resultDiv.textContent = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>
