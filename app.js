@@ -58,7 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Auto-load if we have a hotel ID
   const hotelId = localStorage.getItem("hotelId");
   if (hotelId) {
     document.getElementById("hotelId").value = hotelId;
@@ -86,19 +85,14 @@ function loadDashboard(silent = false) {
     kpisContainer.hidden = false;
   }
 
-  console.log("Fetching snapshots for:", hotelId);
-  console.log("API URL:", API);
-
   fetch(API + "/hotel_dashboard_history/" + hotelId, {
     headers: { "X-Owner-Token": token }
   })
   .then(res => { 
-    console.log("Response status:", res.status);
     if (!res.ok) throw new Error("HTTP " + res.status); 
     return res.json(); 
   })
   .then(data => {
-    console.log("Snapshots received:", data);
     if (!Array.isArray(data) || data.length === 0) {
       if (!silent) alert("No snapshots found for " + hotelId);
       return;
@@ -106,7 +100,6 @@ function loadDashboard(silent = false) {
     
     allSnapshots = data;
     const latestSnapshot = allSnapshots[allSnapshots.length - 1];
-    console.log("Latest snapshot:", latestSnapshot);
     fetchDailyAndPrepare(latestSnapshot.snapshot_id);
 
     document.getElementById("kpis").hidden = false;
@@ -127,8 +120,6 @@ function loadDashboard(silent = false) {
 function fetchDailyAndPrepare(snapshotId) {
   const token = localStorage.getItem("ownerToken");
 
-  console.log("Fetching daily data for snapshot:", snapshotId);
-
   fetch(API + "/daily_by_snapshot/" + snapshotId, {
     headers: { "X-Owner-Token": token }
   })
@@ -137,22 +128,35 @@ function fetchDailyAndPrepare(snapshotId) {
     return res.json(); 
   })
   .then(data => {
-    console.log("Daily data received:", data);
     allDailyPerf = data.performance || [];
     allDailyComp = data.compset || [];
     
-    // Extract months from performance data
+    console.log("Daily performance data:", allDailyPerf);
+    
+    // Extract months from performance data - FIXED
     const months = new Set();
     allDailyPerf.forEach(r => {
-      if (r.stay_date && r.stay_date.length >= 7) {
-        months.add(r.stay_date.substring(0, 7));
+      if (r.stay_date) {
+        // Handle different date formats
+        let dateStr = r.stay_date;
+        if (dateStr.length >= 7) {
+          const monthKey = dateStr.substring(0, 7);
+          months.add(monthKey);
+          console.log("Added month:", monthKey, "from date:", dateStr);
+        }
       }
     });
+    
     monthKeys = Array.from(months).sort();
-    console.log("Months found:", monthKeys);
+    console.log("All months found:", monthKeys);
 
     if (monthKeys.length === 0) { 
       console.warn("No dated daily data available.");
+      // Show error in UI
+      const kpisContainer = document.getElementById("kpis");
+      if (kpisContainer) {
+        kpisContainer.innerHTML = `<div class="card" style="grid-column:1/-1; text-align:center; padding:40px; color:#b91c1c;">❌ No daily data found. Please upload data first.</div>`;
+      }
       return; 
     }
 
@@ -175,25 +179,28 @@ function renderMonth() {
   const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
 
   console.log("Rendering month:", monthKey);
-  console.log("Performance rows:", monthPerf.length);
-  console.log("Comp rows:", monthComp.length);
+  console.log("Performance rows for this month:", monthPerf.length);
+  if (monthPerf.length > 0) {
+    console.log("First row sample:", monthPerf[0]);
+  }
 
   if (monthPerf.length === 0) { 
     console.warn("No data for selected month.");
     return; 
   }
 
-  const roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "100", 10);
+  const roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "94", 10);
   const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
   
-  renderSimpleKPIs(kpis);
-  drawSimpleTrendChart(monthPerf, roomsAvailable);
+  renderMonthlyKPIs(kpis);
+  drawTrendCharts(monthPerf, monthComp, roomsAvailable);
+  drawDOWCharts(monthPerf, roomsAvailable);
 }
 
 // ─────────────────────────────────────────────
-// Simple KPI display
+// Monthly KPIs
 // ─────────────────────────────────────────────
-function renderSimpleKPIs(kpis) {
+function renderMonthlyKPIs(kpis) {
   const cur = localStorage.getItem("currencySymbol") || "R";
   const container = document.getElementById("kpis");
 
@@ -220,37 +227,138 @@ function renderSimpleKPIs(kpis) {
 }
 
 // ─────────────────────────────────────────────
-// Simple trend chart
+// Trend Charts
 // ─────────────────────────────────────────────
-function drawSimpleTrendChart(perf, roomsAvailable) {
-  const labels = perf.map(r => r.stay_date.substring(5, 10)); // MM-DD format
-  const occData = perf.map(r => roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0);
-
-  const canvas = document.getElementById("occChart");
-  if (!canvas) return;
-
-  if (occChart) occChart.destroy();
-  occChart = new Chart(canvas.getContext("2d"), {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Occupancy %",
-        data: occData,
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37,99,235,0.08)",
-        borderWidth: 2,
-        pointRadius: 2,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: { legend: { position: "top" } },
-      scales: { y: { title: { display: true, text: "Occupancy %" }, max: 100 } }
-    }
+function drawTrendCharts(perf, comp, roomsAvailable) {
+  const labels = perf.map(r => {
+    const date = new Date(r.stay_date);
+    return `${date.getMonth()+1}/${date.getDate()}`;
   });
+  
+  const occData = perf.map(r => roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0);
+  const adrData = perf.map(r => r.adr || (r.room_revenue / r.rooms_sold));
+
+  const occCanvas = document.getElementById("occChart");
+  const adrCanvas = document.getElementById("adrChart");
+  
+  if (occCanvas) {
+    if (occChart) occChart.destroy();
+    occChart = new Chart(occCanvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "Occupancy %",
+          data: occData,
+          borderColor: "#2563eb",
+          backgroundColor: "rgba(37,99,235,0.08)",
+          borderWidth: 2,
+          pointRadius: 2,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "top" } },
+        scales: { y: { title: { display: true, text: "Occupancy %" }, max: 100 } }
+      }
+    });
+  }
+
+  if (adrCanvas) {
+    if (adrChart) adrChart.destroy();
+    adrChart = new Chart(adrCanvas.getContext("2d"), {
+      type: "line",
+      data: {
+        labels: labels,
+        datasets: [{
+          label: "ADR (R)",
+          data: adrData,
+          borderColor: "#15803d",
+          backgroundColor: "rgba(21,128,61,0.08)",
+          borderWidth: 2,
+          pointRadius: 2,
+          tension: 0.3,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "top" } },
+        scales: { y: { title: { display: true, text: "ADR (R)" } } }
+      }
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
+// DOW Charts
+// ─────────────────────────────────────────────
+const DOW_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DOW_COLORS = ["#6366f1","#2563eb","#0891b2","#15803d","#ca8a04","#ea580c","#b91c1c"];
+
+function drawDOWCharts(perf, roomsAvailable) {
+  const dowOcc = [[], [], [], [], [], [], []];
+  const dowAdr = [[], [], [], [], [], [], []];
+
+  perf.forEach(r => {
+    const date = new Date(r.stay_date);
+    const dow = date.getDay();
+    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
+    const adr = r.adr || (r.room_revenue / r.rooms_sold);
+    
+    dowOcc[dow].push(occ);
+    dowAdr[dow].push(adr);
+  });
+
+  const avgOcc = dowOcc.map(a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0);
+  const avgAdr = dowAdr.map(a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0);
+
+  const occCanvas = document.getElementById("dowOccChart");
+  const adrCanvas = document.getElementById("dowAdrChart");
+  
+  if (occCanvas) {
+    if (dowOccChart) dowOccChart.destroy();
+    dowOccChart = new Chart(occCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: DOW_LABELS,
+        datasets: [{
+          label: "Avg Occupancy %",
+          data: avgOcc.map(v => parseFloat(v.toFixed(1))),
+          backgroundColor: DOW_COLORS,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { title: { display: true, text: "Avg Occupancy %" }, max: 100 } }
+      }
+    });
+  }
+
+  if (adrCanvas) {
+    if (dowAdrChart) dowAdrChart.destroy();
+    dowAdrChart = new Chart(adrCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: DOW_LABELS,
+        datasets: [{
+          label: "Avg ADR",
+          data: avgAdr.map(v => Math.round(v)),
+          backgroundColor: DOW_COLORS,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { title: { display: true, text: "Avg ADR (R)" } } }
+      }
+    });
+  }
 }
 
 // ─────────────────────────────────────────────
@@ -273,6 +381,7 @@ function formatMonthLabel(monthKey) {
 }
 
 function fmt(n) {
+  if (isNaN(n) || n === null || n === undefined) return "0";
   return Number(n).toLocaleString("en-ZA", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
 
