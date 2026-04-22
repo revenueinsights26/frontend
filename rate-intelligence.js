@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "100", 10);
   
+  // Auto-load the last used hotel
   const savedHotelId = localStorage.getItem("hotelId");
   if (savedHotelId) {
     localStorage.setItem("hotelId", savedHotelId);
@@ -51,7 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─────────────────────────────────────────────
-// Helper Functions
+// Check if month is current or future
 // ─────────────────────────────────────────────
 function isCurrentOrFutureMonth(monthKey) {
   const today = new Date();
@@ -65,16 +66,56 @@ function isCurrentOrFutureMonth(monthKey) {
   return false;
 }
 
+// ─────────────────────────────────────────────
+// Check if a specific date is today or in the future
+// ─────────────────────────────────────────────
 function isTodayOrFuture(dateStr) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  
   const checkDate = new Date(dateStr);
   checkDate.setHours(0, 0, 0, 0);
+  
   return checkDate >= today;
 }
 
 // ─────────────────────────────────────────────
-// Load Data
+// NEW: Call Protected Backend for Rate Intelligence
+// ─────────────────────────────────────────────
+async function getAIRateRecommendation(currentRate, competitorRates, historicalOcc, dowFactor, overallAvgOcc) {
+    const token = localStorage.getItem("ownerToken");
+    
+    const requestBody = {
+        current_rate: currentRate,
+        competitor_rates: competitorRates || [],
+        historical_occupancy: historicalOcc,
+        dow_factor: dowFactor,
+        overall_avg_occ: overallAvgOcc
+    };
+    
+    try {
+        const response = await fetch(API + "/api/rate-intelligence", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Owner-Token": token
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            throw new Error("API call failed");
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("Error calling rate intelligence API:", error);
+        return null;
+    }
+}
+
+// ─────────────────────────────────────────────
+// Load data from backend
 // ─────────────────────────────────────────────
 function loadDashboardData() {
   const token = localStorage.getItem("ownerToken");
@@ -86,6 +127,7 @@ function loadDashboardData() {
     return;
   }
 
+  // Show loading state
   const summaryCard = document.getElementById("summaryCard");
   if (summaryCard) {
     summaryCard.innerHTML = `<div style="text-align: center; padding: 40px;">📊 Loading rate intelligence data...</div>`;
@@ -118,6 +160,7 @@ function loadDashboardData() {
       return;
     }
     
+    // Find current month
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
@@ -137,6 +180,9 @@ function loadDashboardData() {
   });
 }
 
+// ─────────────────────────────────────────────
+// Load data for selected month
+// ─────────────────────────────────────────────
 function loadMonthData() {
   const monthKey = monthKeys[currentMonthIndex];
   document.getElementById("monthLabel").textContent = formatMonthLabel(monthKey);
@@ -160,7 +206,7 @@ function loadMonthData() {
 }
 
 // ─────────────────────────────────────────────
-// Executive Summary
+// Executive Summary - Simple actionable commentary
 // ─────────────────────────────────────────────
 function renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRates, isCurrentFuture, monthKey) {
   let summary;
@@ -269,8 +315,8 @@ function renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrent
   let html = `
     <div style="margin-bottom: 15px;">
       <div style="background: #f0fdf4; padding: 10px; border-radius: 8px; margin-bottom: 10px;">
-        <strong>🏨 Your Historical ADR:</strong> ${formatCurrency(kpis.adr)}<br>
-        <strong>🏨 Your Historical Occupancy:</strong> ${kpis.occupancy.toFixed(1)}%<br>
+        <strong>🏨 Your Current ADR:</strong> ${formatCurrency(kpis.adr)}<br>
+        <strong>🏨 Your Current Occupancy:</strong> ${kpis.occupancy.toFixed(1)}%<br>
         <strong>🏨 Competitor Average:</strong> ${formatCurrency(competitorRates.avgCompetitorRate)}
       </div>
     </div>
@@ -377,7 +423,7 @@ function generateRateRecommendations(kpis, dowAnalysis, competitorRates) {
 }
 
 // ─────────────────────────────────────────────
-// Revenue Triangle
+// Revenue Triangle Analysis
 // ─────────────────────────────────────────────
 function renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
   const analysis = analyzeRevenueTriangle(kpis, dowAnalysis, isCurrentFuture);
@@ -393,7 +439,7 @@ function renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
     <div style="margin-bottom: 15px;">
       <div style="background: #e0f2fe; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
         <div style="display: flex; justify-content: space-between;">
-          <span>Historical Occupancy:</span>
+          <span>Occupancy:</span>
           <span><strong>${kpis.occupancy.toFixed(1)}%</strong></span>
         </div>
         <div style="background: #bae6fd; height: 6px; border-radius: 3px; margin-top: 4px;">
@@ -403,7 +449,7 @@ function renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
       
       <div style="background: #dcfce7; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
         <div style="display: flex; justify-content: space-between;">
-          <span>Historical ADR:</span>
+          <span>ADR:</span>
           <span><strong>${formatCurrency(kpis.adr)}</strong></span>
         </div>
         <div style="background: #bbf7d0; height: 6px; border-radius: 3px; margin-top: 4px;">
@@ -449,12 +495,14 @@ function analyzeRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
 }
 
 // ─────────────────────────────────────────────
-// Demand Calendar
+// Demand Calendar - ONLY SHOWS TODAY AND FUTURE DATES
 // ─────────────────────────────────────────────
 function renderDemandCalendar(demandAnalysis, monthPerf) {
+  // Get today's date
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
+  // Filter to only show dates from today onward
   const futureDates = monthPerf.filter(r => {
     const checkDate = new Date(r.stay_date);
     checkDate.setHours(0, 0, 0, 0);
@@ -475,6 +523,7 @@ function renderDemandCalendar(demandAnalysis, monthPerf) {
   
   let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
   
+  // Create a row for each future date
   futureDates.forEach(date => {
     const [year, month, day] = date.split("-");
     const displayDate = `${day}/${month}`;
@@ -508,6 +557,7 @@ function renderDemandCalendar(demandAnalysis, monthPerf) {
       recommendation = "🎯 Strategic offers only";
     }
     
+    // Add "TODAY" badge for current date
     const isToday = new Date(date).toDateString() === new Date().toDateString();
     const todayBadge = isToday ? '<span style="background: #1e293b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px;">TODAY</span>' : '';
     
@@ -536,42 +586,21 @@ function renderDemandCalendar(demandAnalysis, monthPerf) {
 }
 
 // ─────────────────────────────────────────────
-// Helper functions for DOW factor
-// ─────────────────────────────────────────────
-function getDOWFactor(dayName, monthPerf, roomsAvailable) {
-  const dowOcc = [];
-  monthPerf.forEach(r => {
-    const date = new Date(r.stay_date);
-    const dow = getDayOfWeekName(r.stay_date);
-    if (dow === dayName) {
-      const occ = (r.rooms_sold / roomsAvailable) * 100;
-      dowOcc.push(occ);
-    }
-  });
-  
-  if (dowOcc.length === 0) return 50;
-  return dowOcc.reduce((a, b) => a + b, 0) / dowOcc.length;
-}
-
-function getDayOfWeekName(dateStr) {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const date = new Date(dateStr);
-  return days[date.getDay()];
-}
-
-// ─────────────────────────────────────────────
-// Day Strategy Table - Calls Protected Backend
+// Day-by-Day Rate Strategy Table - Calls Protected Backend
 // ─────────────────────────────────────────────
 async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
+  // Get today's date
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
+  // Filter to only show dates from today onward
   const futureDates = monthPerf.filter(r => {
     const checkDate = new Date(r.stay_date);
     checkDate.setHours(0, 0, 0, 0);
     return checkDate >= today;
   }).sort((a, b) => a.stay_date.localeCompare(b.stay_date));
   
+  // Calculate overall average occupancy for DOW factor
   const overallAvgOcc = monthPerf.reduce((sum, r) => sum + (r.rooms_sold / roomsAvailable) * 100, 0) / monthPerf.length;
   
   if (futureDates.length === 0 && isCurrentFuture) {
@@ -606,8 +635,6 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
       <tbody>
   `;
   
-  const token = localStorage.getItem("ownerToken");
-  
   for (const day of futureDates) {
     const date = day.stay_date;
     const [year, month, dayNum] = date.split("-");
@@ -628,6 +655,7 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
       ? compData.comps.reduce((a,b) => a + b, 0) / compData.comps.length 
       : null;
     
+    // Calculate DOW factor for this specific day
     const dayOfWeekName = getDayOfWeekName(date);
     const dowFactor = getDOWFactor(dayOfWeekName, monthPerf, roomsAvailable);
     
@@ -674,7 +702,7 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-Owner-Token": token
+            "X-Owner-Token": localStorage.getItem("ownerToken")
           },
           body: JSON.stringify({
             current_rate: currentRate,
@@ -696,7 +724,7 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
         }
       } catch (err) {
         console.error("AI API error:", err);
-        // Fallback
+        // Fallback calculation
         suggestedRate = currentRate;
         confidenceScore = 50;
         recommendation = "AI service unavailable. Using fallback calculation.";
@@ -810,6 +838,28 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
   document.getElementById("strategyTable").innerHTML = html;
 }
 
+// Helper function for DOW factor
+function getDOWFactor(dayName, monthPerf, roomsAvailable) {
+  const dowOcc = [];
+  monthPerf.forEach(r => {
+    const date = new Date(r.stay_date);
+    const dow = getDayOfWeekName(r.stay_date);
+    if (dow === dayName) {
+      const occ = (r.rooms_sold / roomsAvailable) * 100;
+      dowOcc.push(occ);
+    }
+  });
+  
+  if (dowOcc.length === 0) return 50;
+  return dowOcc.reduce((a, b) => a + b, 0) / dowOcc.length;
+}
+
+function getDayOfWeekName(dateStr) {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const date = new Date(dateStr);
+  return days[date.getDay()];
+}
+
 // ─────────────────────────────────────────────
 // Analysis Functions
 // ─────────────────────────────────────────────
@@ -870,6 +920,9 @@ function analyzeCompetitorRates(comp) {
   return { avgCompetitorRate };
 }
 
+// ─────────────────────────────────────────────
+// Helper Functions
+// ─────────────────────────────────────────────
 function computeMonthlyKPIs(perf, roomsAvailable) {
   const days = perf.length;
   const roomsSold = perf.reduce((a, r) => a + r.rooms_sold, 0);
@@ -897,11 +950,15 @@ function formatMonthLabel(monthKey) {
 
 function formatCurrency(value) {
   const cur = localStorage.getItem("currencySymbol") || "R";
-  return `${cur} ${Math.round(value).toLocaleString()}`;
+  return `${cur} ${fmt(value)}`;
 }
 
 function getDayOfWeek(dateStr) {
   const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const date = new Date(dateStr);
   return days[date.getDay()];
+}
+
+function fmt(n) {
+  return Number(n).toLocaleString("en-ZA", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 }
