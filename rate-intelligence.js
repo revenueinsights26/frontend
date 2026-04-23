@@ -65,75 +65,47 @@ function isCurrentOrFutureMonth(monthKey) {
   return false;
 }
 
-// ─────────────────────────────────────────────
-// MATHEMATICAL SUGGESTED RATE FORMULA
-// ─────────────────────────────────────────────
-function calculateSuggestedRate(currentRate, compAvg, historicalOcc, dowFactor, overallAvgOcc) {
-  // Step 1: Demand Score (0.5 to 1.35)
-  let demandScore;
-  if (historicalOcc >= 80) {
-    demandScore = 1.15 + ((historicalOcc - 80) / 100);
-  } else if (historicalOcc >= 65) {
-    demandScore = 1.0 + ((historicalOcc - 65) / 100);
-  } else if (historicalOcc >= 50) {
-    demandScore = 0.85 + ((historicalOcc - 50) / 100);
-  } else {
-    demandScore = 0.7 + (historicalOcc / 100);
-  }
-  demandScore = Math.min(1.35, Math.max(0.7, demandScore));
-  
-  // Step 2: Competitor Score (0.85 to 1.15)
-  let compScore = 1.0;
-  if (compAvg && compAvg > 0) {
-    compScore = compAvg / currentRate;
-    compScore = Math.min(1.15, Math.max(0.85, compScore));
-  }
-  
-  // Step 3: DOW Score (0.85 to 1.15)
-  let dowScore = 1.0;
-  if (overallAvgOcc > 0) {
-    dowScore = 1 + ((dowFactor - overallAvgOcc) / overallAvgOcc);
-    dowScore = Math.min(1.15, Math.max(0.85, dowScore));
-  }
-  
-  // Step 4: Calculate Suggested Rate
-  let suggestedRate = currentRate * demandScore * compScore * dowScore;
-  
-  // Step 5: Apply bounds
-  suggestedRate = Math.min(currentRate * 1.25, Math.max(currentRate * 0.85, suggestedRate));
-  
-  return Math.round(suggestedRate / 10) * 10;
+function isTodayOrFuture(dateStr) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(dateStr);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate >= today;
 }
 
 // ─────────────────────────────────────────────
-// CONFIDENCE SCORE (0-100%)
+// NEW: Call Protected Backend for Rate Intelligence
 // ─────────────────────────────────────────────
-function calculateConfidenceScore(hasCompData, compCount, historicalDataPoints, hasDOWData) {
-  let confidence = 50;
-  
-  if (hasCompData && compCount >= 5) {
-    confidence += 30;
-  } else if (hasCompData && compCount >= 3) {
-    confidence += 20;
-  } else if (hasCompData && compCount >= 1) {
-    confidence += 10;
-  }
-  
-  if (historicalDataPoints >= 30) {
-    confidence += 20;
-  } else if (historicalDataPoints >= 15) {
-    confidence += 15;
-  } else if (historicalDataPoints >= 7) {
-    confidence += 10;
-  } else if (historicalDataPoints >= 3) {
-    confidence += 5;
-  }
-  
-  if (hasDOWData) {
-    confidence += 10;
-  }
-  
-  return Math.min(95, Math.max(30, confidence));
+async function getAIRateRecommendation(currentRate, competitorRates, historicalOcc, dowFactor, overallAvgOcc) {
+    const token = localStorage.getItem("ownerToken");
+    
+    const requestBody = {
+        current_rate: currentRate,
+        competitor_rates: competitorRates || [],
+        historical_occupancy: historicalOcc,
+        dow_factor: dowFactor,
+        overall_avg_occ: overallAvgOcc
+    };
+    
+    try {
+        const response = await fetch(API + "/api/rate-intelligence", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-Owner-Token": token
+            },
+            body: JSON.stringify(requestBody)
+        });
+        
+        if (!response.ok) {
+            throw new Error("API call failed");
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error("Error calling rate intelligence API:", error);
+        return null;
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -623,9 +595,9 @@ function getDayOfWeekName(dateStr) {
 }
 
 // ─────────────────────────────────────────────
-// Day Strategy Table - COMPLETE WITH ALL FIXES
+// Day Strategy Table - Calls Protected Backend
 // ─────────────────────────────────────────────
-function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
+async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -651,6 +623,9 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
   }
   
   let html = `
+    <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
+      ℹ️ AI-powered rate suggestions based on demand, competitors, and historical patterns.
+    </div>
     <table class="detailed-table" style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr>
@@ -666,7 +641,7 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
       <tbody>
   `;
   
-  futureDates.forEach(day => {
+  for (const day of futureDates) {
     const date = day.stay_date;
     const [year, month, dayNum] = date.split("-");
     const displayDate = `${dayNum}/${month}`;
@@ -694,6 +669,7 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
     let recommendation = "";
     let bgColor = "";
     let rateDisplay = "";
+    let confidenceLevel = "";
     
     const isToday = new Date(date).toDateString() === new Date().toDateString();
     const todayBadge = isToday ? ' <span style="color: #3b82f6;">(TODAY)</span>' : '';
@@ -704,46 +680,68 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
       
       if (compAvg) {
         suggestedRate = Math.round(compAvg * 1.15 / 10) * 10;
-        recommendation = "Property sold out on this date. Consider increasing rate by 15% for future similar dates.";
+        recommendation = "Property sold out. Consider +15% for future dates.";
         confidenceScore = 60;
+        confidenceLevel = "Medium";
         bgColor = "#fef3c7";
       } else if (historicalOcc > 75) {
         suggestedRate = Math.round((historicalOcc * 15) / 10) * 10;
-        recommendation = "High historical demand. Property sold out - consider rate increase for future dates.";
+        recommendation = "High historical demand. Consider rate increase for future dates.";
         confidenceScore = 50;
+        confidenceLevel = "Medium";
         bgColor = "#fef3c7";
       } else {
         suggestedRate = null;
-        recommendation = "Sold out - insufficient data for rate suggestion.";
+        recommendation = "Sold out - insufficient data for suggestion.";
         confidenceScore = 30;
+        confidenceLevel = "Low";
         bgColor = "#f1f5f9";
       }
     }
-    // CASE 2: Have both current rate and competitor data
+    // CASE 2: Have both current rate and competitor data - CALL PROTECTED BACKEND
     else if (currentRate && compAvg) {
       rateDisplay = formatCurrency(currentRate);
-      suggestedRate = calculateSuggestedRate(currentRate, compAvg, historicalOcc, dowFactor, overallAvgOcc);
       
-      const compCount = compData.comps ? compData.comps.length : 0;
-      const historicalDataPoints = monthPerf.length;
-      confidenceScore = calculateConfidenceScore(true, compCount, historicalDataPoints, true);
+      try {
+        const aiResponse = await fetch(API + "/api/rate-intelligence", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Owner-Token": localStorage.getItem("ownerToken")
+          },
+          body: JSON.stringify({
+            current_rate: currentRate,
+            competitor_rates: compData.comps || [],
+            historical_occupancy: historicalOcc,
+            dow_factor: dowFactor,
+            overall_avg_occ: overallAvgOcc
+          })
+        });
+        
+        if (aiResponse.ok) {
+          const aiResult = await aiResponse.json();
+          suggestedRate = aiResult.suggested_rate;
+          confidenceScore = aiResult.confidence_score;
+          recommendation = aiResult.recommendation;
+          confidenceLevel = aiResult.confidence_level;
+        } else {
+          throw new Error("API returned error");
+        }
+      } catch (err) {
+        console.error("AI API error:", err);
+        // Fallback calculation
+        suggestedRate = currentRate;
+        confidenceScore = 50;
+        recommendation = "AI service unavailable. Using fallback calculation.";
+        confidenceLevel = "Medium";
+      }
       
-      const percentDiff = ((suggestedRate - currentRate) / currentRate) * 100;
-      
-      if (percentDiff > 5) {
-        recommendation = `AI suggests +${Math.round(percentDiff)}% increase based on strong demand and competitor positioning`;
+      // Set background color based on recommendation
+      if (recommendation.includes("increase")) {
         bgColor = "#f0fdf4";
-      } else if (percentDiff < -5) {
-        recommendation = `AI suggests ${Math.round(percentDiff)}% decrease to stay competitive on soft demand days`;
+      } else if (recommendation.includes("decrease")) {
         bgColor = "#fef2f2";
-      } else if (percentDiff > 2) {
-        recommendation = `AI suggests slight increase (${Math.round(percentDiff)}%) - good demand expected`;
-        bgColor = "#f0fdf9";
-      } else if (percentDiff < -2) {
-        recommendation = `AI suggests slight decrease to improve competitiveness`;
-        bgColor = "#fef3c7";
       } else {
-        recommendation = `AI suggests maintaining current rate - balanced market position`;
         bgColor = "#f8fafc";
       }
     }
@@ -754,19 +752,22 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
       let demandAdjustment = 0;
       if (historicalOcc > 75) {
         demandAdjustment = 0.05;
-        recommendation = "High historical demand. Consider +5% rate increase (no competitor data available).";
+        recommendation = "High historical demand. Consider +5% rate increase.";
         bgColor = "#f0fdf4";
         confidenceScore = 45;
+        confidenceLevel = "Low";
       } else if (historicalOcc < 50) {
         demandAdjustment = -0.05;
-        recommendation = "Soft historical demand. Consider -5% rate adjustment (no competitor data available).";
+        recommendation = "Soft historical demand. Consider -5% rate adjustment.";
         bgColor = "#fef2f2";
         confidenceScore = 45;
+        confidenceLevel = "Low";
       } else {
         demandAdjustment = 0;
-        recommendation = "Moderate demand. Maintain current rate (no competitor data available).";
+        recommendation = "Moderate demand. Maintain current rate.";
         bgColor = "#fef3c7";
         confidenceScore = 40;
+        confidenceLevel = "Low";
       }
       
       suggestedRate = Math.round(currentRate * (1 + demandAdjustment) / 10) * 10;
@@ -775,8 +776,9 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
     else if (!currentRate && !compAvg) {
       rateDisplay = '<span style="color: #94a3b8;">—</span>';
       suggestedRate = null;
-      recommendation = "Insufficient data: No current rate and no competitor data available.";
+      recommendation = "Insufficient data: No rate information available.";
       confidenceScore = 0;
+      confidenceLevel = "Very Low";
       bgColor = "#f1f5f9";
     }
     // CASE 5: No current rate but have competitor data
@@ -789,16 +791,19 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
         recommendation = "High demand expected. Use competitor average +8% as guide.";
         bgColor = "#f0fdf4";
         confidenceScore = 50;
+        confidenceLevel = "Medium";
       } else if (historicalOcc < 50) {
         demandAdjustment = -0.05;
         recommendation = "Soft demand expected. Use competitor average -5% as guide.";
         bgColor = "#fef2f2";
         confidenceScore = 50;
+        confidenceLevel = "Medium";
       } else {
         demandAdjustment = 0;
-        recommendation = "Use competitor average as rate guide (no current rate provided).";
+        recommendation = "Use competitor average as rate guide.";
         bgColor = "#fef3c7";
         confidenceScore = 45;
+        confidenceLevel = "Low";
       }
       
       suggestedRate = Math.round(compAvg * (1 + demandAdjustment) / 10) * 10;
@@ -807,16 +812,16 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
     let confidenceColor = "#94a3b8";
     let confidenceDisplay = "—";
     
-    if (confidenceScore >= 80) {
+    if (confidenceLevel === "High") {
       confidenceColor = "#10b981";
       confidenceDisplay = `High ${confidenceScore}%`;
-    } else if (confidenceScore >= 60) {
+    } else if (confidenceLevel === "Medium") {
       confidenceColor = "#f59e0b";
       confidenceDisplay = `Medium ${confidenceScore}%`;
-    } else if (confidenceScore >= 30) {
+    } else if (confidenceLevel === "Low") {
       confidenceColor = "#ef4444";
       confidenceDisplay = `Low ${confidenceScore}%`;
-    } else if (confidenceScore > 0) {
+    } else if (confidenceLevel === "Very Low" && confidenceScore > 0) {
       confidenceColor = "#94a3b8";
       confidenceDisplay = `Very Low ${confidenceScore}%`;
     }
@@ -829,12 +834,12 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
         <td class="number-cell">${compAvg ? formatCurrency(compAvg) : '-'}</td>
         <td style="text-align: left; font-size: 11px; padding: 8px;">${recommendation}</td>
         <td class="number-cell"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
-        <td class="number-cell">${confidenceScore > 0 ? `<span style="background: ${confidenceColor}20; color: ${confidenceColor}; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">${confidenceDisplay}</span>` : '—'}</td>
+        <td class="number-cell">${confidenceScore > 0 ? `<span style="background: ${confidenceColor}20; color: ${confidenceColor}; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">${confidenceDisplay}</span>` : '—'}</span></strong></td>
       </tr>
     `;
-  });
+  }
   
-  html += '</tbody></table>';
+  html += '</tbody></tr>';
   document.getElementById("strategyTable").innerHTML = html;
 }
 
