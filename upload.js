@@ -86,7 +86,12 @@ localStorage.setItem("roomsAvailable", roomsInput);
         console.log("Comp rows:", payload.compset_data.length);
 
         // ── POST TO BACKEND ───────────────────────────────────────
-        fetch("http://localhost:8000/calculate_and_store", {
+        const API = window.location.hostname === 'localhost' 
+          ? "http://localhost:8000" 
+          : "https://backend-x5sw.onrender.com";
+
+        fetch(API + "/calculate_and_store", {
+        
           method : "POST",
           headers: {
             "Content-Type" : "application/json",
