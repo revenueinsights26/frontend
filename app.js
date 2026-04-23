@@ -244,9 +244,25 @@ function getSeasonalTooltip() {
 }
 
 // ─────────────────────────────────────────────
+// Fetch rolling forecast from protected backend
+// ─────────────────────────────────────────────
+async function fetchRollingForecast(hotelId, token) {
+    try {
+        const response = await fetch(API + "/api/rolling-forecast/" + hotelId, {
+            headers: { "X-Owner-Token": token }
+        });
+        const data = await response.json();
+        return data;
+    } catch (err) {
+        console.error("Error fetching rolling forecast:", err);
+        return null;
+    }
+}
+
+// ─────────────────────────────────────────────
 // Render selected month
 // ─────────────────────────────────────────────
-function renderMonth() {
+async function renderMonth() {
   const monthKey = monthKeys[currentMonthIndex];
   document.getElementById("monthLabel").textContent = formatMonthLabel(monthKey);
 
@@ -264,19 +280,19 @@ function renderMonth() {
   const variances = calculateVariances(monthKey, roomsAvailable);
   const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
   
-  let forecast = null;
-  if (shouldShowForecastRanges(monthKey)) {
-    forecast = calculateImprovedForecast(monthKey, roomsAvailable);
-  }
-
-  renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient);
+  // Get rolling forecast from backend
+  const token = localStorage.getItem("ownerToken");
+  const hotelId = localStorage.getItem("hotelId");
+  const rollingForecast = await fetchRollingForecast(hotelId, token);
+  
+  await renderMonthlyKPIs(kpis, monthKey, variances, yoySufficient, rollingForecast);
   drawTrendCharts(monthPerf, monthComp, roomsAvailable);
   drawDOWCharts(monthPerf, roomsAvailable);
   
   renderDetailedComparisonWithSnapshots(monthKey, roomsAvailable);
 }
 
-function renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient) {
+async function renderMonthlyKPIs(kpis, monthKey, variances, yoySufficient, rollingForecast) {
   const cur = localStorage.getItem("currencySymbol") || "R";
   const container = document.getElementById("kpis");
   
@@ -373,7 +389,7 @@ function renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient) {
       </div>
     </div>
     <div class="kpi">
-      <div class="label">Room Revenue</div>
+      <div class="label">Room Revenue History</div>
       <div class="value">${cur} ${fmt(kpis.revenue)}</div>
       <div class="variance-row">
         <span class="variance-label">MoM:</span> ${revenueMomDisplay}
@@ -382,42 +398,55 @@ function renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient) {
     </div>
   `;
 
-  if (forecast) {
+  // NEW: Rolling Forecast Section (from protected backend)
+  if (rollingForecast && !rollingForecast.error && rollingForecast.days_remaining > 0) {
     html += `
       <div class="card" style="grid-column:1/-1;font-size:13px;margin-top:8px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-          <strong>📊 Forecast for ${formatMonthLabel(monthKey)}</strong>
+          <strong>📊 Rolling Forecast for ${formatMonthLabel(monthKey)}</strong>
           <span style="background:#e5e7eb;padding:2px 8px;border-radius:12px;font-size:11px;">
-            Confidence: ${forecast.confidence}%
+            Confidence: ${rollingForecast.confidence}%
           </span>
+        </div>
+        
+        <div style="font-size:11px; color:#64748b; margin-bottom:12px;">
+          ${rollingForecast.note || `Based on ${rollingForecast.days_elapsed} days actual + ${rollingForecast.days_remaining} days projected`}
         </div>
         
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;">
           <div>
-            <div style="color:#6b7280;font-size:11px;">Occupancy</div>
-            <div><strong>${forecast.occupancy}%</strong></div>
-            <div style="font-size:10px;color:#6b7280;">Range: ${forecast.occupancyMin}-${forecast.occupancyMax}%</div>
+            <div style="color:#6b7280;font-size:11px;">Actual to Date</div>
+            <div><strong>${formatCurrency(rollingForecast.actual_revenue_to_date)}</strong></div>
+            <div style="font-size:10px;color:#6b7280;">${rollingForecast.days_elapsed} days elapsed</div>
           </div>
           <div>
-            <div style="color:#6b7280;font-size:11px;">ADR</div>
-            <div><strong>${cur} ${fmt(forecast.adr)}</strong></div>
-            <div style="font-size:10px;color:#6b7280;">Range: ${cur} ${fmt(forecast.adrMin)}-${fmt(forecast.adrMax)}</div>
+            <div style="color:#6b7280;font-size:11px;">Forecast Remaining</div>
+            <div><strong>${formatCurrency(rollingForecast.forecast_remaining_revenue)}</strong></div>
+            <div style="font-size:10px;color:#6b7280;">${rollingForecast.days_remaining} days left</div>
           </div>
           <div>
-            <div style="color:#6b7280;font-size:11px;">RevPAR</div>
-            <div><strong>${cur} ${fmt(forecast.revpar)}</strong></div>
-            <div style="font-size:10px;color:#6b7280;">Range: ${cur} ${fmt(forecast.revparMin)}-${fmt(forecast.revparMax)}</div>
+            <div style="color:#6b7280;font-size:11px;">Total Forecast</div>
+            <div><strong>${formatCurrency(rollingForecast.forecast_total_revenue)}</strong></div>
+            <div style="font-size:10px;color:#6b7280;">Range: ${formatCurrency(rollingForecast.forecast_total_revenue_min)}-${formatCurrency(rollingForecast.forecast_total_revenue_max)}</div>
           </div>
           <div>
-            <div style="color:#6b7280;font-size:11px;">Room Revenue</div>
-            <div><strong>${cur} ${fmt(forecast.revenue)}</strong></div>
-            <div style="font-size:10px;color:#6b7280;">Range: ${cur} ${fmt(forecast.revenueMin)}-${fmt(forecast.revenueMax)}</div>
+            <div style="color:#6b7280;font-size:11px;">Expected Month End</div>
+            <div><strong>${rollingForecast.forecast_occupancy}% Occ</strong></div>
+            <div style="font-size:10px;color:#6b7280;">ADR: ${formatCurrency(rollingForecast.forecast_adr)}</div>
           </div>
         </div>
-        
-        <div style="font-size:10px;color:#6b7280;border-top:1px solid #e5e7eb;padding-top:6px;">
-          Based on ${forecast.factors.historicalData} years of historical data 
-          ${forecast.factors.momentumApplied ? '• Recent momentum applied' : ''}
+      </div>`;
+  } else if (rollingForecast && rollingForecast.days_remaining === 0) {
+    html += `
+      <div class="card" style="grid-column:1/-1;font-size:13px;margin-top:8px;background:#f0fdf4;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong>📊 Month Complete</strong>
+          <span style="background:#e5e7eb;padding:2px 8px;border-radius:12px;font-size:11px;">
+            Final Actual: ${formatCurrency(rollingForecast.actual_revenue_to_date)}
+          </span>
+        </div>
+        <div style="font-size:11px; color:#64748b;">
+          The month is complete. Final revenue: ${formatCurrency(rollingForecast.actual_revenue_to_date)}
         </div>
       </div>`;
   }
@@ -531,143 +560,6 @@ function fmt(n) {
 function logout() {
   localStorage.clear();
   window.location.href = "index.html";
-}
-
-function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
-  const [targetYear, targetMonth] = targetMonthKey.split("-");
-  const historicalMonths = [];
-  
-  for (let i = 1; i <= 3; i++) {
-    const pastYear = String(parseInt(targetYear) - i);
-    const pastMonthKey = `${pastYear}-${targetMonth}`;
-    if (monthKeys.includes(pastMonthKey)) {
-      const pastPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(pastMonthKey));
-      if (pastPerf.length > 0) {
-        historicalMonths.push({
-          year: pastYear,
-          kpis: computeMonthlyKPIs(pastPerf, roomsAvailable)
-        });
-      }
-    }
-  }
-  
-  const recentMomentum = calculateRecentMomentum(roomsAvailable);
-  
-  if (historicalMonths.length > 0) {
-    const avgHistoricalOcc = historicalMonths.reduce((sum, h) => sum + h.kpis.occupancy, 0) / historicalMonths.length;
-    const avgHistoricalADR = historicalMonths.reduce((sum, h) => sum + h.kpis.adr, 0) / historicalMonths.length;
-    
-    const prevMonthIndex = monthKeys.indexOf(targetMonthKey) - 1;
-    let prevMonthKPIs = null;
-    if (prevMonthIndex >= 0) {
-      const prevMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKeys[prevMonthIndex]));
-      if (prevMonthPerf.length > 0) {
-        prevMonthKPIs = computeMonthlyKPIs(prevMonthPerf, roomsAvailable);
-      }
-    }
-    
-    let forecastOcc = avgHistoricalOcc;
-    let forecastADR = avgHistoricalADR;
-    
-    if (recentMomentum && prevMonthKPIs) {
-      const momentumOcc = prevMonthKPIs.occupancy * (1 + recentMomentum.occTrend);
-      const momentumADR = prevMonthKPIs.adr * (1 + recentMomentum.adrTrend);
-      forecastOcc = (forecastOcc * 0.7) + (momentumOcc * 0.3);
-      forecastADR = (forecastADR * 0.7) + (momentumADR * 0.3);
-    }
-    
-    if (historicalMonths.length >= 2) {
-      const yoyGrowthOcc = (historicalMonths[0].kpis.occupancy - historicalMonths[1].kpis.occupancy) / historicalMonths[1].kpis.occupancy;
-      const yoyGrowthADR = (historicalMonths[0].kpis.adr - historicalMonths[1].kpis.adr) / historicalMonths[1].kpis.adr;
-      
-      if (yoyGrowthOcc > 0) forecastOcc *= (1 + yoyGrowthOcc * 0.5);
-      if (yoyGrowthADR > 0) forecastADR *= (1 + yoyGrowthADR * 0.5);
-    }
-    
-    const forecastOccMin = forecastOcc * 0.85;
-    const forecastOccMax = forecastOcc * 1.15;
-    const forecastADRMin = forecastADR * 0.9;
-    const forecastADRMax = forecastADR * 1.1;
-    
-    const forecastRevPAR = (forecastOcc / 100) * forecastADR;
-    const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
-    const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
-    
-    const daysInMonth = getDaysInMonth(parseInt(targetYear), parseInt(targetMonth));
-    const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
-    const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
-    const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
-    
-    return {
-      occupancy: Math.round(forecastOcc),
-      occupancyMin: Math.round(forecastOccMin),
-      occupancyMax: Math.round(forecastOccMax),
-      adr: forecastADR,
-      adrMin: forecastADRMin,
-      adrMax: forecastADRMax,
-      revpar: forecastRevPAR,
-      revparMin: forecastRevPARMin,
-      revparMax: forecastRevPARMax,
-      revenue: forecastRevenue,
-      revenueMin: forecastRevenueMin,
-      revenueMax: forecastRevenueMax,
-      confidence: calculateConfidenceLevel(historicalMonths.length, recentMomentum),
-      factors: {
-        historicalData: historicalMonths.length,
-        momentumApplied: !!recentMomentum,
-        seasonalAdjustment: 1.0
-      }
-    };
-  }
-  
-  return null;
-}
-
-function calculateRecentMomentum(roomsAvailable) {
-  const today = new Date();
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 30);
-  
-  const sixtyDaysAgo = new Date(today);
-  sixtyDaysAgo.setDate(today.getDate() - 60);
-  
-  const recent30 = allDailyPerf.filter(r => {
-    if (!r.stay_date) return false;
-    const date = new Date(r.stay_date);
-    return date >= thirtyDaysAgo && date <= today;
-  });
-  
-  const previous30 = allDailyPerf.filter(r => {
-    if (!r.stay_date) return false;
-    const date = new Date(r.stay_date);
-    return date >= sixtyDaysAgo && date < thirtyDaysAgo;
-  });
-  
-  if (recent30.length === 0 || previous30.length === 0) return null;
-  
-  const recentKPIs = computeMonthlyKPIs(recent30, roomsAvailable);
-  const previousKPIs = computeMonthlyKPIs(previous30, roomsAvailable);
-  
-  return {
-    occTrend: (recentKPIs.occupancy - previousKPIs.occupancy) / previousKPIs.occupancy,
-    adrTrend: (recentKPIs.adr - previousKPIs.adr) / previousKPIs.adr
-  };
-}
-
-function calculateConfidenceLevel(historicalYears, momentum) {
-  let confidence = 50;
-  
-  if (historicalYears >= 3) confidence += 25;
-  else if (historicalYears >= 2) confidence += 15;
-  else if (historicalYears >= 1) confidence += 5;
-  
-  if (momentum) confidence += 10;
-  
-  return Math.min(confidence, 95);
-}
-
-function getDaysInMonth(year, month) {
-  return new Date(year, month, 0).getDate();
 }
 
 function pickForecastFromSnapshots(monthKey, snapshots) {
@@ -1009,7 +901,7 @@ async function renderDetailedComparisonWithSnapshots(currentMonthKey, roomsAvail
           <td class="number-cell">${formatCurrency(currentADR)}</td>
           <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
           <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
-        </tr>
+         </tr>
       `;
       rowIndex++;
     });
@@ -1047,13 +939,13 @@ async function renderDetailedComparisonWithSnapshots(currentMonthKey, roomsAvail
                   <th colspan="3">Occupancy %</th>
                   <th colspan="3">Room Revenue</th>
                   <th colspan="3">ADR</th>
-                </tr>
+                 </tr>
                 <tr>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
-                </tr>
+                 </tr>
               </thead>
               <tbody>
                 ${tableRows}
