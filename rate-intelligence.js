@@ -759,4 +759,141 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
     
     html += `
       <tr style="background: ${bgColor};">
-        <td class="date-cell">${displayDate}
+        <td class="date-cell">${displayDate}${todayBadge}</td>
+        <td class="dow-cell">${dow}</td>
+        <td class="number-cell">${rateDisplay}</td>
+        <td class="number-cell">${compAvg ? formatCurrency(compAvg) : '-'}</td>
+        <td style="text-align: left; font-size: 11px; padding: 8px;">${recommendation}</td>
+        <td class="number-cell"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
+        <td class="number-cell">${confidenceScore > 0 ? `<span style="background: ${confidenceColor}20; color: ${confidenceColor}; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">${confidenceDisplay}</span>` : '—'}</span></strong></td>
+      </tr>
+    `;
+  }
+  
+  html += '</tbody></table>';
+  document.getElementById("strategyTable").innerHTML = html;
+}
+
+// Helper function to calculate DOW averages
+function calculateDOWAverages(dailyData, roomsAvailable) {
+  const dowMap = { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' };
+  const dowOcc = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  const dowAdr = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  const dowCount = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  
+  dailyData.forEach(r => {
+    if (!r.stay_date) return;
+    const date = new Date(r.stay_date);
+    const dow = dowMap[date.getDay()];
+    const occ = (r.rooms_sold / roomsAvailable) * 100;
+    const adr = r.adr || (r.room_revenue / (r.rooms_sold || 1));
+    dowOcc[dow] += occ;
+    dowAdr[dow] += adr;
+    dowCount[dow]++;
+  });
+  
+  for (let d in dowOcc) {
+    if (dowCount[d] > 0) {
+      dowOcc[d] = dowOcc[d] / dowCount[d];
+      dowAdr[d] = dowAdr[d] / dowCount[d];
+    }
+  }
+  
+  return { occupancy: dowOcc, adr: dowAdr };
+}
+
+// ─────────────────────────────────────────────
+// Analysis Functions
+// ─────────────────────────────────────────────
+function analyzeDOWPatterns(perf, roomsAvailable) {
+  const dowOcc = { Mon: [], Tue: [], Wed: [], Thu: [], Fri: [], Sat: [], Sun: [] };
+  const dowMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
+  
+  perf.forEach(r => {
+    const date = new Date(r.stay_date);
+    const dow = dowMap[date.getDay()];
+    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
+    dowOcc[dow].push(occ);
+  });
+  
+  const avgOcc = {};
+  for (let day in dowOcc) {
+    avgOcc[day] = dowOcc[day].length ? dowOcc[day].reduce((a,b) => a + b, 0) / dowOcc[day].length : 0;
+  }
+  
+  const weekdayOcc = (avgOcc.Mon + avgOcc.Tue + avgOcc.Wed + avgOcc.Thu) / 4;
+  const weekendOcc = (avgOcc.Fri + avgOcc.Sat + avgOcc.Sun) / 3;
+  
+  return { weekdayOcc, weekendOcc, avgOcc };
+}
+
+function analyzeDemand(perf, roomsAvailable) {
+  const highDemandDays = [];
+  const lowDemandDays = [];
+  const dowMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
+  
+  const dowOcc = {};
+  perf.forEach(r => {
+    const date = new Date(r.stay_date);
+    const dow = dowMap[date.getDay()];
+    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
+    if (!dowOcc[dow]) dowOcc[dow] = [];
+    dowOcc[dow].push(occ);
+  });
+  
+  for (let day in dowOcc) {
+    const avg = dowOcc[day].reduce((a,b) => a + b, 0) / dowOcc[day].length;
+    if (avg > 75) highDemandDays.push(day);
+    if (avg < 50) lowDemandDays.push(day);
+  }
+  
+  return { highDemandDays, lowDemandDays };
+}
+
+function analyzeCompetitorRates(comp) {
+  let allRates = [];
+  comp.forEach(c => {
+    if (c.comps && c.comps.length > 0) {
+      allRates = allRates.concat(c.comps);
+    }
+  });
+  
+  const avgCompetitorRate = allRates.length ? allRates.reduce((a,b) => a + b, 0) / allRates.length : 1500;
+  return { avgCompetitorRate };
+}
+
+function computeMonthlyKPIs(perf, roomsAvailable) {
+  const days = perf.length;
+  const roomsSold = perf.reduce((a, r) => a + r.rooms_sold, 0);
+  const revenue = perf.reduce((a, r) => a + r.room_revenue, 0);
+  const occupancy = days ? (roomsSold / (roomsAvailable * days)) * 100 : 0;
+  const adr = roomsSold ? revenue / roomsSold : 0;
+  const revpar = days ? revenue / (roomsAvailable * days) : 0;
+  return { occupancy, adr, revpar, revenue };
+}
+
+function extractMonths(perfRows) {
+  const set = new Set();
+  perfRows.forEach(r => {
+    if (r.stay_date && /^\d{4}-\d{2}-/.test(r.stay_date))
+      set.add(r.stay_date.slice(0, 7));
+  });
+  return Array.from(set).sort();
+}
+
+function formatMonthLabel(monthKey) {
+  const [y, m] = monthKey.split("-");
+  return new Date(Number(y), Number(m) - 1, 1)
+    .toLocaleString("en-ZA", { month: "long", year: "numeric" });
+}
+
+function formatCurrency(value) {
+  const cur = localStorage.getItem("currencySymbol") || "R";
+  return `${cur} ${Math.round(value).toLocaleString()}`;
+}
+
+function getDayOfWeek(dateStr) {
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const date = new Date(dateStr);
+  return days[date.getDay()];
+}
