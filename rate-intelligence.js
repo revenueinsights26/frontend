@@ -74,41 +74,6 @@ function isTodayOrFuture(dateStr) {
 }
 
 // ─────────────────────────────────────────────
-// NEW: Call Protected Backend for Rate Intelligence
-// ─────────────────────────────────────────────
-async function getAIRateRecommendation(currentRate, competitorRates, historicalOcc, dowFactor, overallAvgOcc) {
-    const token = localStorage.getItem("ownerToken");
-    
-    const requestBody = {
-        current_rate: currentRate,
-        competitor_rates: competitorRates || [],
-        historical_occupancy: historicalOcc,
-        dow_factor: dowFactor,
-        overall_avg_occ: overallAvgOcc
-    };
-    
-    try {
-        const response = await fetch(API + "/api/rate-intelligence", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-Owner-Token": token
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            throw new Error("API call failed");
-        }
-        
-        return await response.json();
-    } catch (error) {
-        console.error("Error calling rate intelligence API:", error);
-        return null;
-    }
-}
-
-// ─────────────────────────────────────────────
 // Load Data
 // ─────────────────────────────────────────────
 function loadDashboardData() {
@@ -283,7 +248,7 @@ function generateExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorR
 }
 
 // ─────────────────────────────────────────────
-// Rate Recommendations
+// Rate Recommendations - IMPROVED with DOW analysis
 // ─────────────────────────────────────────────
 function renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrentFuture) {
   if (!isCurrentFuture) {
@@ -337,76 +302,85 @@ function renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrent
 function generateRateRecommendations(kpis, dowAnalysis, competitorRates) {
   const recommendations = [];
   
-  if (dowAnalysis.weekdayOcc < 60) {
-    recommendations.push({
-      dayType: "Weekdays (Mon-Thu)",
-      recommendation: "Historically lower occupancy. Let demand come naturally - avoid deep discounts.",
-      action: "📊 Monitor Only",
-      suggestedRate: kpis.adr * 0.98,
-      type: "neutral"
-    });
-  } else if (dowAnalysis.weekdayOcc > 75) {
-    recommendations.push({
-      dayType: "Weekdays (Mon-Thu)",
-      recommendation: "Historically strong weekday occupancy. Push rates on these days.",
-      action: "📈 Rate Increase",
-      suggestedRate: kpis.adr * 1.08,
-      type: "increase"
-    });
+  const compAvg = competitorRates.avgCompetitorRate;
+  const yourADR = kpis.adr;
+  
+  // Calculate weekend vs weekday multipliers from actual DOW analysis
+  const weekendOcc = dowAnalysis.weekendOcc;
+  const weekdayOcc = dowAnalysis.weekdayOcc;
+  
+  // Determine if weekends are strong or weak
+  let weekendMultiplier = 1.0;
+  let weekdayMultiplier = 1.0;
+  let weekendAction = "";
+  let weekdayAction = "";
+  let weekendRec = "";
+  let weekdayRec = "";
+  
+  // Weekend analysis
+  if (weekendOcc > 75) {
+    weekendMultiplier = 1.08;
+    weekendAction = "📈 Increase";
+    weekendRec = "High weekend demand. You have pricing power on weekends.";
+  } else if (weekendOcc > 60) {
+    weekendMultiplier = 1.04;
+    weekendAction = "↗️ Slight Increase";
+    weekendRec = "Good weekend demand. Consider small rate increases.";
+  } else if (weekendOcc > 45) {
+    weekendMultiplier = 1.00;
+    weekendAction = "⚖️ Maintain";
+    weekendRec = "Moderate weekend demand. Maintain current rates.";
   } else {
-    recommendations.push({
-      dayType: "Weekdays (Mon-Thu)",
-      recommendation: "Balanced historical occupancy. Maintain current strategy.",
-      action: "⚖️ Maintain",
-      suggestedRate: kpis.adr,
-      type: "neutral"
-    });
+    weekendMultiplier = 0.97;
+    weekendAction = "🎁 Value Add";
+    weekendRec = "Weekend demand is soft. Consider packages or promotions.";
   }
   
-  if (dowAnalysis.weekendOcc > 85) {
-    recommendations.push({
-      dayType: "Weekends (Fri-Sun)",
-      recommendation: "Historically very high weekend demand. Maximize revenue.",
-      action: "📈 Aggressive Increase",
-      suggestedRate: kpis.adr * 1.15,
-      type: "increase"
-    });
-  } else if (dowAnalysis.weekendOcc > 70) {
-    recommendations.push({
-      dayType: "Weekends (Fri-Sun)",
-      recommendation: "Historically good weekend demand. Slight rate increase possible.",
-      action: "📈 Moderate Increase",
-      suggestedRate: kpis.adr * 1.05,
-      type: "increase"
-    });
+  // Weekday analysis
+  if (weekdayOcc > 65) {
+    weekdayMultiplier = 1.05;
+    weekdayAction = "📈 Increase";
+    weekdayRec = "Strong weekday occupancy. You can push rates slightly.";
+  } else if (weekdayOcc > 50) {
+    weekdayMultiplier = 1.00;
+    weekdayAction = "⚖️ Maintain";
+    weekdayRec = "Moderate weekday occupancy. Maintain current strategy.";
+  } else if (weekdayOcc > 35) {
+    weekdayMultiplier = 0.98;
+    weekdayAction = "🎁 Promotions";
+    weekdayRec = "Weekday occupancy is soft. Consider corporate rates or last-minute deals.";
   } else {
-    recommendations.push({
-      dayType: "Weekends (Fri-Sun)",
-      recommendation: "Historical weekend demand is soft. Consider value-adds, not rate cuts.",
-      action: "🎁 Add Value",
-      suggestedRate: kpis.adr * 0.98,
-      type: "neutral"
-    });
+    weekdayMultiplier = 0.95;
+    weekdayAction = "📉 Discount";
+    weekdayRec = "Low weekday occupancy. Consider targeted promotions.";
   }
   
-  const priceVsComp = ((kpis.adr - competitorRates.avgCompetitorRate) / competitorRates.avgCompetitorRate) * 100;
-  if (priceVsComp < -15 && dowAnalysis.weekdayOcc > 70) {
-    recommendations.push({
-      dayType: "Competitor Positioning",
-      recommendation: "You're significantly below competitors on strong demand days.",
-      action: "📈 Raise Rates",
-      suggestedRate: competitorRates.avgCompetitorRate * 0.95,
-      type: "increase"
-    });
-  } else if (priceVsComp > 15 && kpis.occupancy < 65) {
-    recommendations.push({
-      dayType: "Competitor Positioning",
-      recommendation: "You're priced above competitors on soft demand days.",
-      action: "📉 Adjust Downward",
-      suggestedRate: competitorRates.avgCompetitorRate * 0.98,
-      type: "decrease"
-    });
+  // Competitor adjustment
+  let compAdjustment = 1.0;
+  if (yourADR < compAvg * 0.85) {
+    compAdjustment = 1.05;
+  } else if (yourADR > compAvg * 1.15) {
+    compAdjustment = 0.97;
   }
+  
+  const weekdaySuggested = Math.round(yourADR * weekdayMultiplier * compAdjustment / 10) * 10;
+  const weekendSuggested = Math.round(yourADR * weekendMultiplier * compAdjustment / 10) * 10;
+  
+  recommendations.push({
+    dayType: "Weekdays (Mon-Thu)",
+    recommendation: weekdayRec,
+    action: weekdayAction,
+    suggestedRate: weekdaySuggested,
+    type: weekdayMultiplier > 1.02 ? "increase" : (weekdayMultiplier < 0.99 ? "decrease" : "neutral")
+  });
+  
+  recommendations.push({
+    dayType: "Weekends (Fri-Sun)",
+    recommendation: weekendRec,
+    action: weekendAction,
+    suggestedRate: weekendSuggested,
+    type: weekendMultiplier > 1.02 ? "increase" : (weekendMultiplier < 0.99 ? "decrease" : "neutral")
+  });
   
   return recommendations;
 }
@@ -484,7 +458,7 @@ function analyzeRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
 }
 
 // ─────────────────────────────────────────────
-// Demand Calendar
+// Demand Calendar - ONLY SHOWS TODAY AND FUTURE DATES
 // ─────────────────────────────────────────────
 function renderDemandCalendar(demandAnalysis, monthPerf) {
   const today = new Date();
@@ -595,9 +569,9 @@ function getDayOfWeekName(dateStr) {
 }
 
 // ─────────────────────────────────────────────
-// Day Strategy Table - Calls Protected Backend
+// Day Strategy Table - Shows future dates only
 // ─────────────────────────────────────────────
-async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
+function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -606,8 +580,6 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
     checkDate.setHours(0, 0, 0, 0);
     return checkDate >= today;
   }).sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-  
-  const overallAvgOcc = monthPerf.reduce((sum, r) => sum + (r.rooms_sold / roomsAvailable) * 100, 0) / monthPerf.length;
   
   if (futureDates.length === 0 && isCurrentFuture) {
     const noDatesHtml = `
@@ -622,9 +594,12 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
     return;
   }
   
+  // Calculate DOW averages from all historical data
+  const dowAverages = calculateDOWAverages(allDailyPerf, roomsAvailable);
+  
   let html = `
     <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
-      ℹ️ AI-powered rate suggestions based on demand, competitors, and historical patterns.
+      ℹ️ Rate suggestions based on historical day-of-week patterns and competitor positioning.
     </div>
     <table class="detailed-table" style="width: 100%; border-collapse: collapse;">
       <thead>
@@ -633,7 +608,7 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
           <th>DOW</th>
           <th>Your Current Rate</th>
           <th>Comp Avg</th>
-          <th>AI Recommendation</th>
+          <th>Recommendation</th>
           <th>Suggested Rate</th>
           <th>Confidence</th>
         </tr>
@@ -661,8 +636,10 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
       ? compData.comps.reduce((a,b) => a + b, 0) / compData.comps.length 
       : null;
     
-    const dayOfWeekName = getDayOfWeekName(date);
-    const dowFactor = getDOWFactor(dayOfWeekName, monthPerf, roomsAvailable);
+    // Get DOW-specific recommendation
+    const dowName = getDayOfWeekName(date);
+    const dowOccAvg = dowAverages.occupancy[dowName] || 50;
+    const dowAdrAvg = dowAverages.adr[dowName] || 1500;
     
     let suggestedRate = null;
     let confidenceScore = 0;
@@ -698,50 +675,26 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
         bgColor = "#f1f5f9";
       }
     }
-    // CASE 2: Have both current rate and competitor data - CALL PROTECTED BACKEND
+    // CASE 2: Have both current rate and competitor data
     else if (currentRate && compAvg) {
       rateDisplay = formatCurrency(currentRate);
       
-      try {
-        const aiResponse = await fetch(API + "/api/rate-intelligence", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Owner-Token": localStorage.getItem("ownerToken")
-          },
-          body: JSON.stringify({
-            current_rate: currentRate,
-            competitor_rates: compData.comps || [],
-            historical_occupancy: historicalOcc,
-            dow_factor: dowFactor,
-            overall_avg_occ: overallAvgOcc
-          })
-        });
-        
-        if (aiResponse.ok) {
-          const aiResult = await aiResponse.json();
-          suggestedRate = aiResult.suggested_rate;
-          confidenceScore = aiResult.confidence_score;
-          recommendation = aiResult.recommendation;
-          confidenceLevel = aiResult.confidence_level;
-        } else {
-          throw new Error("API returned error");
-        }
-      } catch (err) {
-        console.error("AI API error:", err);
-        // Fallback calculation
-        suggestedRate = currentRate;
-        confidenceScore = 50;
-        recommendation = "AI service unavailable. Using fallback calculation.";
-        confidenceLevel = "Medium";
-      }
+      // Calculate suggested rate based on DOW pattern
+      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.97);
+      const compMultiplier = compAvg > currentRate * 1.05 ? 1.03 : (compAvg < currentRate * 0.95 ? 0.97 : 1.0);
       
-      // Set background color based on recommendation
-      if (recommendation.includes("increase")) {
+      suggestedRate = Math.round(currentRate * dowMultiplier * compMultiplier / 10) * 10;
+      confidenceScore = 70;
+      confidenceLevel = "Medium";
+      
+      if (dowOccAvg > 70) {
+        recommendation = `Historically high demand on ${dowName}s. Consider +${Math.round((dowMultiplier - 1) * 100)}% increase.`;
         bgColor = "#f0fdf4";
-      } else if (recommendation.includes("decrease")) {
+      } else if (dowOccAvg < 40) {
+        recommendation = `Historically soft demand on ${dowName}s. Consider value-adds or small decreases.`;
         bgColor = "#fef2f2";
       } else {
+        recommendation = `Moderate historical demand on ${dowName}s. Maintain current strategy.`;
         bgColor = "#f8fafc";
       }
     }
@@ -749,28 +702,21 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
     else if (currentRate && !compAvg) {
       rateDisplay = formatCurrency(currentRate);
       
-      let demandAdjustment = 0;
-      if (historicalOcc > 75) {
-        demandAdjustment = 0.05;
-        recommendation = "High historical demand. Consider +5% rate increase.";
-        bgColor = "#f0fdf4";
-        confidenceScore = 45;
-        confidenceLevel = "Low";
-      } else if (historicalOcc < 50) {
-        demandAdjustment = -0.05;
-        recommendation = "Soft historical demand. Consider -5% rate adjustment.";
-        bgColor = "#fef2f2";
-        confidenceScore = 45;
-        confidenceLevel = "Low";
-      } else {
-        demandAdjustment = 0;
-        recommendation = "Moderate demand. Maintain current rate.";
-        bgColor = "#fef3c7";
-        confidenceScore = 40;
-        confidenceLevel = "Low";
-      }
+      const dowMultiplier = dowOccAvg > 60 ? 1.03 : (dowOccAvg > 45 ? 1.0 : 0.98);
+      suggestedRate = Math.round(currentRate * dowMultiplier / 10) * 10;
+      confidenceScore = 55;
+      confidenceLevel = "Low";
       
-      suggestedRate = Math.round(currentRate * (1 + demandAdjustment) / 10) * 10;
+      if (dowOccAvg > 70) {
+        recommendation = `Historically high demand on ${dowName}s. Consider +${Math.round((dowMultiplier - 1) * 100)}% increase.`;
+        bgColor = "#f0fdf4";
+      } else if (dowOccAvg < 40) {
+        recommendation = `Historically soft demand on ${dowName}s. Consider value-adds.`;
+        bgColor = "#fef2f2";
+      } else {
+        recommendation = `Maintain current rate for ${dowName}s.`;
+        bgColor = "#fef3c7";
+      }
     }
     // CASE 4: No current rate and no competitor data
     else if (!currentRate && !compAvg) {
@@ -785,28 +731,13 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
     else if (!currentRate && compAvg) {
       rateDisplay = '<span style="color: #94a3b8;">—</span>';
       
-      let demandAdjustment = 0;
-      if (historicalOcc > 75) {
-        demandAdjustment = 0.08;
-        recommendation = "High demand expected. Use competitor average +8% as guide.";
-        bgColor = "#f0fdf4";
-        confidenceScore = 50;
-        confidenceLevel = "Medium";
-      } else if (historicalOcc < 50) {
-        demandAdjustment = -0.05;
-        recommendation = "Soft demand expected. Use competitor average -5% as guide.";
-        bgColor = "#fef2f2";
-        confidenceScore = 50;
-        confidenceLevel = "Medium";
-      } else {
-        demandAdjustment = 0;
-        recommendation = "Use competitor average as rate guide.";
-        bgColor = "#fef3c7";
-        confidenceScore = 45;
-        confidenceLevel = "Low";
-      }
+      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+      suggestedRate = Math.round(compAvg * dowMultiplier / 10) * 10;
+      confidenceScore = 50;
+      confidenceLevel = "Low";
       
-      suggestedRate = Math.round(compAvg * (1 + demandAdjustment) / 10) * 10;
+      recommendation = `Use competitor average as baseline, adjusted for ${dowName} demand pattern.`;
+      bgColor = "#fef3c7";
     }
     
     let confidenceColor = "#94a3b8";
@@ -828,113 +759,4 @@ async function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrent
     
     html += `
       <tr style="background: ${bgColor};">
-        <td class="date-cell">${displayDate}${todayBadge}</td>
-        <td class="dow-cell">${dow}</td>
-        <td class="number-cell">${rateDisplay}</td>
-        <td class="number-cell">${compAvg ? formatCurrency(compAvg) : '-'}</td>
-        <td style="text-align: left; font-size: 11px; padding: 8px;">${recommendation}</td>
-        <td class="number-cell"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
-        <td class="number-cell">${confidenceScore > 0 ? `<span style="background: ${confidenceColor}20; color: ${confidenceColor}; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600;">${confidenceDisplay}</span>` : '—'}</span></strong></td>
-      </tr>
-    `;
-  }
-  
-  html += '</tbody></tr>';
-  document.getElementById("strategyTable").innerHTML = html;
-}
-
-// ─────────────────────────────────────────────
-// Analysis Functions
-// ─────────────────────────────────────────────
-function analyzeDOWPatterns(perf, roomsAvailable) {
-  const dowOcc = { Mon: [], Tue: [], Wed: [], Thu: [], Fri: [], Sat: [], Sun: [] };
-  const dowMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
-  
-  perf.forEach(r => {
-    const date = new Date(r.stay_date);
-    const dow = dowMap[date.getDay()];
-    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
-    dowOcc[dow].push(occ);
-  });
-  
-  const avgOcc = {};
-  for (let day in dowOcc) {
-    avgOcc[day] = dowOcc[day].length ? dowOcc[day].reduce((a,b) => a + b, 0) / dowOcc[day].length : 0;
-  }
-  
-  const weekdayOcc = (avgOcc.Mon + avgOcc.Tue + avgOcc.Wed + avgOcc.Thu) / 4;
-  const weekendOcc = (avgOcc.Fri + avgOcc.Sat + avgOcc.Sun) / 3;
-  
-  return { weekdayOcc, weekendOcc, avgOcc };
-}
-
-function analyzeDemand(perf, roomsAvailable) {
-  const highDemandDays = [];
-  const lowDemandDays = [];
-  const dowMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
-  
-  const dowOcc = {};
-  perf.forEach(r => {
-    const date = new Date(r.stay_date);
-    const dow = dowMap[date.getDay()];
-    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
-    if (!dowOcc[dow]) dowOcc[dow] = [];
-    dowOcc[dow].push(occ);
-  });
-  
-  for (let day in dowOcc) {
-    const avg = dowOcc[day].reduce((a,b) => a + b, 0) / dowOcc[day].length;
-    if (avg > 75) highDemandDays.push(day);
-    if (avg < 50) lowDemandDays.push(day);
-  }
-  
-  return { highDemandDays, lowDemandDays };
-}
-
-function analyzeCompetitorRates(comp) {
-  let allRates = [];
-  comp.forEach(c => {
-    if (c.comps && c.comps.length > 0) {
-      allRates = allRates.concat(c.comps);
-    }
-  });
-  
-  const avgCompetitorRate = allRates.length ? allRates.reduce((a,b) => a + b, 0) / allRates.length : 1500;
-  return { avgCompetitorRate };
-}
-
-function computeMonthlyKPIs(perf, roomsAvailable) {
-  const days = perf.length;
-  const roomsSold = perf.reduce((a, r) => a + r.rooms_sold, 0);
-  const revenue = perf.reduce((a, r) => a + r.room_revenue, 0);
-  const occupancy = days ? (roomsSold / (roomsAvailable * days)) * 100 : 0;
-  const adr = roomsSold ? revenue / roomsSold : 0;
-  const revpar = days ? revenue / (roomsAvailable * days) : 0;
-  return { occupancy, adr, revpar, revenue };
-}
-
-function extractMonths(perfRows) {
-  const set = new Set();
-  perfRows.forEach(r => {
-    if (r.stay_date && /^\d{4}-\d{2}-/.test(r.stay_date))
-      set.add(r.stay_date.slice(0, 7));
-  });
-  return Array.from(set).sort();
-}
-
-function formatMonthLabel(monthKey) {
-  const [y, m] = monthKey.split("-");
-  return new Date(Number(y), Number(m) - 1, 1)
-    .toLocaleString("en-ZA", { month: "long", year: "numeric" });
-}
-
-function formatCurrency(value) {
-  const cur = localStorage.getItem("currencySymbol") || "R";
-  return `${cur} ${Math.round(value).toLocaleString()}`;
-}
-
-function getDayOfWeek(dateStr) {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const date = new Date(dateStr);
-  return days[date.getDay()];
-}
+        <td class="date-cell">${displayDate}
