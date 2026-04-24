@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revenue Insights - Admin Client List</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f4f6f8;
+            color: #1e293b;
+            padding: 28px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background: #1e293b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #0f172a;
+        }
+        
+        .btn-copy {
+            background: #2563eb;
+        }
+        
+        .btn-copy:hover {
+            background: #1d4ed8;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        
+        .client-list {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        th {
+            background: #f8fafc;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e293b;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: top;
+        }
+        
+        tr:hover {
+            background: #f8fafc;
+        }
+        
+        .token-cell {
+            font-family: monospace;
+            font-size: 11px;
+            max-width: 300px;
+            word-break: break-all;
+        }
+        
+        .copy-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            margin-left: 8px;
+        }
+        
+        .copy-btn:hover {
+            background: #cbd5e1;
+        }
+        
+        .status-active {
+            color: #15803d;
+            font-weight: 600;
+        }
+        
+        .status-inactive {
+            color: #b91c1c;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            font-size: 16px;
+            color: #64748b;
+        }
+        
+        .error {
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #fecaca;
+        }
+        
+        .badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .search-box {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 250px;
+            font-size: 14px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .tab-btn.active {
+            background: #1e293b;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Client Management</h1>
+            <div style="display: flex; gap: 12px;">
+                <input type="text" id="searchInput" class="search-box" placeholder="Search by name, email, or hotel..." onkeyup="filterTable()">
+                <button class="btn" onclick="fetchClients()">Refresh</button>
+            </div>
+        </div>
+        
+        <div id="stats" class="stats"></div>
+        
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('owners')">👤 Owners</button>
+            <button class="tab-btn" onclick="showTab('hotels')">🏨 Hotels</button>
+        </div>
+        
+        <div id="content" class="client-list">
+            <div class="loading">📊 Loading client data...</div>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://backend-x5sw.onrender.com";
+        let allOwners = [];
+        let allHotels = [];
+        let currentTab = 'owners';
+        
+        async function fetchClients() {
+            const container = document.getElementById('content');
+            const statsContainer = document.getElementById('stats');
+            
+            container.innerHTML = '<div class="loading">📊 Loading client data from server...</div>';
+            
+            try {
+                const response = await fetch(`${API}/admin/clients`);
+                const data = await response.json();
+                
+                allOwners = data.owners || [];
+                allHotels = data.hotels || [];
+                
+                // Update stats
+                statsContainer.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total_owners || 0}</div>
+                        <div class="stat-label">Total Owners</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${data.total_hotels || 0}</div>
+                        <div class="stat-label">Total Hotels</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">${allOwners.filter(o => o.is_active === 1).length}</div>
+                        <div class="stat-label">Active Owners</div>
+                    </div>
+                `;
+                
+                renderCurrentTab();
+                
+            } catch (err) {
+                container.innerHTML = `<div class="error">❌ Error: ${err.message}. Make sure the /admin/clients endpoint is added to main.py and deployed.</div>`;
+                console.error(err);
+            }
+        }
+        
+        function renderCurrentTab() {
+            if (currentTab === 'owners') {
+                renderOwners();
+            } else {
+                renderHotels();
+            }
+        }
+        
+        function renderOwners() {
+            const container = document.getElementById('content');
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            
+            const filtered = allOwners.filter(owner => 
+                owner.owner_id?.toLowerCase().includes(searchTerm) ||
+                owner.owner_name?.toLowerCase().includes(searchTerm) ||
+                owner.email?.toLowerCase().includes(searchTerm)
+            );
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No owners found</div>';
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Owner ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Token</th>
+                            <th>Status</th>
+                            <th>Tier</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const owner of filtered) {
+                const statusClass = owner.is_active === 1 ? 'status-active' : 'status-inactive';
+                const statusText = owner.is_active === 1 ? 'Active' : 'Inactive';
+                
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(owner.owner_id)}</strong></td>
+                        <td>${escapeHtml(owner.owner_name || '-')}</td>
+                        <td>${escapeHtml(owner.email || '-')}</td>
+                        <td class="token-cell">
+                            ${escapeHtml(owner.access_token?.substring(0, 20) || '-')}...
+                            <button class="copy-btn" onclick="copyToClipboard('${owner.access_token}')">Copy</button>
+                        </td>
+                        <td class="${statusClass}">${statusText}</td>
+                        <td><span class="badge">${escapeHtml(owner.service_tier || 'pro')}</span></td>
+                        <td>${formatDate(owner.created_at)}</td>
+                    </tr>
+                `;
+            }
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function renderHotels() {
+            const container = document.getElementById('content');
+            const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+            
+            const filtered = allHotels.filter(hotel => 
+                hotel.hotel_id?.toLowerCase().includes(searchTerm) ||
+                hotel.hotel_name?.toLowerCase().includes(searchTerm) ||
+                hotel.owner_id?.toLowerCase().includes(searchTerm)
+            );
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No hotels found</div>';
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hotel ID</th>
+                            <th>Hotel Name</th>
+                            <th>Owner ID</th>
+                            <th>Rooms</th>
+                            <th>Currency</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            for (const hotel of filtered) {
+                html += `
+                    <tr>
+                        <td><strong>${escapeHtml(hotel.hotel_id)}</strong></td>
+                        <td>${escapeHtml(hotel.hotel_name)}</td>
+                        <td>${escapeHtml(hotel.owner_id)}</td>
+                        <td>${hotel.rooms_available || '-'}</td>
+                        <td>${escapeHtml(hotel.currency_code)} (${escapeHtml(hotel.currency_symbol)})</td>
+                        <td>${formatDate(hotel.created_at)}</td>
+                    </tr>
+                `;
+            }
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+        
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCurrentTab();
+        }
+        
+        function filterTable() {
+            renderCurrentTab();
+        }
+        
+        function copyToClipboard(text) {
+            if (!text) return;
+            navigator.clipboard.writeText(text);
+            alert('Token copied to clipboard!');
+        }
+        
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const d = new Date(dateStr);
+                return d.toLocaleDateString('en-ZA');
+            } catch {
+                return dateStr.substring(0, 10);
+            }
+        }
+        
+        // Load on page open
+        fetchClients();
+    </script>
+</body>
+</html>
