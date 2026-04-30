@@ -103,7 +103,10 @@ async function renderMonthForDate(date) {
     // Pure future month with zero uploaded data -> full API forecast mode
     await renderForecastForMonth(monthKey, monthName);
     document.getElementById("dowSection").hidden = true;
-    document.getElementById("detailedSection").hidden = true;
+    // Still render the correct month's empty calendar so stale data from a
+    // previously viewed month doesn't linger in the DOM
+    renderDetailedComparisonForMonth(monthKey, [], roomsAvailable);
+    document.getElementById("detailedSection").hidden = false;
   } else if (hasData) {
     // Month has uploaded data (current month with partial data, or historical)
     const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
@@ -139,6 +142,10 @@ async function renderMonthForDate(date) {
 // Render detailed comparison for a specific month
 // ─────────────────────────────────────────────
 function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roomsAvailable) {
+  // Always clear the container first so stale content from a prior month never shows
+  const existingContainer = document.getElementById("detailedContainer");
+  if (existingContainer) existingContainer.innerHTML = '';
+
   // Build a map of loaded data keyed by day number so we can look up any day
   const currentDayMap = new Map();
   if (currentMonthPerf && currentMonthPerf.length > 0) {
