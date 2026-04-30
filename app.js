@@ -100,26 +100,37 @@ async function renderMonthForDate(date) {
   const isFutureNoData = !hasData && monthDate > today;
 
   if (isFutureNoData) {
+    // Pure future month with zero uploaded data -> full API forecast mode
     await renderForecastForMonth(monthKey, monthName);
     document.getElementById("dowSection").hidden = true;
     document.getElementById("detailedSection").hidden = true;
-  } else {
-    // Show KPIs (with forecast overlay for current/future months)
-    if (hasData) {
-      const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
-      const variances = calculateVariances(monthKey, roomsAvailable);
-      const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
-      renderMonthlyKPIs(kpis, monthKey, variances, null, yoySufficient);
-      drawTrendCharts(monthPerf, monthComp, roomsAvailable);
-      drawDOWCharts(monthPerf, roomsAvailable);
-      document.getElementById("dowSection").hidden = false;
-    } else {
-      // Past month with no data — still show the empty calendar table
-      await renderForecastForMonth(monthKey, monthName);
-      document.getElementById("dowSection").hidden = true;
+  } else if (hasData) {
+    // Month has uploaded data (current month with partial data, or historical)
+    const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
+    const variances = calculateVariances(monthKey, roomsAvailable);
+    const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
+
+    // FIX: compute the 4-branch local forecast for current/future months
+    let forecast = null;
+    if (shouldShowForecastRanges(monthKey)) {
+      forecast = calculateImprovedForecast(monthKey, roomsAvailable);
     }
-    // Always render the full calendar detail table
+
+    renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient);
+
+    // FIX: always draw actual day-by-day trend charts when data exists
+    drawTrendCharts(monthPerf, monthComp, roomsAvailable);
+    drawDOWCharts(monthPerf, roomsAvailable);
+
     renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
+
+    document.getElementById("dowSection").hidden = false;
+    document.getElementById("detailedSection").hidden = false;
+  } else {
+    // Past month with no uploaded data - show empty calendar table
+    await renderForecastForMonth(monthKey, monthName);
+    document.getElementById("dowSection").hidden = true;
+    renderDetailedComparisonForMonth(monthKey, [], roomsAvailable);
     document.getElementById("detailedSection").hidden = false;
   }
 }
