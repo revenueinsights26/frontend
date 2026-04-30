@@ -21,20 +21,20 @@
     /* ===== VIDEO BACKGROUND STYLES ===== */
     .video-background {
       position: fixed;
-      top: 0;
+      top: 80px;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 80px);
       object-fit: cover;
       z-index: -2;
     }
     
     .video-overlay {
       position: fixed;
-      top: 0;
+      top: 80px;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: calc(100% - 80px);
       background: rgba(0, 0, 0, 0.66);
       z-index: -1;
     }
@@ -48,11 +48,11 @@
       z-index: 1;
     }
     
+    /* Header - SOLID WHITE, no video behind it */
     .header {
       padding: 20px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #e2e8f0;
+      background: #ffffff;
       position: sticky;
       top: 0;
       z-index: 100;
@@ -88,7 +88,7 @@
     .logo-text {
       font-size: 22px;
       font-weight: 700;
-      color: #ffffff;
+      color: #1e293b;
     }
     
     .logo-text span {
@@ -97,7 +97,7 @@
     
     .tagline {
       font-size: 11px;
-      color: #94a3b8;
+      color: #64748b;
       letter-spacing: 0.3px;
     }
     
@@ -109,31 +109,34 @@
     
     .nav-links a {
       text-decoration: none;
-      color: #cbd5e1;
+      color: #475569;
       font-size: 14px;
     }
     
     .nav-links a:hover {
-      color: #ffffff;
+      color: #1e293b;
     }
     
     .btn-login {
       padding: 8px 20px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: 1px solid #cbd5e1;
       border-radius: 8px;
-      background: rgba(255,255,255,0.1);
+      background: white;
       cursor: pointer;
       font-size: 14px;
-      color: #ffffff;
+      color: #1e293b;
     }
     
     .btn-login:hover {
-      background: rgba(255,255,255,0.2);
+      background: #f8fafc;
     }
     
+    /* Hero section - video visible here */
     .hero {
       text-align: center;
       padding: 60px 0 40px;
+      position: relative;
+      z-index: 1;
     }
     
     .hero h1 {
@@ -149,7 +152,7 @@
     
     .hero p {
       font-size: 18px;
-      color: #cbd5e1;
+      color: #e2e8f0;
       max-width: 600px;
       margin: 0 auto 24px;
     }
@@ -195,12 +198,12 @@
     
     .no-credit {
       font-size: 13px;
-      color: #94a3b8;
+      color: #cbd5e1;
     }
     
     .trust-tagline {
       font-size: 13px;
-      color: #94a3b8;
+      color: #cbd5e1;
       margin-top: 16px;
     }
     
@@ -217,9 +220,10 @@
       align-items: center;
       gap: 8px;
       font-size: 13px;
-      color: #94a3b8;
+      color: #cbd5e1;
     }
     
+    /* All sections below header - semi-transparent to show video */
     .screenshot-section {
       background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(5px);
@@ -238,7 +242,7 @@
     
     .section-subtitle {
       text-align: center;
-      color: #94a3b8;
+      color: #cbd5e1;
       margin-bottom: 48px;
       font-size: 16px;
     }
@@ -252,7 +256,7 @@
     }
     
     .screenshot-card {
-      background: rgba(30, 30, 30, 0.8);
+      background: rgba(30, 30, 40, 0.8);
       border-radius: 16px;
       overflow: hidden;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
@@ -763,7 +767,7 @@
 </head>
 <body>
 
-<!-- ===== VIDEO BACKGROUND ===== -->
+<!-- ===== VIDEO BACKGROUND (starts below header at 80px) ===== -->
 <video class="video-background" autoplay muted loop playsinline>
     <source src="https://res.cloudinary.com/dms2czmfd/video/upload/v1777541441/dashboardvideo_qybbfn.mp4" type="video/mp4">
     Your browser does not support the video tag.
