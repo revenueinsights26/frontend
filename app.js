@@ -1,4 +1,4 @@
-console.log("app.js loaded - WITH FORECAST FOR FUTURE MONTHS");
+console.log("app.js loaded - WITH FORECAST FOR FUTURE MONTHS & FIXED DETAILS");
 
 // ─────────────────────────────────────────────
 // Config
@@ -16,7 +16,7 @@ let allDailyComp = [];
 
 let monthKeys = [];
 let currentMonthIndex = 0;
-let currentDisplayMonth = null; // For navigating beyond data
+let currentDisplayMonth = null;
 
 let occChart    = null;
 let adrChart    = null;
@@ -41,10 +41,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnLoad").addEventListener("click", loadDashboard);
   document.getElementById("btnLogout").addEventListener("click", logout);
 
-  // FIXED: Enhanced month navigation that goes beyond data
   document.getElementById("prevMonth").addEventListener("click", () => {
     if (currentDisplayMonth) {
-      // Navigate in display mode
       currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() - 1);
       renderMonthForDate(currentDisplayMonth);
     } else if (currentMonthIndex > 0) { 
@@ -55,14 +53,12 @@ document.addEventListener("DOMContentLoaded", () => {
   
   document.getElementById("nextMonth").addEventListener("click", () => {
     if (currentDisplayMonth) {
-      // Navigate in display mode
       currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() + 1);
       renderMonthForDate(currentDisplayMonth);
     } else if (currentMonthIndex < monthKeys.length - 1) { 
       currentMonthIndex++; 
       renderMonth(); 
-    } else {
-      // Past last data month - switch to forecast mode
+    } else if (monthKeys.length > 0) {
       const lastMonthKey = monthKeys[monthKeys.length - 1];
       const [lastYear, lastMonthNum] = lastMonthKey.split('-').map(Number);
       currentDisplayMonth = new Date(lastYear, lastMonthNum - 1, 1);
@@ -83,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─────────────────────────────────────────────
-// NEW: Render month for any date (including future)
+// Render month for any date (including future)
 // ─────────────────────────────────────────────
 async function renderMonthForDate(date) {
   const year = date.getFullYear();
@@ -93,14 +89,12 @@ async function renderMonthForDate(date) {
   
   document.getElementById("monthLabel").textContent = monthName;
   
-  // Check if we have data for this month
   const hasData = allDailyPerf.some(r => r.stay_date && r.stay_date.startsWith(monthKey));
   
   if (hasData) {
-    // Load historical data
     const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
     const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
-    const roomsAvailable = 6; // Your hotel has 6 rooms
+    const roomsAvailable = 6;
     
     const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
     const variances = calculateVariances(monthKey, roomsAvailable);
@@ -109,22 +103,228 @@ async function renderMonthForDate(date) {
     renderMonthlyKPIs(kpis, monthKey, variances, null, yoySufficient);
     drawTrendCharts(monthPerf, monthComp, roomsAvailable);
     drawDOWCharts(monthPerf, roomsAvailable);
-    renderDetailedComparisonWithSnapshots(monthKey, roomsAvailable);
+    
+    // Show detailed comparison for this specific month
+    renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
+    
+    document.getElementById("dowSection").hidden = false;
+    document.getElementById("detailedSection").hidden = false;
   } else {
-    // Load FORECAST from backend
     await renderForecastForMonth(monthKey, monthName);
+    document.getElementById("dowSection").hidden = true;
+    document.getElementById("detailedSection").hidden = true;
   }
 }
 
 // ─────────────────────────────────────────────
-// NEW: Render forecast for month with no data
+// Render detailed comparison for a specific month
+// ─────────────────────────────────────────────
+function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roomsAvailable) {
+  if (!currentMonthPerf || currentMonthPerf.length === 0) {
+    showNoComparisonMessage();
+    return;
+  }
+  
+  // Sort by date
+  currentMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
+  
+  // Find previous month data (same month from previous year or previous month)
+  const [year, month] = currentMonthKey.split('-');
+  const prevYear = String(parseInt(year) - 1);
+  const prevYearMonthKey = `${prevYear}-${month}`;
+  let previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevYearMonthKey));
+  
+  // If no previous year data, try previous month
+  if (previousMonthPerf.length === 0) {
+    const currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    const prevMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+    previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevMonthKey));
+  }
+  
+  previousMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
+  
+  // Create map of previous data by day of month
+  const prevMonthMap = new Map();
+  previousMonthPerf.forEach(day => {
+    const dayNum = parseInt(day.stay_date.split("-")[2]);
+    prevMonthMap.set(dayNum, day);
+  });
+  
+  let tableRows = '';
+  let totals = {
+    currentRooms: 0,
+    prevRooms: 0,
+    currentRevenue: 0,
+    prevRevenue: 0,
+    daysWithData: 0
+  };
+  
+  let rowIndex = 0;
+  
+  for (const currentDay of currentMonthPerf) {
+    const date = currentDay.stay_date;
+    const dayNum = parseInt(date.split("-")[2]);
+    const dow = getDayOfWeek(date);
+    
+    const currentRooms = currentDay.rooms_sold || 0;
+    const currentRevenue = currentDay.room_revenue || 0;
+    const currentOccPct = roomsAvailable > 0 ? (currentRooms / roomsAvailable) * 100 : 0;
+    const currentADR = currentRooms > 0 ? currentRevenue / currentRooms : 0;
+    
+    let prevRooms = 0;
+    let prevRevenue = 0;
+    let prevOccPct = 0;
+    let prevADR = 0;
+    let hasPrevData = false;
+    
+    if (prevMonthMap.has(dayNum)) {
+      const prevDay = prevMonthMap.get(dayNum);
+      prevRooms = prevDay.rooms_sold || 0;
+      prevRevenue = prevDay.room_revenue || 0;
+      prevOccPct = roomsAvailable > 0 ? (prevRooms / roomsAvailable) * 100 : 0;
+      prevADR = prevRooms > 0 ? prevRevenue / prevRooms : 0;
+      hasPrevData = true;
+    }
+    
+    const roomsPickup = currentRooms - prevRooms;
+    const occPickup = currentOccPct - prevOccPct;
+    const revenuePickup = currentRevenue - prevRevenue;
+    const adrPickup = currentADR - prevADR;
+    
+    totals.currentRooms += currentRooms;
+    totals.currentRevenue += currentRevenue;
+    totals.daysWithData++;
+    
+    if (hasPrevData) {
+      totals.prevRooms += prevRooms;
+      totals.prevRevenue += prevRevenue;
+    }
+    
+    const roomsPickupClass = roomsPickup > 0 ? 'pickup-positive' : (roomsPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
+    const occPickupClass = occPickup > 0 ? 'pickup-positive' : (occPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
+    const revenuePickupClass = revenuePickup > 0 ? 'pickup-positive' : (revenuePickup < 0 ? 'pickup-negative' : 'pickup-neutral');
+    const adrPickupClass = adrPickup > 0 ? 'pickup-positive' : (adrPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
+    
+    const rowClass = rowIndex % 2 === 0 ? 'table-row-even' : 'table-row-odd';
+    
+    tableRows += `
+      <tr class="${rowClass}">
+        <td class="date-cell">${formatDateDisplay(date)}</td>
+        <td class="dow-cell">${dow}</td>
+        <td class="number-cell">${currentRooms}</td>
+        <td class="number-cell">${hasPrevData ? prevRooms : '-'}</td>
+        <td class="pickup-cell ${roomsPickupClass}">${hasPrevData ? formatPickup(roomsPickup) : '-'}</td>
+        <td class="number-cell">${currentOccPct.toFixed(1)}%</td>
+        <td class="number-cell">${hasPrevData ? prevOccPct.toFixed(1) + '%' : '-'}</td>
+        <td class="pickup-cell ${occPickupClass}">${hasPrevData ? formatPickup(occPickup, true) : '-'}</td>
+        <td class="number-cell">${formatCurrency(currentRevenue)}</td>
+        <td class="number-cell">${hasPrevData ? formatCurrency(prevRevenue) : '-'}</td>
+        <td class="pickup-cell ${revenuePickupClass}">${hasPrevData ? formatPickup(revenuePickup) : '-'}</td>
+        <td class="number-cell">${formatCurrency(currentADR)}</td>
+        <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
+        <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
+      </tr>
+    `;
+    rowIndex++;
+  }
+  
+  const avgCurrentOcc = totals.daysWithData > 0 ? (totals.currentRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
+  const avgPrevOcc = totals.daysWithData > 0 && totals.prevRooms > 0 ? (totals.prevRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
+  const avgCurrentADR = totals.currentRooms > 0 ? totals.currentRevenue / totals.currentRooms : 0;
+  const avgPrevADR = totals.prevRooms > 0 ? totals.prevRevenue / totals.prevRooms : 0;
+  
+  const totalRoomsPickup = totals.currentRooms - totals.prevRooms;
+  const totalOccPickup = avgCurrentOcc - avgPrevOcc;
+  const totalRevenuePickup = totals.currentRevenue - totals.prevRevenue;
+  const totalADRPickup = avgCurrentADR - avgPrevADR;
+  
+  const uniqueId = `detailed-table-${Date.now()}`;
+  
+  const tableHTML = `
+    <div class="detailed-section">
+      <div class="detailed-header" onclick="toggleDetailedTable('${uniqueId}')">
+        <h2 style="margin:0; cursor:pointer;">
+          📋 Day-by-Day Detailed Overview 
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <p class="subtle" style="margin:5px 0 0;">Click to expand/collapse</p>
+      </div>
+      <div id="${uniqueId}" class="detailed-content" style="display: block;">
+        <div class="table-wrapper">
+          <table class="detailed-table">
+            <thead>
+              <tr>
+                <th rowspan="2">Date</th>
+                <th rowspan="2">DOW</th>
+                <th colspan="3">Rooms Sold</th>
+                <th colspan="3">Occupancy %</th>
+                <th colspan="3">Room Revenue</th>
+                <th colspan="3">ADR</th>
+              </tr>
+              <tr>
+                <th>Current</th><th>Prev</th><th>Pickup</th>
+                <th>Current</th><th>Prev</th><th>Pickup</th>
+                <th>Current</th><th>Prev</th><th>Pickup</th>
+                <th>Current</th><th>Prev</th><th>Pickup</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+            <tfoot>
+              <tr class="totals-row">
+                <td colspan="2"><strong>TOTALS / AVG</strong></td>
+                <td class="number-cell"><strong>${totals.currentRooms}</strong></td>
+                <td class="number-cell"><strong>${totals.prevRooms > 0 ? totals.prevRooms : '-'}</strong></td>
+                <td class="pickup-cell ${totalRoomsPickup > 0 ? 'pickup-positive' : (totalRoomsPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
+                  <strong>${totals.prevRooms > 0 ? formatPickup(totalRoomsPickup) : '-'}</strong>
+                </td>
+                <td class="number-cell"><strong>${avgCurrentOcc.toFixed(1)}%</strong></td>
+                <td class="number-cell"><strong>${totals.prevRooms > 0 ? avgPrevOcc.toFixed(1) + '%' : '-'}</strong></td>
+                <td class="pickup-cell ${totalOccPickup > 0 ? 'pickup-positive' : (totalOccPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
+                  <strong>${totals.prevRooms > 0 ? formatPickup(totalOccPickup, true) : '-'}</strong>
+                </td>
+                <td class="number-cell"><strong>${formatCurrency(totals.currentRevenue)}</strong></td>
+                <td class="number-cell"><strong>${totals.prevRevenue > 0 ? formatCurrency(totals.prevRevenue) : '-'}</strong></td>
+                <td class="pickup-cell ${totalRevenuePickup > 0 ? 'pickup-positive' : (totalRevenuePickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
+                  <strong>${totals.prevRevenue > 0 ? formatPickup(totalRevenuePickup) : '-'}</strong>
+                </td>
+                <td class="number-cell"><strong>${formatCurrency(avgCurrentADR)}</strong></td>
+                <td class="number-cell"><strong>${totals.prevRooms > 0 ? formatCurrency(avgPrevADR) : '-'}</strong></td>
+                <td class="pickup-cell ${totalADRPickup > 0 ? 'pickup-positive' : (totalADRPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
+                  <strong>${totals.prevRooms > 0 ? formatPickup(totalADRPickup) : '-'}</strong>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  let detailedContainer = document.getElementById("detailedContainer");
+  if (!detailedContainer) {
+    detailedContainer = document.createElement("div");
+    detailedContainer.id = "detailedContainer";
+    const dowSection = document.getElementById("dowSection");
+    if (dowSection) {
+      dowSection.insertAdjacentElement('afterend', detailedContainer);
+    }
+  }
+  if (detailedContainer) {
+    detailedContainer.innerHTML = tableHTML;
+  }
+}
+
+// ─────────────────────────────────────────────
+// Render forecast for month with no data
 // ─────────────────────────────────────────────
 async function renderForecastForMonth(monthKey, monthName) {
   const token = localStorage.getItem("ownerToken");
   const hotelId = localStorage.getItem("hotelId") || "ELLIPSE001";
   const roomsAvailable = 6;
   
-  // Show loading
   const container = document.getElementById("kpis");
   if (container) {
     container.innerHTML = `<div class="card" style="grid-column:1/-1; text-align:center; padding:40px;">🔮 Loading forecast for ${monthName}...</div>`;
@@ -146,7 +346,6 @@ async function renderForecastForMonth(monthKey, monthName) {
     
     const forecast = await response.json();
     
-    // Display forecast KPIs
     const cur = localStorage.getItem("currencySymbol") || "R";
     const forecastOcc = forecast.forecast_occupancy;
     const forecastAdrMin = forecast.forecast_adr_min;
@@ -169,7 +368,6 @@ async function renderForecastForMonth(monthKey, monthName) {
       confidenceText = "Low Confidence";
     }
     
-    // Calculate estimated revenue
     const daysInMonth = new Date(parseInt(monthKey.split('-')[0]), parseInt(monthKey.split('-')[1]), 0).getDate();
     const estimatedRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
     
@@ -225,7 +423,6 @@ async function renderForecastForMonth(monthKey, monthName) {
       container.innerHTML = html;
     }
     
-    // Show message in charts area
     const chartsContainer = document.getElementById("charts");
     if (chartsContainer) {
       chartsContainer.innerHTML = `
@@ -246,13 +443,6 @@ async function renderForecastForMonth(monthKey, monthName) {
       `;
     }
     
-    // Hide DOW section and detailed section for forecast months
-    const dowSection = document.getElementById("dowSection");
-    if (dowSection) dowSection.hidden = true;
-    const detailedSection = document.getElementById("detailedSection");
-    if (detailedSection) detailedSection.hidden = true;
-    
-    // Show month nav
     document.getElementById("monthNav").hidden = false;
     document.getElementById("kpis").hidden = false;
     document.getElementById("charts").hidden = false;
@@ -363,88 +553,10 @@ function fetchDailyAndPrepare(snapshotId) {
     }
     
     currentMonthIndex = currentMonthIdx;
-    currentDisplayMonth = null; // Reset display mode
+    currentDisplayMonth = null;
     renderMonth();
   })
   .catch(err => console.error("Daily fetch error:", err));
-}
-
-// ─────────────────────────────────────────────
-// Helper functions for variance display
-// ─────────────────────────────────────────────
-function getPreviousMonthName(currentMonthKey) {
-  const currentIndex = monthKeys.indexOf(currentMonthKey);
-  if (currentIndex > 0) {
-    const prevMonthKey = monthKeys[currentIndex - 1];
-    return formatMonthLabel(prevMonthKey);
-  }
-  return null;
-}
-
-function getYoYMonthName(currentMonthKey) {
-  const [year, month] = currentMonthKey.split("-");
-  const prevYear = String(parseInt(year) - 1);
-  return formatMonthLabel(`${prevYear}-${month}`);
-}
-
-function isYoYDataSufficient(currentMonthKey, roomsAvailable) {
-  const [currentYear, currentMonth] = currentMonthKey.split("-");
-  const prevYear = String(parseInt(currentYear) - 1);
-  const yoyMonthKey = `${prevYear}-${currentMonth}`;
-  
-  if (!monthKeys.includes(yoyMonthKey)) return false;
-  
-  const currentPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(currentMonthKey));
-  const yoyPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(yoyMonthKey));
-  
-  if (yoyPerf.length === 0) return false;
-  
-  const currentDayCount = currentPerf.length;
-  const yoyDayCount = yoyPerf.length;
-  
-  return yoyDayCount >= currentDayCount * 0.6;
-}
-
-function shouldShowForecastRanges(monthKey) {
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
-  
-  const [year, month] = monthKey.split("-").map(Number);
-  
-  if (year > currentYear) return true;
-  if (year === currentYear && month >= currentMonth) return true;
-  return false;
-}
-
-function formatVariance(value, isPercentage = false, higherIsBetter = true, context = null) {
-  if (value === null || value === undefined) {
-    return '<span class="variance-value na">N/A</span>';
-  }
-  
-  const absValue = Math.abs(value);
-  const formattedValue = isPercentage ? absValue.toFixed(1) + '%' : 'R ' + fmt(absValue);
-  const sign = value > 0 ? '+' : '';
-  const fullText = sign + formattedValue;
-  
-  let colorClass = 'neu';
-  if (value !== 0) {
-    if (higherIsBetter) {
-      colorClass = value > 0 ? 'pos' : 'neg';
-    } else {
-      colorClass = value < 0 ? 'pos' : 'neg';
-    }
-  }
-  
-  if (context) {
-    return `<span class="variance-value ${colorClass}">${fullText}</span> <span style="font-size: 9px; color: #94a3b8;">${context}</span>`;
-  }
-  
-  return `<span class="variance-value ${colorClass}">${fullText}</span>`;
-}
-
-function getSeasonalTooltip() {
-  return `<span class="tooltip-icon" title="MoM compares this month to previous month. Normal seasonal patterns are expected.">?</span>`;
 }
 
 // ─────────────────────────────────────────────
@@ -462,7 +574,7 @@ function renderMonth() {
     return; 
   }
 
-  const roomsAvailable = 6; // Fixed: ELLIPSE001 has 6 rooms
+  const roomsAvailable = 6;
   const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
   
   const variances = calculateVariances(monthKey, roomsAvailable);
@@ -477,9 +589,9 @@ function renderMonth() {
   drawTrendCharts(monthPerf, monthComp, roomsAvailable);
   drawDOWCharts(monthPerf, roomsAvailable);
   
-  renderDetailedComparisonWithSnapshots(monthKey, roomsAvailable);
+  // Use the new detailed comparison function
+  renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
   
-  // Ensure DOW and detailed sections are visible
   document.getElementById("dowSection").hidden = false;
   document.getElementById("detailedSection").hidden = false;
 }
@@ -715,6 +827,51 @@ function getDayOfWeek(dateStr) {
   return days[date.getDay()];
 }
 
+function getPreviousMonthName(currentMonthKey) {
+  const currentIndex = monthKeys.indexOf(currentMonthKey);
+  if (currentIndex > 0) {
+    const prevMonthKey = monthKeys[currentIndex - 1];
+    return formatMonthLabel(prevMonthKey);
+  }
+  return null;
+}
+
+function getYoYMonthName(currentMonthKey) {
+  const [year, month] = currentMonthKey.split("-");
+  const prevYear = String(parseInt(year) - 1);
+  return formatMonthLabel(`${prevYear}-${month}`);
+}
+
+function isYoYDataSufficient(currentMonthKey, roomsAvailable) {
+  const [currentYear, currentMonth] = currentMonthKey.split("-");
+  const prevYear = String(parseInt(currentYear) - 1);
+  const yoyMonthKey = `${prevYear}-${currentMonth}`;
+  
+  if (!monthKeys.includes(yoyMonthKey)) return false;
+  
+  const currentPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(currentMonthKey));
+  const yoyPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(yoyMonthKey));
+  
+  if (yoyPerf.length === 0) return false;
+  
+  const currentDayCount = currentPerf.length;
+  const yoyDayCount = yoyPerf.length;
+  
+  return yoyDayCount >= currentDayCount * 0.6;
+}
+
+function shouldShowForecastRanges(monthKey) {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  
+  const [year, month] = monthKey.split("-").map(Number);
+  
+  if (year > currentYear) return true;
+  if (year === currentYear && month >= currentMonth) return true;
+  return false;
+}
+
 function formatDateDisplay(dateStr) {
   const [year, month, day] = dateStr.split("-");
   return `${day}/${month}`;
@@ -730,6 +887,36 @@ function formatPickup(value, isPercentage = false) {
   const absValue = Math.abs(value);
   const formatted = isPercentage ? absValue.toFixed(1) + '%' : fmt(absValue);
   return `${sign}${formatted}`;
+}
+
+function formatVariance(value, isPercentage = false, higherIsBetter = true, context = null) {
+  if (value === null || value === undefined) {
+    return '<span class="variance-value na">N/A</span>';
+  }
+  
+  const absValue = Math.abs(value);
+  const formattedValue = isPercentage ? absValue.toFixed(1) + '%' : 'R ' + fmt(absValue);
+  const sign = value > 0 ? '+' : '';
+  const fullText = sign + formattedValue;
+  
+  let colorClass = 'neu';
+  if (value !== 0) {
+    if (higherIsBetter) {
+      colorClass = value > 0 ? 'pos' : 'neg';
+    } else {
+      colorClass = value < 0 ? 'pos' : 'neg';
+    }
+  }
+  
+  if (context) {
+    return `<span class="variance-value ${colorClass}">${fullText}</span> <span style="font-size: 9px; color: #94a3b8;">${context}</span>`;
+  }
+  
+  return `<span class="variance-value ${colorClass}">${fullText}</span>`;
+}
+
+function getSeasonalTooltip() {
+  return `<span class="tooltip-icon" title="MoM compares this month to previous month. Normal seasonal patterns are expected.">?</span>`;
 }
 
 function fmt(n) {
@@ -777,18 +964,16 @@ function calculateRecentMomentum(roomsAvailable) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 4-BRANCH FORECAST FUNCTION (KEEP EXISTING)
+// 4-BRANCH FORECAST FUNCTION
 // ─────────────────────────────────────────────────────────────
 function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
     const [targetYear, targetMonth] = targetMonthKey.split("-");
     const targetMonthNum = parseInt(targetMonth);
     const targetYearNum = parseInt(targetYear);
     
-    // Get current month's performance data
     const currentMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(targetMonthKey));
     const currentKPIs = computeMonthlyKPIs(currentMonthPerf, roomsAvailable);
     
-    // Get all historical data for this month from previous years
     const historicalMonths = [];
     for (let i = 1; i <= 2; i++) {
         const pastYear = String(targetYearNum - i);
@@ -804,15 +989,9 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         }
     }
     
-    // Get total days of historical data
     const totalHistoricalDays = allDailyPerf.length;
-    
-    // Calculate recent momentum (last 30 days vs previous 30 days)
     const recentMomentum = calculateRecentMomentum(roomsAvailable);
     
-    // ─────────────────────────────────────────────────────────────
-    // BRANCH 1: Has historical data for same month last year
-    // ─────────────────────────────────────────────────────────────
     if (historicalMonths.length >= 1) {
         const avgHistoricalOcc = historicalMonths.reduce((sum, h) => sum + h.kpis.occupancy, 0) / historicalMonths.length;
         const avgHistoricalADR = historicalMonths.reduce((sum, h) => sum + h.kpis.adr, 0) / historicalMonths.length;
@@ -869,10 +1048,6 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
             }
         };
     }
-    
-    // ─────────────────────────────────────────────────────────────
-    // BRANCH 2: Has at least 90 days of data
-    // ─────────────────────────────────────────────────────────────
     else if (totalHistoricalDays >= 90) {
         const dowOcc = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
         const dowAdr = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
@@ -935,6 +1110,7 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
         const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
         
+        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
         const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
         const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
         const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
@@ -960,10 +1136,6 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
             }
         };
     }
-    
-    // ─────────────────────────────────────────────────────────────
-    // BRANCH 3: Has 30-90 days of data
-    // ─────────────────────────────────────────────────────────────
     else if (totalHistoricalDays >= 30) {
         const last30Days = allDailyPerf.slice(-30);
         const last30KPIs = computeMonthlyKPIs(last30Days, roomsAvailable);
@@ -1011,10 +1183,6 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
             }
         };
     }
-    
-    // ─────────────────────────────────────────────────────────────
-    // BRANCH 4: Less than 30 days of data
-    // ─────────────────────────────────────────────────────────────
     else {
         let forecastOcc = currentKPIs.occupancy;
         let forecastADR = currentKPIs.adr;
@@ -1278,237 +1446,6 @@ function chartOptions(yLabel) {
       y: { title: { display: true, text: yLabel, font: { size: 11 } }, ticks: { font: { size: 10 } } }
     }
   };
-}
-
-async function renderDetailedComparisonWithSnapshots(currentMonthKey, roomsAvailable) {
-  const token = localStorage.getItem("ownerToken");
-  const hotelId = localStorage.getItem("hotelId");
-  
-  try {
-    const snapshotsResponse = await fetch(API + "/hotel_dashboard_history/" + hotelId, {
-      headers: { "X-Owner-Token": token }
-    });
-    const allSnapshotsList = await snapshotsResponse.json();
-    
-    if (!allSnapshotsList || allSnapshotsList.length < 2) {
-      showNoComparisonMessage();
-      return;
-    }
-    
-    const currentSnapshot = allSnapshotsList[allSnapshotsList.length - 1];
-    const previousSnapshot = allSnapshotsList[allSnapshotsList.length - 2];
-    
-    const currentDailyResponse = await fetch(API + "/daily_by_snapshot/" + currentSnapshot.snapshot_id, {
-      headers: { "X-Owner-Token": token }
-    });
-    const currentDailyData = await currentDailyResponse.json();
-    const currentMonthPerf = currentDailyData.performance.filter(r => r.stay_date && r.stay_date.startsWith(currentMonthKey));
-    currentMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-    
-    const previousDailyResponse = await fetch(API + "/daily_by_snapshot/" + previousSnapshot.snapshot_id, {
-      headers: { "X-Owner-Token": token }
-    });
-    const previousDailyData = await previousDailyResponse.json();
-    
-    let previousMonthPerf = previousDailyData.performance.filter(r => r.stay_date && r.stay_date.startsWith(currentMonthKey));
-    
-    if (previousMonthPerf.length === 0 && previousDailyData.performance.length > 0) {
-      const prevDates = previousDailyData.performance.map(r => r.stay_date).sort();
-      const prevLastMonth = prevDates[prevDates.length - 1].slice(0, 7);
-      previousMonthPerf = previousDailyData.performance.filter(r => r.stay_date && r.stay_date.startsWith(prevLastMonth));
-    }
-    
-    previousMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-    
-    const prevMonthMap = new Map();
-    previousMonthPerf.forEach(day => {
-      const dayNum = parseInt(day.stay_date.split("-")[2]);
-      prevMonthMap.set(dayNum, day);
-    });
-    
-    let tableRows = '';
-    let totals = {
-      currentRooms: 0,
-      prevRooms: 0,
-      currentRevenue: 0,
-      prevRevenue: 0,
-      daysWithData: 0
-    };
-    
-    let rowIndex = 0;
-    
-    const formatSnapshotDate = (dateStr) => {
-      if (!dateStr) return 'Unknown';
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-ZA');
-    };
-    
-    const comparisonInfo = `
-      <div style="background: #e0f2fe; padding: 8px 12px; border-radius: 8px; margin-bottom: 16px; font-size: 12px;">
-        📊 Comparing: <strong>${formatSnapshotDate(currentSnapshot.period_start)} to ${formatSnapshotDate(currentSnapshot.period_end)}</strong> (Current Upload) 
-        vs <strong>${formatSnapshotDate(previousSnapshot.period_start)} to ${formatSnapshotDate(previousSnapshot.period_end)}</strong> (Previous Upload)
-      </div>
-    `;
-    
-    currentMonthPerf.forEach(currentDay => {
-      const date = currentDay.stay_date;
-      const dayNum = parseInt(date.split("-")[2]);
-      const dow = getDayOfWeek(date);
-      
-      const currentRooms = currentDay.rooms_sold;
-      const currentRevenue = currentDay.room_revenue;
-      const currentOccPct = roomsAvailable > 0 ? (currentRooms / roomsAvailable) * 100 : 0;
-      const currentADR = currentRooms > 0 ? currentRevenue / currentRooms : 0;
-      
-      let prevRooms = 0;
-      let prevRevenue = 0;
-      let prevOccPct = 0;
-      let prevADR = 0;
-      let hasPrevData = false;
-      
-      if (prevMonthMap.has(dayNum)) {
-        const prevDay = prevMonthMap.get(dayNum);
-        prevRooms = prevDay.rooms_sold;
-        prevRevenue = prevDay.room_revenue;
-        prevOccPct = roomsAvailable > 0 ? (prevRooms / roomsAvailable) * 100 : 0;
-        prevADR = prevRooms > 0 ? prevRevenue / prevRooms : 0;
-        hasPrevData = true;
-      }
-      
-      const roomsPickup = currentRooms - prevRooms;
-      const occPickup = currentOccPct - prevOccPct;
-      const revenuePickup = currentRevenue - prevRevenue;
-      const adrPickup = currentADR - prevADR;
-      
-      totals.currentRooms += currentRooms;
-      totals.currentRevenue += currentRevenue;
-      totals.daysWithData++;
-      
-      if (hasPrevData) {
-        totals.prevRooms += prevRooms;
-        totals.prevRevenue += prevRevenue;
-      }
-      
-      const roomsPickupClass = roomsPickup > 0 ? 'pickup-positive' : (roomsPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-      const occPickupClass = occPickup > 0 ? 'pickup-positive' : (occPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-      const revenuePickupClass = revenuePickup > 0 ? 'pickup-positive' : (revenuePickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-      const adrPickupClass = adrPickup > 0 ? 'pickup-positive' : (adrPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-      
-      const rowClass = rowIndex % 2 === 0 ? 'table-row-even' : 'table-row-odd';
-      
-      tableRows += `
-        <tr class="${rowClass}">
-          <td class="date-cell">${formatDateDisplay(date)}</td>
-          <td class="dow-cell">${dow}</td>
-          <td class="number-cell">${currentRooms}</td>
-          <td class="number-cell">${hasPrevData ? prevRooms : '-'}</td>
-          <td class="pickup-cell ${roomsPickupClass}">${hasPrevData ? formatPickup(roomsPickup) : '-'}</td>
-          <td class="number-cell">${currentOccPct.toFixed(1)}%</td>
-          <td class="number-cell">${hasPrevData ? prevOccPct.toFixed(1) + '%' : '-'}</td>
-          <td class="pickup-cell ${occPickupClass}">${hasPrevData ? formatPickup(occPickup, true) : '-'}</td>
-          <td class="number-cell">${formatCurrency(currentRevenue)}</td>
-          <td class="number-cell">${hasPrevData ? formatCurrency(prevRevenue) : '-'}</td>
-          <td class="pickup-cell ${revenuePickupClass}">${hasPrevData ? formatPickup(revenuePickup) : '-'}</td>
-          <td class="number-cell">${formatCurrency(currentADR)}</td>
-          <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
-          <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
-         </tr>
-      `;
-      rowIndex++;
-    });
-    
-    const avgCurrentOcc = totals.daysWithData > 0 ? (totals.currentRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
-    const avgPrevOcc = totals.daysWithData > 0 && totals.prevRooms > 0 ? (totals.prevRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
-    const avgCurrentADR = totals.currentRooms > 0 ? totals.currentRevenue / totals.currentRooms : 0;
-    const avgPrevADR = totals.prevRooms > 0 ? totals.prevRevenue / totals.prevRooms : 0;
-    
-    const totalRoomsPickup = totals.currentRooms - totals.prevRooms;
-    const totalOccPickup = avgCurrentOcc - avgPrevOcc;
-    const totalRevenuePickup = totals.currentRevenue - totals.prevRevenue;
-    const totalADRPickup = avgCurrentADR - avgPrevADR;
-    
-    const uniqueId = `detailed-table-${Date.now()}`;
-    
-    const tableHTML = `
-      <div class="detailed-section">
-        <div class="detailed-header" onclick="toggleDetailedTable('${uniqueId}')">
-          <h2 style="margin:0; cursor:pointer;">
-            📋 Day-by-Day Detailed Overview 
-            <span class="toggle-icon">▼</span>
-          </h2>
-          <p class="subtle" style="margin:5px 0 0;">Click to expand/collapse</p>
-        </div>
-        <div id="${uniqueId}" class="detailed-content" style="display: block;">
-          ${comparisonInfo}
-          <div class="table-wrapper">
-            <table class="detailed-table">
-              <thead>
-                <tr>
-                  <th rowspan="2">Date</th>
-                  <th rowspan="2">DOW</th>
-                  <th colspan="3">Rooms Sold</th>
-                  <th colspan="3">Occupancy %</th>
-                  <th colspan="3">Room Revenue</th>
-                  <th colspan="3">ADR</th>
-                 </tr>
-                <tr>
-                  <th>Current</th><th>Prev</th><th>Pickup</th>
-                  <th>Current</th><th>Prev</th><th>Pickup</th>
-                  <th>Current</th><th>Prev</th><th>Pickup</th>
-                  <th>Current</th><th>Prev</th><th>Pickup</th>
-                 </tr>
-              </thead>
-              <tbody>
-                ${tableRows}
-              </tbody>
-              <tfoot>
-                <tr class="totals-row">
-                  <td colspan="2"><strong>TOTALS / AVG</strong></td>
-                  <td class="number-cell"><strong>${totals.currentRooms}</strong></td>
-                  <td class="number-cell"><strong>${totals.prevRooms > 0 ? totals.prevRooms : '-'}</strong></td>
-                  <td class="pickup-cell ${totalRoomsPickup > 0 ? 'pickup-positive' : (totalRoomsPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
-                    <strong>${totals.prevRooms > 0 ? formatPickup(totalRoomsPickup) : '-'}</strong>
-                  </td>
-                  <td class="number-cell"><strong>${avgCurrentOcc.toFixed(1)}%</strong></td>
-                  <td class="number-cell"><strong>${totals.prevRooms > 0 ? avgPrevOcc.toFixed(1) + '%' : '-'}</strong></td>
-                  <td class="pickup-cell ${totalOccPickup > 0 ? 'pickup-positive' : (totalOccPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
-                    <strong>${totals.prevRooms > 0 ? formatPickup(totalOccPickup, true) : '-'}</strong>
-                  </td>
-                  <td class="number-cell"><strong>${formatCurrency(totals.currentRevenue)}</strong></td>
-                  <td class="number-cell"><strong>${totals.prevRevenue > 0 ? formatCurrency(totals.prevRevenue) : '-'}</strong></td>
-                  <td class="pickup-cell ${totalRevenuePickup > 0 ? 'pickup-positive' : (totalRevenuePickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
-                    <strong>${totals.prevRevenue > 0 ? formatPickup(totalRevenuePickup) : '-'}</strong>
-                  </td>
-                  <td class="number-cell"><strong>${formatCurrency(avgCurrentADR)}</strong></td>
-                  <td class="number-cell"><strong>${totals.prevRooms > 0 ? formatCurrency(avgPrevADR) : '-'}</strong></td>
-                  <td class="pickup-cell ${totalADRPickup > 0 ? 'pickup-positive' : (totalADRPickup < 0 ? 'pickup-negative' : 'pickup-neutral')}">
-                    <strong>${totals.prevRooms > 0 ? formatPickup(totalADRPickup) : '-'}</strong>
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    let detailedContainer = document.getElementById("detailedContainer");
-    if (!detailedContainer) {
-      detailedContainer = document.createElement("div");
-      detailedContainer.id = "detailedContainer";
-      const dowSection = document.getElementById("dowSection");
-      if (dowSection) {
-        dowSection.insertAdjacentElement('afterend', detailedContainer);
-      }
-    }
-    if (detailedContainer) {
-      detailedContainer.innerHTML = tableHTML;
-    }
-    
-  } catch (err) {
-    console.error("Error rendering detailed comparison:", err);
-    showNoComparisonMessage();
-  }
 }
 
 function showNoComparisonMessage() {
