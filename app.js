@@ -1,4 +1,4 @@
-console.log("app.js loaded");
+console.log("app.js loaded - WITH FORECAST FOR FUTURE MONTHS");
 
 // ─────────────────────────────────────────────
 // Config
@@ -16,6 +16,7 @@ let allDailyComp = [];
 
 let monthKeys = [];
 let currentMonthIndex = 0;
+let currentDisplayMonth = null; // For navigating beyond data
 
 let occChart    = null;
 let adrChart    = null;
@@ -40,17 +41,33 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnLoad").addEventListener("click", loadDashboard);
   document.getElementById("btnLogout").addEventListener("click", logout);
 
+  // FIXED: Enhanced month navigation that goes beyond data
   document.getElementById("prevMonth").addEventListener("click", () => {
-    if (currentMonthIndex > 0) { 
+    if (currentDisplayMonth) {
+      // Navigate in display mode
+      currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() - 1);
+      renderMonthForDate(currentDisplayMonth);
+    } else if (currentMonthIndex > 0) { 
       currentMonthIndex--; 
       renderMonth(); 
     }
   });
   
   document.getElementById("nextMonth").addEventListener("click", () => {
-    if (currentMonthIndex < monthKeys.length - 1) { 
+    if (currentDisplayMonth) {
+      // Navigate in display mode
+      currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() + 1);
+      renderMonthForDate(currentDisplayMonth);
+    } else if (currentMonthIndex < monthKeys.length - 1) { 
       currentMonthIndex++; 
       renderMonth(); 
+    } else {
+      // Past last data month - switch to forecast mode
+      const lastMonthKey = monthKeys[monthKeys.length - 1];
+      const [lastYear, lastMonthNum] = lastMonthKey.split('-').map(Number);
+      currentDisplayMonth = new Date(lastYear, lastMonthNum - 1, 1);
+      currentDisplayMonth.setMonth(currentDisplayMonth.getMonth() + 1);
+      renderMonthForDate(currentDisplayMonth);
     }
   });
 
@@ -64,6 +81,192 @@ document.addEventListener("DOMContentLoaded", () => {
     loadDashboard(true);
   }
 });
+
+// ─────────────────────────────────────────────
+// NEW: Render month for any date (including future)
+// ─────────────────────────────────────────────
+async function renderMonthForDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const monthKey = `${year}-${month}`;
+  const monthName = date.toLocaleString("en-ZA", { month: "long", year: "numeric" });
+  
+  document.getElementById("monthLabel").textContent = monthName;
+  
+  // Check if we have data for this month
+  const hasData = allDailyPerf.some(r => r.stay_date && r.stay_date.startsWith(monthKey));
+  
+  if (hasData) {
+    // Load historical data
+    const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+    const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+    const roomsAvailable = 6; // Your hotel has 6 rooms
+    
+    const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
+    const variances = calculateVariances(monthKey, roomsAvailable);
+    const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
+    
+    renderMonthlyKPIs(kpis, monthKey, variances, null, yoySufficient);
+    drawTrendCharts(monthPerf, monthComp, roomsAvailable);
+    drawDOWCharts(monthPerf, roomsAvailable);
+    renderDetailedComparisonWithSnapshots(monthKey, roomsAvailable);
+  } else {
+    // Load FORECAST from backend
+    await renderForecastForMonth(monthKey, monthName);
+  }
+}
+
+// ─────────────────────────────────────────────
+// NEW: Render forecast for month with no data
+// ─────────────────────────────────────────────
+async function renderForecastForMonth(monthKey, monthName) {
+  const token = localStorage.getItem("ownerToken");
+  const hotelId = localStorage.getItem("hotelId") || "ELLIPSE001";
+  const roomsAvailable = 6;
+  
+  // Show loading
+  const container = document.getElementById("kpis");
+  if (container) {
+    container.innerHTML = `<div class="card" style="grid-column:1/-1; text-align:center; padding:40px;">🔮 Loading forecast for ${monthName}...</div>`;
+  }
+  
+  try {
+    const response = await fetch(`${API}/forecast_future_month`, {
+      method: "POST",
+      headers: {
+        "X-Owner-Token": token,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        hotel_id: hotelId,
+        target_month: monthKey,
+        rooms_available: roomsAvailable
+      })
+    });
+    
+    const forecast = await response.json();
+    
+    // Display forecast KPIs
+    const cur = localStorage.getItem("currencySymbol") || "R";
+    const forecastOcc = forecast.forecast_occupancy;
+    const forecastAdrMin = forecast.forecast_adr_min;
+    const forecastAdrMax = forecast.forecast_adr_max;
+    const forecastAdr = (forecastAdrMin + forecastAdrMax) / 2;
+    const forecastRevPAR = forecast.forecast_revpar;
+    const confidence = forecast.confidence;
+    const method = forecast.method;
+    
+    let confidenceColor = "#f97316";
+    let confidenceText = "Medium Confidence";
+    if (confidence >= 75) {
+      confidenceColor = "#22c55e";
+      confidenceText = "High Confidence";
+    } else if (confidence >= 60) {
+      confidenceColor = "#eab308";
+      confidenceText = "Medium Confidence";
+    } else {
+      confidenceColor = "#ef4444";
+      confidenceText = "Low Confidence";
+    }
+    
+    // Calculate estimated revenue
+    const daysInMonth = new Date(parseInt(monthKey.split('-')[0]), parseInt(monthKey.split('-')[1]), 0).getDate();
+    const estimatedRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
+    
+    const html = `
+      <div class="kpi">
+        <div class="label">Occupancy (Forecast)</div>
+        <div class="value">${forecastOcc}%</div>
+        <div class="variance-row">
+          <span class="variance-label">Confidence:</span>
+          <span style="color: ${confidenceColor};">${confidenceText} (${confidence}%)</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">ADR (Forecast)</div>
+        <div class="value">${cur} ${Math.round(forecastAdr).toLocaleString()}</div>
+        <div class="variance-row">
+          <span class="variance-label">Range:</span>
+          <span>${cur} ${Math.round(forecastAdrMin).toLocaleString()} - ${cur} ${Math.round(forecastAdrMax).toLocaleString()}</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">RevPAR (Forecast)</div>
+        <div class="value">${cur} ${Math.round(forecastRevPAR).toLocaleString()}</div>
+        <div class="variance-row">
+          <span class="variance-label">Method:</span>
+          <span>${method}</span>
+        </div>
+      </div>
+      <div class="kpi">
+        <div class="label">Est. Room Revenue</div>
+        <div class="value">${cur} ${Math.round(estimatedRevenue).toLocaleString()}</div>
+        <div class="variance-row">
+          <span class="variance-label">For ${monthName}</span>
+        </div>
+      </div>
+      <div class="card" style="grid-column:1/-1;font-size:13px;margin-top:8px;background:#f0f9ff;border-left:4px solid #2563eb;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong>🔮 FORECAST MODE - ${monthName}</strong>
+          <span style="background:#dbeafe;padding:2px 8px;border-radius:12px;font-size:11px;">
+            ${confidenceText} (${confidence}%)
+          </span>
+        </div>
+        <div style="font-size:12px;color:#4b5563;">
+          This is a forecast based on ${method.toLowerCase()}. No historical data available for this month yet.
+        </div>
+        <div style="margin-top:8px;font-size:11px;color:#6b7280;">
+          💡 Upload data for this month when available to see actual performance.
+        </div>
+      </div>
+    `;
+    
+    if (container) {
+      container.innerHTML = html;
+    }
+    
+    // Show message in charts area
+    const chartsContainer = document.getElementById("charts");
+    if (chartsContainer) {
+      chartsContainer.innerHTML = `
+        <div class="chart-card">
+          <h3>Occupancy % Trend</h3>
+          <div style="padding:40px;text-align:center;background:#f8fafc;border-radius:8px;">
+            📊 Forecast data only<br>
+            <small>Upload actual data to see trends</small>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>ADR Trend</h3>
+          <div style="padding:40px;text-align:center;background:#f8fafc;border-radius:8px;">
+            📈 Forecast: ${cur} ${Math.round(forecastAdr).toLocaleString()}<br>
+            <small>Range: ${cur} ${Math.round(forecastAdrMin).toLocaleString()} - ${cur} ${Math.round(forecastAdrMax).toLocaleString()}</small>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Hide DOW section and detailed section for forecast months
+    const dowSection = document.getElementById("dowSection");
+    if (dowSection) dowSection.hidden = true;
+    const detailedSection = document.getElementById("detailedSection");
+    if (detailedSection) detailedSection.hidden = true;
+    
+    // Show month nav
+    document.getElementById("monthNav").hidden = false;
+    document.getElementById("kpis").hidden = false;
+    document.getElementById("charts").hidden = false;
+    
+  } catch (err) {
+    console.error("Forecast error:", err);
+    if (container) {
+      container.innerHTML = `<div class="card" style="grid-column:1/-1; text-align:center; padding:40px; color:#b91c1c;">
+        ❌ Could not load forecast for ${monthName}<br>
+        <small>Please try again later.</small>
+      </div>`;
+    }
+  }
+}
 
 // ─────────────────────────────────────────────
 // Load dashboard
@@ -160,6 +363,7 @@ function fetchDailyAndPrepare(snapshotId) {
     }
     
     currentMonthIndex = currentMonthIdx;
+    currentDisplayMonth = null; // Reset display mode
     renderMonth();
   })
   .catch(err => console.error("Daily fetch error:", err));
@@ -244,7 +448,7 @@ function getSeasonalTooltip() {
 }
 
 // ─────────────────────────────────────────────
-// Render selected month
+// Render selected month (historical)
 // ─────────────────────────────────────────────
 function renderMonth() {
   const monthKey = monthKeys[currentMonthIndex];
@@ -258,7 +462,7 @@ function renderMonth() {
     return; 
   }
 
-  const roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "100", 10);
+  const roomsAvailable = 6; // Fixed: ELLIPSE001 has 6 rooms
   const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
   
   const variances = calculateVariances(monthKey, roomsAvailable);
@@ -274,6 +478,10 @@ function renderMonth() {
   drawDOWCharts(monthPerf, roomsAvailable);
   
   renderDetailedComparisonWithSnapshots(monthKey, roomsAvailable);
+  
+  // Ensure DOW and detailed sections are visible
+  document.getElementById("dowSection").hidden = false;
+  document.getElementById("detailedSection").hidden = false;
 }
 
 function renderMonthlyKPIs(kpis, monthKey, variances, forecast, yoySufficient) {
@@ -569,7 +777,7 @@ function calculateRecentMomentum(roomsAvailable) {
 }
 
 // ─────────────────────────────────────────────────────────────
-// 4-BRANCH FORECAST FUNCTION (COMPLETE REPLACEMENT)
+// 4-BRANCH FORECAST FUNCTION (KEEP EXISTING)
 // ─────────────────────────────────────────────────────────────
 function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
     const [targetYear, targetMonth] = targetMonthKey.split("-");
@@ -1204,7 +1412,7 @@ async function renderDetailedComparisonWithSnapshots(currentMonthKey, roomsAvail
           <td class="number-cell">${formatCurrency(currentADR)}</td>
           <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
           <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
-        </tr>
+         </tr>
       `;
       rowIndex++;
     });
@@ -1242,13 +1450,13 @@ async function renderDetailedComparisonWithSnapshots(currentMonthKey, roomsAvail
                   <th colspan="3">Occupancy %</th>
                   <th colspan="3">Room Revenue</th>
                   <th colspan="3">ADR</th>
-                </tr>
+                 </tr>
                 <tr>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
                   <th>Current</th><th>Prev</th><th>Pickup</th>
-                </tr>
+                 </tr>
               </thead>
               <tbody>
                 ${tableRows}
