@@ -1,4 +1,4 @@
-console.log("app.js loaded - WITH FORECAST FOR FUTURE MONTHS & FIXED DETAILS");
+console.log("app.js loaded - FULL CALENDAR TABLE FIX - all days shown regardless of data");
 
 // ─────────────────────────────────────────────
 // Config
@@ -89,29 +89,38 @@ async function renderMonthForDate(date) {
   
   document.getElementById("monthLabel").textContent = monthName;
   
-  const hasData = allDailyPerf.some(r => r.stay_date && r.stay_date.startsWith(monthKey));
-  
-  if (hasData) {
-    const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
-    const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
-    const roomsAvailable = 6;
-    
-    const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
-    const variances = calculateVariances(monthKey, roomsAvailable);
-    const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
-    
-    renderMonthlyKPIs(kpis, monthKey, variances, null, yoySufficient);
-    drawTrendCharts(monthPerf, monthComp, roomsAvailable);
-    drawDOWCharts(monthPerf, roomsAvailable);
-    
-    renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
-    
-    document.getElementById("dowSection").hidden = false;
-    document.getElementById("detailedSection").hidden = false;
-  } else {
+  const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+  const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+  const hasData = monthPerf.length > 0;
+  const roomsAvailable = 6;
+
+  // Determine if this is a future month with zero data → show forecast only
+  const today = new Date();
+  const monthDate = new Date(year, parseInt(month) - 1, 1);
+  const isFutureNoData = !hasData && monthDate > today;
+
+  if (isFutureNoData) {
     await renderForecastForMonth(monthKey, monthName);
     document.getElementById("dowSection").hidden = true;
     document.getElementById("detailedSection").hidden = true;
+  } else {
+    // Show KPIs (with forecast overlay for current/future months)
+    if (hasData) {
+      const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
+      const variances = calculateVariances(monthKey, roomsAvailable);
+      const yoySufficient = isYoYDataSufficient(monthKey, roomsAvailable);
+      renderMonthlyKPIs(kpis, monthKey, variances, null, yoySufficient);
+      drawTrendCharts(monthPerf, monthComp, roomsAvailable);
+      drawDOWCharts(monthPerf, roomsAvailable);
+      document.getElementById("dowSection").hidden = false;
+    } else {
+      // Past month with no data — still show the empty calendar table
+      await renderForecastForMonth(monthKey, monthName);
+      document.getElementById("dowSection").hidden = true;
+    }
+    // Always render the full calendar detail table
+    renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
+    document.getElementById("detailedSection").hidden = false;
   }
 }
 
@@ -119,93 +128,100 @@ async function renderMonthForDate(date) {
 // Render detailed comparison for a specific month
 // ─────────────────────────────────────────────
 function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roomsAvailable) {
-  if (!currentMonthPerf || currentMonthPerf.length === 0) {
-    showNoComparisonMessage();
-    return;
+  // Build a map of loaded data keyed by day number so we can look up any day
+  const currentDayMap = new Map();
+  if (currentMonthPerf && currentMonthPerf.length > 0) {
+    currentMonthPerf.forEach(day => {
+      const dayNum = parseInt(day.stay_date.split("-")[2]);
+      currentDayMap.set(dayNum, day);
+    });
   }
-  
-  currentMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-  
+
   const [year, month] = currentMonthKey.split('-');
-  const prevYear = String(parseInt(year) - 1);
+  const yearNum = parseInt(year);
+  const monthNum = parseInt(month);
+
+  // Build previous period map (YoY first, then MoM fallback)
+  const prevYear = String(yearNum - 1);
   const prevYearMonthKey = `${prevYear}-${month}`;
   let previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevYearMonthKey));
-  
+
   if (previousMonthPerf.length === 0) {
-    const currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const currentDate = new Date(yearNum, monthNum - 1, 1);
     currentDate.setMonth(currentDate.getMonth() - 1);
     const prevMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
     previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevMonthKey));
   }
-  
-  previousMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-  
+
   const prevMonthMap = new Map();
   previousMonthPerf.forEach(day => {
     const dayNum = parseInt(day.stay_date.split("-")[2]);
     prevMonthMap.set(dayNum, day);
   });
-  
+
   let tableRows = '';
   let totals = {
     currentRooms: 0,
     prevRooms: 0,
     currentRevenue: 0,
     prevRevenue: 0,
-    daysWithData: 0
+    daysInMonth: 0
   };
-  
+
   let rowIndex = 0;
-  
-  for (const currentDay of currentMonthPerf) {
-    const date = currentDay.stay_date;
-    const dayNum = parseInt(date.split("-")[2]);
-    const dow = getDayOfWeek(date);
-    
-    const currentRooms = currentDay.rooms_sold || 0;
-    const currentRevenue = currentDay.room_revenue || 0;
-    const currentOccPct = roomsAvailable > 0 ? (currentRooms / roomsAvailable) * 100 : 0;
-    const currentADR = currentRooms > 0 ? currentRevenue / currentRooms : 0;
-    
-    let prevRooms = 0;
+
+  // ── FIX: iterate every calendar day in the month, not just loaded rows ──
+  const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+
+  for (let dayNum = 1; dayNum <= daysInMonth; dayNum++) {
+    const dateStr = `${year}-${month}-${String(dayNum).padStart(2, '0')}`;
+    const dow = getDayOfWeek(dateStr);
+
+    const currentDay = currentDayMap.get(dayNum);
+    const currentRooms   = currentDay ? (currentDay.rooms_sold   || 0) : 0;
+    const currentRevenue = currentDay ? (currentDay.room_revenue || 0) : 0;
+    const currentOccPct  = roomsAvailable > 0 ? (currentRooms / roomsAvailable) * 100 : 0;
+    const currentADR     = currentRooms > 0 ? currentRevenue / currentRooms : 0;
+
+    let prevRooms   = 0;
     let prevRevenue = 0;
-    let prevOccPct = 0;
-    let prevADR = 0;
+    let prevOccPct  = 0;
+    let prevADR     = 0;
     let hasPrevData = false;
-    
+
     if (prevMonthMap.has(dayNum)) {
       const prevDay = prevMonthMap.get(dayNum);
-      prevRooms = prevDay.rooms_sold || 0;
+      prevRooms   = prevDay.rooms_sold   || 0;
       prevRevenue = prevDay.room_revenue || 0;
-      prevOccPct = roomsAvailable > 0 ? (prevRooms / roomsAvailable) * 100 : 0;
-      prevADR = prevRooms > 0 ? prevRevenue / prevRooms : 0;
+      prevOccPct  = roomsAvailable > 0 ? (prevRooms / roomsAvailable) * 100 : 0;
+      prevADR     = prevRooms > 0 ? prevRevenue / prevRooms : 0;
       hasPrevData = true;
     }
-    
-    const roomsPickup = currentRooms - prevRooms;
-    const occPickup = currentOccPct - prevOccPct;
+
+    const roomsPickup   = currentRooms   - prevRooms;
+    const occPickup     = currentOccPct  - prevOccPct;
     const revenuePickup = currentRevenue - prevRevenue;
-    const adrPickup = currentADR - prevADR;
-    
-    totals.currentRooms += currentRooms;
+    const adrPickup     = currentADR     - prevADR;
+
+    totals.currentRooms   += currentRooms;
     totals.currentRevenue += currentRevenue;
-    totals.daysWithData++;
-    
+    totals.daysInMonth++;
+
     if (hasPrevData) {
-      totals.prevRooms += prevRooms;
+      totals.prevRooms   += prevRooms;
       totals.prevRevenue += prevRevenue;
     }
-    
-    const roomsPickupClass = roomsPickup > 0 ? 'pickup-positive' : (roomsPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-    const occPickupClass = occPickup > 0 ? 'pickup-positive' : (occPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
+
+    const roomsPickupClass   = roomsPickup   > 0 ? 'pickup-positive' : (roomsPickup   < 0 ? 'pickup-negative' : 'pickup-neutral');
+    const occPickupClass     = occPickup     > 0 ? 'pickup-positive' : (occPickup     < 0 ? 'pickup-negative' : 'pickup-neutral');
     const revenuePickupClass = revenuePickup > 0 ? 'pickup-positive' : (revenuePickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-    const adrPickupClass = adrPickup > 0 ? 'pickup-positive' : (adrPickup < 0 ? 'pickup-negative' : 'pickup-neutral');
-    
+    const adrPickupClass     = adrPickup     > 0 ? 'pickup-positive' : (adrPickup     < 0 ? 'pickup-negative' : 'pickup-neutral');
+
     const rowClass = rowIndex % 2 === 0 ? 'table-row-even' : 'table-row-odd';
-    
+
     tableRows += `
       <tr class="${rowClass}">
-        <td class="date-cell">${formatDateDisplay(date)}</td>
+        <td class="date-cell">${formatDateDisplay(dateStr)}</td>
         <td class="dow-cell">${dow}</td>
         <td class="number-cell">${currentRooms}</td>
         <td class="number-cell">${hasPrevData ? prevRooms : '-'}</td>
@@ -219,13 +235,13 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
         <td class="number-cell">${formatCurrency(currentADR)}</td>
         <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
         <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
-       </tr>
+      </tr>
     `;
     rowIndex++;
   }
   
-  const avgCurrentOcc = totals.daysWithData > 0 ? (totals.currentRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
-  const avgPrevOcc = totals.daysWithData > 0 && totals.prevRooms > 0 ? (totals.prevRooms / (roomsAvailable * totals.daysWithData)) * 100 : 0;
+  const avgCurrentOcc = totals.daysInMonth > 0 ? (totals.currentRooms / (roomsAvailable * totals.daysInMonth)) * 100 : 0;
+  const avgPrevOcc = totals.daysInMonth > 0 && totals.prevRooms > 0 ? (totals.prevRooms / (roomsAvailable * totals.daysInMonth)) * 100 : 0;
   const avgCurrentADR = totals.currentRooms > 0 ? totals.currentRevenue / totals.currentRooms : 0;
   const avgPrevADR = totals.prevRooms > 0 ? totals.prevRevenue / totals.prevRooms : 0;
   
