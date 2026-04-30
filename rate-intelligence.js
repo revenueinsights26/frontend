@@ -1,4 +1,4 @@
-console.log("rate-intelligence.js loaded - PERMANENT FORECAST FIX with CORRECT ROOMS");
+console.log("rate-intelligence.js loaded - COMPLETE FIX VERSION");
 
 // ─────────────────────────────────────────────
 // Config
@@ -14,7 +14,7 @@ let allDailyPerf = [];
 let allDailyComp = [];
 let monthKeys = [];
 let currentMonthIndex = 0;
-let roomsAvailable = 6;  // FIXED: Default to 6 (ELLIPSE001 has 6 rooms)
+let roomsAvailable = 6;  // ELLIPSE001 has 6 rooms
 let allSnapshots = [];
 let allMonthsWithData = new Set();
 
@@ -28,101 +28,83 @@ document.addEventListener("DOMContentLoaded", () => {
     return; 
   }
 
-  // Try to get roomsAvailable from localStorage first
-  const savedRooms = localStorage.getItem("roomsAvailable");
-  if (savedRooms && !isNaN(parseInt(savedRooms))) {
-    roomsAvailable = parseInt(savedRooms);
-    console.log("✅ roomsAvailable from localStorage:", roomsAvailable);
-  }
+  roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "6", 10);
   
   const savedHotelId = localStorage.getItem("hotelId");
   if (savedHotelId) {
     localStorage.setItem("hotelId", savedHotelId);
   }
   
-  // Setup month navigation with forecast support
-  document.getElementById("prevMonth").addEventListener("click", () => {
-    navigateMonth(-1);
-  });
-  
-  document.getElementById("nextMonth").addEventListener("click", () => {
-    navigateMonth(1);
-  });
+  document.getElementById("prevMonth").addEventListener("click", navigatePrevMonth);
+  document.getElementById("nextMonth").addEventListener("click", navigateNextMonth);
 
   loadDashboardData();
 });
 
 // ─────────────────────────────────────────────
-// Smart navigation that works with ANY month
+// Navigation functions
 // ─────────────────────────────────────────────
-function navigateMonth(direction) {
-  // Get current displayed month from the label
-  const currentLabel = document.getElementById("monthLabel").innerText;
-  let currentDate = parseMonthLabel(currentLabel);
-  
-  // If we can't parse, use current real date
-  if (!currentDate) {
-    currentDate = new Date();
+let currentDisplayYear = null;
+let currentDisplayMonth = null;
+
+function navigatePrevMonth() {
+  if (currentDisplayYear !== null && currentDisplayMonth !== null) {
+    // In manual navigation mode
+    currentDisplayMonth--;
+    if (currentDisplayMonth < 0) {
+      currentDisplayMonth = 11;
+      currentDisplayYear--;
+    }
+    loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
+  } else if (currentMonthIndex > 0) {
+    currentMonthIndex--;
+    loadMonthData();
   }
+}
+
+function navigateNextMonth() {
+  if (currentDisplayYear !== null && currentDisplayMonth !== null) {
+    // In manual navigation mode
+    currentDisplayMonth++;
+    if (currentDisplayMonth > 11) {
+      currentDisplayMonth = 0;
+      currentDisplayYear++;
+    }
+    loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
+  } else if (currentMonthIndex < monthKeys.length - 1) {
+    currentMonthIndex++;
+    loadMonthData();
+  } else if (monthKeys.length > 0) {
+    // Move to next month after last data month
+    const lastMonth = monthKeys[monthKeys.length - 1];
+    const [lastYear, lastMonthNum] = lastMonth.split('-').map(Number);
+    currentDisplayYear = lastYear;
+    currentDisplayMonth = lastMonthNum - 1;
+    currentDisplayMonth++;
+    if (currentDisplayMonth > 11) {
+      currentDisplayMonth = 0;
+      currentDisplayYear++;
+    }
+    loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
+  }
+}
+
+function loadDataForYearMonth(year, month) {
+  const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const monthName = new Date(year, month, 1).toLocaleString('en-ZA', { month: 'long', year: 'numeric' });
+  document.getElementById("monthLabel").textContent = monthName;
   
-  // Add/subtract month
-  currentDate.setMonth(currentDate.getMonth() + direction);
+  const hasData = allMonthsWithData.has(monthKey);
   
-  const year = currentDate.getFullYear();
-  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-  const monthKey = `${year}-${month}`;
-  
-  // Check if we have data for this month
-  if (allMonthsWithData.has(monthKey)) {
+  if (hasData) {
     loadHistoricalMonth(monthKey);
   } else {
-    loadForecastForMonth(monthKey);
+    loadForecastForMonth(monthKey, monthName);
   }
-}
-
-function parseMonthLabel(label) {
-  // Handle formats like "April 2025" or "April 2025 🔮"
-  const cleanLabel = label.replace('🔮', '').trim();
-  const parts = cleanLabel.split(' ');
-  if (parts.length >= 2) {
-    const monthName = parts[0];
-    const year = parseInt(parts[1]);
-    const monthIndex = ['January', 'February', 'March', 'April', 'May', 'June', 
-                        'July', 'August', 'September', 'October', 'November', 'December']
-                        .indexOf(monthName);
-    if (monthIndex !== -1 && !isNaN(year)) {
-      return new Date(year, monthIndex, 1);
-    }
-  }
-  return null;
-}
-
-function loadHistoricalMonth(monthKey) {
-  const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
-  const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
-  
-  if (monthPerf.length === 0) {
-    loadForecastForMonth(monthKey);
-    return;
-  }
-  
-  document.getElementById("monthLabel").textContent = formatMonthLabel(monthKey);
-  
-  const isCurrentFuture = isCurrentOrFutureMonth(monthKey);
-  const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
-  const dowAnalysis = analyzeDOWPatterns(monthPerf, roomsAvailable);
-  const demandAnalysis = analyzeDemand(monthPerf, roomsAvailable);
-  const competitorRates = analyzeCompetitorRates(monthComp);
-  
-  renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRates, isCurrentFuture, monthKey);
-  renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrentFuture);
-  renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture);
-  renderDemandCalendar(demandAnalysis, monthPerf);
-  renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture);
 }
 
 // ─────────────────────────────────────────────
-// Load Historical Data and build month set
+// Load Historical Data
 // ─────────────────────────────────────────────
 function loadDashboardData() {
   const token = localStorage.getItem("ownerToken");
@@ -139,33 +121,18 @@ function loadDashboardData() {
     summaryCard.innerHTML = `<div style="text-align: center; padding: 40px;">📊 Loading rate intelligence data...</div>`;
   }
 
-  // FIRST: Get hotel info to set correct roomsAvailable
   fetch(API + "/hotel_dashboard_history/" + hotelId, {
     headers: { "X-Owner-Token": token }
   })
   .then(res => res.json())
   .then(snapshots => {
-    if (snapshots && snapshots.length > 0) {
-      // Try to get rooms_available from snapshot or hotel data
-      const firstSnapshot = snapshots[0];
-      if (firstSnapshot.rooms_available) {
-        roomsAvailable = firstSnapshot.rooms_available;
-        localStorage.setItem("roomsAvailable", roomsAvailable);
-        console.log("✅ roomsAvailable set from snapshot:", roomsAvailable);
-      } else {
-        // Fallback: Use 6 for ELLIPSE001
-        roomsAvailable = 6;
-        localStorage.setItem("roomsAvailable", 6);
-        console.log("✅ roomsAvailable set to default (6)");
-      }
-    }
-    
     if (!snapshots || snapshots.length === 0) {
       allSnapshots = [];
       const today = new Date();
-      const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-      loadForecastForMonth(currentMonthKey);
-      return Promise.resolve(null);
+      currentDisplayYear = today.getFullYear();
+      currentDisplayMonth = today.getMonth();
+      loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
+      return;
     }
     
     allSnapshots = snapshots;
@@ -193,49 +160,73 @@ function loadDashboardData() {
     
     monthKeys = Array.from(allMonthsWithData).sort();
     
-    console.log("📊 Months with data:", monthKeys);
-    console.log("🏨 roomsAvailable used for calculations:", roomsAvailable);
+    console.log("Months with data:", monthKeys);
+    console.log("Total daily records:", allDailyPerf.length);
     
-    if (monthKeys.length === 0 && allSnapshots.length === 0) {
-      alert("No data available. Please upload data first.");
-      window.location.href = "dashboard.html";
-      return;
-    }
-    
-    // Start with current month
+    // Start with current month (April 2026)
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = String(today.getMonth() + 1).padStart(2, '0');
-    const currentMonthKey = `${currentYear}-${currentMonth}`;
+    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     
     if (allMonthsWithData.has(currentMonthKey)) {
       loadHistoricalMonth(currentMonthKey);
     } else {
-      loadForecastForMonth(currentMonthKey);
+      currentDisplayYear = today.getFullYear();
+      currentDisplayMonth = today.getMonth();
+      loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
     }
   })
   .catch(err => {
     console.error("Error loading data:", err);
     const today = new Date();
-    const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-    loadForecastForMonth(currentMonthKey);
+    currentDisplayYear = today.getFullYear();
+    currentDisplayMonth = today.getMonth();
+    loadDataForYearMonth(currentDisplayYear, currentDisplayMonth);
   });
 }
 
-// =========================================================
-// FORECAST FOR MONTHS WITH NO DATA
-// =========================================================
+// ─────────────────────────────────────────────
+// Load historical month data
+// ─────────────────────────────────────────────
+function loadHistoricalMonth(monthKey) {
+  const monthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+  const monthComp = allDailyComp.filter(r => r.stay_date && r.stay_date.startsWith(monthKey));
+  
+  if (monthPerf.length === 0) {
+    const [year, month] = monthKey.split('-');
+    loadDataForYearMonth(parseInt(year), parseInt(month) - 1);
+    return;
+  }
+  
+  const [year, month] = monthKey.split('-');
+  currentDisplayYear = parseInt(year);
+  currentDisplayMonth = parseInt(month) - 1;
+  
+  const monthName = new Date(currentDisplayYear, currentDisplayMonth, 1).toLocaleString('en-ZA', { month: 'long', year: 'numeric' });
+  document.getElementById("monthLabel").textContent = monthName;
+  
+  const kpis = computeMonthlyKPIs(monthPerf, roomsAvailable);
+  const dowAnalysis = analyzeDOWPatterns(monthPerf, roomsAvailable);
+  const demandAnalysis = analyzeDemand(monthPerf, roomsAvailable);
+  const competitorRates = analyzeCompetitorRates(monthComp);
+  
+  renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRates, monthKey);
+  renderRateRecommendations(kpis, dowAnalysis, competitorRates);
+  renderRevenueTriangle(kpis);
+  renderDemandCalendarFull(monthPerf, monthKey);
+  renderDayStrategyFull(monthPerf, monthComp, monthKey);
+}
 
-async function loadForecastForMonth(monthKey) {
+// ─────────────────────────────────────────────
+// Forecast for month with no data
+// ─────────────────────────────────────────────
+async function loadForecastForMonth(monthKey, monthName) {
   const token = localStorage.getItem("ownerToken");
   const hotelId = localStorage.getItem("hotelId") || "ELLIPSE001";
-  const roomsAvail = roomsAvailable; // Use the correct roomsAvailable value
   
-  // Update month display
-  document.getElementById("monthLabel").textContent = formatMonthLabel(monthKey) + " 🔮";
+  document.getElementById("monthLabel").textContent = monthName;
   
   const summaryCard = document.getElementById("summaryCard");
-  summaryCard.innerHTML = `<div style="text-align: center; padding: 40px;">🔮 Loading forecast for ${formatMonthLabel(monthKey)}...</div>`;
+  summaryCard.innerHTML = `<div style="text-align: center; padding: 40px;">🔮 Loading forecast for ${monthName}...</div>`;
   
   try {
     const response = await fetch(`${API}/forecast_future_month`, {
@@ -247,12 +238,12 @@ async function loadForecastForMonth(monthKey) {
       body: JSON.stringify({
         hotel_id: hotelId,
         target_month: monthKey,
-        rooms_available: roomsAvail
+        rooms_available: roomsAvailable
       })
     });
     
     const forecast = await response.json();
-    renderForecastUI(forecast, monthKey);
+    renderForecastUI(forecast, monthKey, monthName);
     
   } catch (err) {
     console.error("Forecast error:", err);
@@ -263,11 +254,11 @@ async function loadForecastForMonth(monthKey) {
       forecast_revpar: 600,
       confidence: 30,
       method: "Default (No Data)"
-    }, monthKey);
+    }, monthKey, monthName);
   }
 }
 
-function renderForecastUI(forecast, monthKey) {
+function renderForecastUI(forecast, monthKey, monthName) {
   const forecastOcc = forecast.forecast_occupancy;
   const forecastAdrMin = forecast.forecast_adr_min;
   const forecastAdrMax = forecast.forecast_adr_max;
@@ -285,13 +276,12 @@ function renderForecastUI(forecast, monthKey) {
     confidenceText = "Medium Confidence";
   }
   
-  // Executive Summary
   const summaryCard = document.getElementById("summaryCard");
   summaryCard.innerHTML = `
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
       <div>
         <h3 style="margin: 0 0 8px 0; color: white;">🔮 FORECAST MODE</h3>
-        <p style="margin: 0; opacity: 0.9;">${formatMonthLabel(monthKey)} - No historical data yet</p>
+        <p style="margin: 0; opacity: 0.9;">${monthName} - No historical data yet</p>
       </div>
       <div style="background: ${confidenceColor}; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;">
         ${confidenceText} (${confidence}%)
@@ -306,15 +296,13 @@ function renderForecastUI(forecast, monthKey) {
     </div>
   `;
   
-  // Rate Recommendations
   const rateRecs = document.getElementById("rateRecommendations");
   const suggestedRate = Math.round(forecastAdr);
-  const lastAdr = allSnapshots.length > 0 ? allSnapshots[allSnapshots.length - 1].adr : 1500;
   
   rateRecs.innerHTML = `
     <div style="margin-bottom: 20px;">
       <div style="font-size: 32px; font-weight: bold; color: #2563eb;">R ${suggestedRate.toLocaleString()}</div>
-      <div style="color: #6b7280;">Suggested Rate for ${formatMonthLabel(monthKey)}</div>
+      <div style="color: #6b7280;">Suggested Rate for ${monthName}</div>
     </div>
     <div style="border-top: 1px solid #e5e7eb; padding-top: 16px;">
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
@@ -330,12 +318,8 @@ function renderForecastUI(forecast, monthKey) {
         <strong>R ${forecast.forecast_revpar.toLocaleString()}</strong>
       </div>
     </div>
-    <div style="margin-top: 16px; padding: 12px; background: #fef3c7; border-radius: 8px;">
-      <span style="font-size: 13px;">⚠️ This is a forecast based on historical patterns. Start at R${suggestedRate.toLocaleString()} and adjust based on real-time demand.</span>
-    </div>
   `;
   
-  // Revenue Triangle
   const revenueTriangle = document.getElementById("revenueTriangle");
   revenueTriangle.innerHTML = `
     <div style="text-align: center; padding: 20px;">
@@ -354,167 +338,314 @@ function renderForecastUI(forecast, monthKey) {
     </div>
   `;
   
-  // Demand Calendar
-  renderForecastDemandCalendar(forecast, monthKey);
+  // Show forecast calendar
+  renderForecastCalendar(forecast, monthKey);
   
-  // Strategy Table
+  // Show forecast strategy table
   renderForecastStrategyTable(forecast, monthKey);
 }
 
-function renderForecastDemandCalendar(forecast, monthKey) {
+// ─────────────────────────────────────────────
+// FULL DEMAND CALENDAR (all days of month)
+// ─────────────────────────────────────────────
+function renderDemandCalendarFull(monthPerf, monthKey) {
   const calendarDiv = document.getElementById("demandCalendar");
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
   const [year, month] = monthKey.split("-").map(Number);
-  const startDate = new Date(year, month - 1, 1);
+  const daysInMonth = new Date(year, month, 0).getDate();
   const days = [];
   
-  for (let i = 0; i < 35; i++) {
-    const date = new Date(startDate);
-    date.setDate(startDate.getDate() + i);
-    if (date.getMonth() !== month - 1) break;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = new Date(year, month - 1, day);
+    const dayData = monthPerf.find(r => r.stay_date === dateStr);
+    const occ = dayData ? (dayData.rooms_sold / roomsAvailable) * 100 : 0;
+    const dayOfWeek = date.toLocaleDateString('en-ZA', { weekday: 'short' });
+    const isWeekend = dayOfWeek === 'Sat' || dayOfWeek === 'Sun';
+    const isToday = date.toDateString() === today.toDateString();
+    const isPast = date < today;
     
-    if (date >= today) {
-      const dayOfWeek = date.toLocaleDateString('en-ZA', { weekday: 'short' });
-      const isWeekend = dayOfWeek === 'Sat' || dayOfWeek === 'Sun';
-      const demandScore = isWeekend ? forecast.forecast_occupancy * 1.15 : forecast.forecast_occupancy * 0.95;
-      const suggestedRate = isWeekend ? forecast.forecast_adr_max : forecast.forecast_adr_min;
-      const isToday = date.toDateString() === today.toDateString();
-      
-      days.push(`
-        <div style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center; background: ${isToday ? '#e0f2fe' : 'white'}">
-          <div style="font-weight: bold;">${date.getDate()} ${dayOfWeek}${isToday ? ' 🔴' : ''}</div>
-          <div style="font-size: 20px; font-weight: bold; color: ${demandScore > forecast.forecast_occupancy ? '#22c55e' : '#f97316'}">
-            ${Math.round(demandScore)}%
-          </div>
-          <div style="font-size: 12px; color: #6b7280;">R ${Math.round(suggestedRate)}</div>
-          <div style="font-size: 10px; margin-top: 4px;">${isWeekend ? 'Weekend' : 'Weekday'}</div>
-        </div>
-      `);
+    let demandLevel = "Medium";
+    let bgColor = "#fef3c7";
+    let textColor = "#92400e";
+    
+    if (occ > 75) {
+      demandLevel = "High";
+      bgColor = "#dcfce7";
+      textColor = "#166534";
+    } else if (occ < 50 && occ > 0) {
+      demandLevel = "Low";
+      bgColor = "#fee2e2";
+      textColor = "#991b1b";
+    } else if (occ === 0 && !isPast) {
+      demandLevel = "Forecast";
+      bgColor = "#e0f2fe";
+      textColor = "#0369a1";
+    } else if (occ === 0 && isPast) {
+      demandLevel = "No Data";
+      bgColor = "#f1f5f9";
+      textColor = "#64748b";
     }
+    
+    let recommendation = "";
+    if (occ > 75) {
+      recommendation = "💰 Push rates";
+    } else if (occ > 60) {
+      recommendation = "⚖️ Maintain rates";
+    } else if (occ > 45) {
+      recommendation = "📊 Let demand come";
+    } else if (occ > 0) {
+      recommendation = "🎯 Strategic offers only";
+    } else if (!isPast) {
+      recommendation = "🔮 Forecast period";
+    } else {
+      recommendation = "No data recorded";
+    }
+    
+    days.push(`
+      <div style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center; background: ${bgColor}; ${isToday ? 'border: 2px solid #3b82f6;' : ''}">
+        <div style="font-weight: bold;">${day} ${dayOfWeek}${isToday ? ' 🔴' : ''}</div>
+        <div style="font-size: 20px; font-weight: bold; color: ${textColor};">
+          ${occ > 0 ? Math.round(occ) + '%' : (isPast ? '—' : '?')}
+        </div>
+        <div style="font-size: 11px; color: ${textColor};">${recommendation}</div>
+      </div>
+    `);
   }
   
-  calendarDiv.innerHTML = days.length > 0 
-    ? `<div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">${days.join('')}</div>`
-    : `<div style="text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-        <h3>No upcoming dates in ${formatMonthLabel(monthKey)}</h3>
-        <p>All dates in this month have passed.</p>
-       </div>`;
+  calendarDiv.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+      ${days.join('')}
+    </div>
+  `;
 }
 
-function renderForecastStrategyTable(forecast, monthKey) {
+// ─────────────────────────────────────────────
+// FULL DAY-BY-DAY STRATEGY TABLE (all days of month)
+// ─────────────────────────────────────────────
+function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
   const table = document.getElementById("strategyTable");
-  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-  const forecastAdr = (forecast.forecast_adr_min + forecast.forecast_adr_max) / 2;
-  const forecastOcc = forecast.forecast_occupancy;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const [year, month] = monthKey.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  
+  // Calculate DOW averages for competitor suggestions
+  const dowAverages = calculateDOWAverages(allDailyPerf, roomsAvailable);
   
   let html = `
     <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
-      ℹ️ Forecasted rate suggestions based on historical patterns and ${forecast.method}.
+      ℹ️ Rate suggestions based on historical day-of-week patterns and competitor positioning.
     </div>
     <div style="overflow-x: auto;">
-      <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+      <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 800px;">
         <thead>
-          <tr><th>Day of Week</th><th>Forecast Occupancy</th><th>Suggested Rate</th><th>Strategy</th><th>Confidence</th></tr>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Rooms Sold</th><th style="padding: 12px;">Occupancy</th><th style="padding: 12px;">Your Rate</th><th style="padding: 12px;">Comp Avg</th><th style="padding: 12px;">Recommendation</th><th style="padding: 12px;">Suggested Rate</th>
+          </tr>
         </thead>
         <tbody>
   `;
   
-  const dayStrategies = [
-    { day: "Monday", multiplier: 0.94, strategy: "Weekday - Corporate focus" },
-    { day: "Tuesday", multiplier: 0.95, strategy: "Weekday - Maintain" },
-    { day: "Wednesday", multiplier: 0.96, strategy: "Weekday - Steady demand" },
-    { day: "Thursday", multiplier: 0.92, strategy: "Weekday - Softest day" },
-    { day: "Friday", multiplier: 1.05, strategy: "Weekend start - Increase" },
-    { day: "Saturday", multiplier: 1.10, strategy: "Peak day - Push rates" },
-    { day: "Sunday", multiplier: 1.03, strategy: "Weekend end - Maintain" }
-  ];
-  
-  dayStrategies.forEach(s => {
-    const occ = forecastOcc * s.multiplier;
-    const suggested = Math.round(forecastAdr * s.multiplier);
-    let confidenceColor = "#f97316";
-    let confidenceText = "Medium";
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const date = new Date(year, month - 1, day);
+    const displayDate = `${day}/${String(month).padStart(2, '0')}`;
+    const dow = date.toLocaleDateString('en-ZA', { weekday: 'short' });
+    const isPast = date < today;
+    const isToday = date.toDateString() === today.toDateString();
     
-    if (forecast.confidence >= 75) {
-      confidenceColor = "#22c55e";
-      confidenceText = "High";
-    } else if (forecast.confidence >= 50) {
-      confidenceColor = "#eab308";
-      confidenceText = "Medium";
+    const dayData = monthPerf.find(r => r.stay_date === dateStr);
+    const compData = monthComp.find(c => c.stay_date === dateStr);
+    
+    const roomsSold = dayData ? dayData.rooms_sold : 0;
+    const occupancy = roomsAvailable > 0 ? (roomsSold / roomsAvailable) * 100 : 0;
+    const currentRate = compData ? compData.your_rate : null;
+    const compAvg = compData && compData.comps && compData.comps.length > 0 
+      ? compData.comps.reduce((a,b) => a + b, 0) / compData.comps.length 
+      : null;
+    
+    const dowName = date.toLocaleDateString('en-ZA', { weekday: 'long' });
+    const dowOccAvg = dowAverages.occupancy[dowName] || 50;
+    
+    let suggestedRate = null;
+    let recommendation = "";
+    let bgColor = "#ffffff";
+    
+    if (currentRate) {
+      if (compAvg && compAvg > currentRate * 1.05) {
+        suggestedRate = Math.round(currentRate * 1.03 / 10) * 10;
+        recommendation = "Below competitors - increase";
+        bgColor = "#f0fdf4";
+      } else if (compAvg && compAvg < currentRate * 0.95) {
+        suggestedRate = Math.round(currentRate * 0.97 / 10) * 10;
+        recommendation = "Above competitors - decrease";
+        bgColor = "#fef2f2";
+      } else {
+        suggestedRate = currentRate;
+        recommendation = "Maintain current rate";
+        bgColor = "#fef3c7";
+      }
+    } else if (compAvg) {
+      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+      suggestedRate = Math.round(compAvg * dowMultiplier / 10) * 10;
+      recommendation = "Use competitor rate + DOW adjustment";
+      bgColor = "#e0f2fe";
     } else {
-      confidenceColor = "#ef4444";
-      confidenceText = "Low";
+      const baseRate = 1500;
+      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+      suggestedRate = Math.round(baseRate * dowMultiplier / 10) * 10;
+      recommendation = "Use market average + DOW adjustment";
+      bgColor = "#f1f5f9";
     }
     
-    let bgColor = "#f8fafc";
-    let occColor = "#1e293b";
-    if (occ > 70) {
-      bgColor = "#f0fdf4";
-      occColor = "#166534";
-    } else if (occ < 40) {
-      bgColor = "#fef2f2";
-      occColor = "#991b1b";
-    }
+    const todayBadge = isToday ? ' 🔴' : '';
+    const pastBadge = isPast && roomsSold === 0 ? ' (Past)' : '';
     
     html += `
       <tr style="background: ${bgColor};">
-        <td style="padding: 10px; font-weight: 600;">${s.day}</td>
-        <td style="padding: 10px; text-align: center;"><strong style="color: ${occColor};">${Math.round(occ)}%</strong></td>
-        <td style="padding: 10px; text-align: center;"><strong>R ${suggested.toLocaleString()}</strong></td>
-        <td style="padding: 10px; font-size: 12px;">${s.strategy}</td>
-        <td style="padding: 10px; text-align: center;"><span style="background: ${confidenceColor}20; color: ${confidenceColor}; padding: 2px 8px; border-radius: 12px; font-size: 10px;">${confidenceText}</span></td>
+        <td style="padding: 10px;">${displayDate}${todayBadge}${pastBadge}</td>
+        <td style="padding: 10px;">${dow}</td>
+        <td style="padding: 10px; text-align: right;">${roomsSold}</td>
+        <td style="padding: 10px; text-align: right;">${occupancy.toFixed(1)}%</td>
+        <td style="padding: 10px; text-align: right;">${currentRate ? formatCurrency(currentRate) : '—'}</td>
+        <td style="padding: 10px; text-align: right;">${compAvg ? formatCurrency(compAvg) : '—'}</td>
+        <td style="padding: 10px; font-size: 12px;">${recommendation}</td>
+        <td style="padding: 10px; text-align: right;"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
       </tr>
     `;
-  });
+  }
   
   html += '</tbody></table></div>';
   table.innerHTML = html;
 }
 
-// =========================================================
-// Helper Functions for Historical Data
-// =========================================================
-
-function isCurrentOrFutureMonth(monthKey) {
+// ─────────────────────────────────────────────
+// FORECAST CALENDAR (all days)
+// ─────────────────────────────────────────────
+function renderForecastCalendar(forecast, monthKey) {
+  const calendarDiv = document.getElementById("demandCalendar");
   const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
+  today.setHours(0, 0, 0, 0);
+  
   const [year, month] = monthKey.split("-").map(Number);
-  if (year > currentYear) return true;
-  if (year === currentYear && month >= currentMonth) return true;
-  return false;
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const days = [];
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day);
+    const dayOfWeek = date.toLocaleDateString('en-ZA', { weekday: 'short' });
+    const isWeekend = dayOfWeek === 'Sat' || dayOfWeek === 'Sun';
+    const isToday = date.toDateString() === today.toDateString();
+    const isPast = date < today;
+    
+    let demandScore;
+    let suggestedRate;
+    
+    if (isPast) {
+      demandScore = 0;
+      suggestedRate = 0;
+    } else {
+      demandScore = isWeekend ? forecast.forecast_occupancy * 1.15 : forecast.forecast_occupancy * 0.95;
+      suggestedRate = isWeekend ? forecast.forecast_adr_max : forecast.forecast_adr_min;
+    }
+    
+    const bgColor = isPast ? "#f1f5f9" : (isWeekend ? "#fef3c7" : "#f8fafc");
+    
+    days.push(`
+      <div style="padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; text-align: center; background: ${bgColor}; ${isToday ? 'border: 2px solid #3b82f6;' : ''}">
+        <div style="font-weight: bold;">${day} ${dayOfWeek}${isToday ? ' 🔴' : ''}</div>
+        ${isPast ? 
+          '<div style="font-size: 14px; color: #64748b;">Past</div>' :
+          `<div style="font-size: 20px; font-weight: bold; color: #f97316;">${Math.round(demandScore)}%</div>
+           <div style="font-size: 12px;">R ${Math.round(suggestedRate)}</div>
+           <div style="font-size: 10px;">${isWeekend ? 'Weekend' : 'Weekday'}</div>`
+        }
+      </div>
+    `);
+  }
+  
+  calendarDiv.innerHTML = `
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;">
+      ${days.join('')}
+    </div>
+  `;
 }
 
-function formatMonthLabel(monthKey) {
-  const [y, m] = monthKey.split("-");
-  return new Date(Number(y), Number(m) - 1, 1)
-    .toLocaleString("en-ZA", { month: "long", year: "numeric" });
+// ─────────────────────────────────────────────
+// FORECAST STRATEGY TABLE (all days)
+// ─────────────────────────────────────────────
+function renderForecastStrategyTable(forecast, monthKey) {
+  const table = document.getElementById("strategyTable");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const [year, month] = monthKey.split("-").map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const forecastAdr = (forecast.forecast_adr_min + forecast.forecast_adr_max) / 2;
+  
+  let html = `
+    <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
+      ℹ️ Forecasted rate suggestions based on historical patterns.
+    </div>
+    <div style="overflow-x: auto;">
+      <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
+        <thead>
+          <tr style="background: #f1f5f9;">
+            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Forecast Occupancy</th><th style="padding: 12px;">Suggested Rate</th><th style="padding: 12px;">Strategy</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month - 1, day);
+    const displayDate = `${day}/${String(month).padStart(2, '0')}`;
+    const dow = date.toLocaleDateString('en-ZA', { weekday: 'short' });
+    const isWeekend = dow === 'Sat' || dow === 'Sun';
+    const isPast = date < today;
+    const isToday = date.toDateString() === today.toDateString();
+    
+    let occ, suggestedRate, strategy;
+    
+    if (isPast) {
+      occ = 0;
+      suggestedRate = 0;
+      strategy = "Past date";
+    } else {
+      occ = isWeekend ? forecast.forecast_occupancy * 1.15 : forecast.forecast_occupancy * 0.95;
+      suggestedRate = isWeekend ? forecast.forecast_adr_max : forecast.forecast_adr_min;
+      strategy = isWeekend ? "Weekend - Higher demand" : "Weekday - Standard rate";
+    }
+    
+    const todayBadge = isToday ? ' 🔴' : '';
+    const pastBadge = isPast ? ' (Past)' : '';
+    
+    html += `
+      <tr style="background: ${isPast ? '#f1f5f9' : (isWeekend ? '#fef3c7' : '#ffffff')};">
+        <td style="padding: 10px;">${displayDate}${todayBadge}${pastBadge}</td>
+        <td style="padding: 10px;">${dow}</td>
+        <td style="padding: 10px; text-align: center;"><strong>${isPast ? '—' : Math.round(occ) + '%'}</strong></td>
+        <td style="padding: 10px; text-align: center;"><strong>${isPast ? '—' : formatCurrency(Math.round(suggestedRate))}</strong></td>
+        <td style="padding: 10px; font-size: 12px;">${isPast ? 'No action needed' : strategy}</td>
+      </tr>
+    `;
+  }
+  
+  html += '</tbody><tr></div>';
+  table.innerHTML = html;
 }
 
-function formatCurrency(value) {
-  const cur = localStorage.getItem("currencySymbol") || "R";
-  return `${cur} ${Math.round(value).toLocaleString()}`;
-}
-
-function getDayOfWeek(dateStr) {
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const date = new Date(dateStr);
-  return days[date.getDay()];
-}
-
-function getDayOfWeekName(dateStr) {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  const date = new Date(dateStr);
-  return days[date.getDay()];
-}
-
+// ─────────────────────────────────────────────
+// Helper Functions
+// ─────────────────────────────────────────────
 function computeMonthlyKPIs(perf, roomsAvailable) {
   const days = perf.length;
-  const roomsSold = perf.reduce((a, r) => a + r.rooms_sold, 0);
-  const revenue = perf.reduce((a, r) => a + r.room_revenue, 0);
+  const roomsSold = perf.reduce((a, r) => a + (r.rooms_sold || 0), 0);
+  const revenue = perf.reduce((a, r) => a + (r.room_revenue || 0), 0);
   const occupancy = days ? (roomsSold / (roomsAvailable * days)) * 100 : 0;
   const adr = roomsSold ? revenue / roomsSold : 0;
   const revpar = days ? revenue / (roomsAvailable * days) : 0;
@@ -526,10 +657,11 @@ function analyzeDOWPatterns(perf, roomsAvailable) {
   const dowMap = { 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat', 0: 'Sun' };
   
   perf.forEach(r => {
+    if (!r.stay_date) return;
     const date = new Date(r.stay_date);
     const dow = dowMap[date.getDay()];
     const occ = (r.rooms_sold / roomsAvailable) * 100;
-    dowOcc[dow].push(occ);
+    if (dowOcc[dow]) dowOcc[dow].push(occ);
   });
   
   const avgOcc = {};
@@ -550,6 +682,7 @@ function analyzeDemand(perf, roomsAvailable) {
   
   const dowOcc = {};
   perf.forEach(r => {
+    if (!r.stay_date) return;
     const date = new Date(r.stay_date);
     const dow = dowMap[date.getDay()];
     const occ = (r.rooms_sold / roomsAvailable) * 100;
@@ -573,12 +706,39 @@ function analyzeCompetitorRates(comp) {
       allRates = allRates.concat(c.comps);
     }
   });
-  
   const avgCompetitorRate = allRates.length ? allRates.reduce((a,b) => a + b, 0) / allRates.length : 1500;
   return { avgCompetitorRate };
 }
 
-function renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRates, isCurrentFuture, monthKey) {
+function calculateDOWAverages(dailyData, roomsAvailable) {
+  const dowMap = { 0: 'Sunday', 1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday', 5: 'Friday', 6: 'Saturday' };
+  const dowOcc = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  const dowCount = { Sunday: 0, Monday: 0, Tuesday: 0, Wednesday: 0, Thursday: 0, Friday: 0, Saturday: 0 };
+  
+  dailyData.forEach(r => {
+    if (!r.stay_date) return;
+    const date = new Date(r.stay_date);
+    const dow = dowMap[date.getDay()];
+    const occ = (r.rooms_sold / roomsAvailable) * 100;
+    dowOcc[dow] += occ;
+    dowCount[dow]++;
+  });
+  
+  for (let d in dowOcc) {
+    if (dowCount[d] > 0) {
+      dowOcc[d] = dowOcc[d] / dowCount[d];
+    }
+  }
+  
+  return { occupancy: dowOcc };
+}
+
+function formatCurrency(value) {
+  const cur = localStorage.getItem("currencySymbol") || "R";
+  return `${cur} ${Math.round(value).toLocaleString()}`;
+}
+
+function renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRates, monthKey) {
   let text = "";
   let recommendation = "";
   let focus = "";
@@ -647,7 +807,7 @@ function renderExecutiveSummary(kpis, dowAnalysis, demandAnalysis, competitorRat
   document.getElementById("summaryCard").innerHTML = html;
 }
 
-function renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrentFuture) {
+function renderRateRecommendations(kpis, dowAnalysis, competitorRates) {
   const compAvg = competitorRates.avgCompetitorRate;
   const yourADR = kpis.adr;
   
@@ -740,7 +900,7 @@ function renderRateRecommendations(kpis, dowAnalysis, competitorRates, isCurrent
   document.getElementById("rateRecommendations").innerHTML = html;
 }
 
-function renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
+function renderRevenueTriangle(kpis) {
   let insight = "";
   let action = "";
   
@@ -791,185 +951,4 @@ function renderRevenueTriangle(kpis, dowAnalysis, isCurrentFuture) {
   `;
   
   document.getElementById("revenueTriangle").innerHTML = html;
-}
-
-function renderDemandCalendar(demandAnalysis, monthPerf) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const futureDates = monthPerf.filter(r => {
-    const checkDate = new Date(r.stay_date);
-    checkDate.setHours(0, 0, 0, 0);
-    return checkDate >= today;
-  }).map(r => r.stay_date).sort();
-  
-  if (futureDates.length === 0) {
-    document.getElementById("demandCalendar").innerHTML = `
-      <div style="text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-        <h3>No upcoming dates in this month</h3>
-        <p>All dates in ${formatMonthLabel(monthKeys[currentMonthIndex])} have passed.</p>
-        <p style="font-size: 13px; margin-top: 8px;">Use the month navigator to view future months.</p>
-      </div>
-    `;
-    return;
-  }
-  
-  let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
-  
-  futureDates.forEach(date => {
-    const [year, month, day] = date.split("-");
-    const displayDate = `${day}/${month}`;
-    const dow = getDayOfWeek(date);
-    
-    const dayData = monthPerf.find(r => r.stay_date === date);
-    const occ = dayData ? (dayData.rooms_sold / roomsAvailable) * 100 : 0;
-    
-    let demandLevel = "Medium";
-    let bgColor = "#fef3c7";
-    let textColor = "#92400e";
-    
-    if (occ > 75) {
-      demandLevel = "High";
-      bgColor = "#dcfce7";
-      textColor = "#166534";
-    } else if (occ < 50) {
-      demandLevel = "Low";
-      bgColor = "#fee2e2";
-      textColor = "#991b1b";
-    }
-    
-    let recommendation = "";
-    if (occ > 75) {
-      recommendation = "💰 Push rates";
-    } else if (occ > 60) {
-      recommendation = "⚖️ Maintain rates";
-    } else if (occ > 45) {
-      recommendation = "📊 Let demand come";
-    } else {
-      recommendation = "🎯 Strategic offers only";
-    }
-    
-    const isToday = new Date(date).toDateString() === new Date().toDateString();
-    const todayBadge = isToday ? '<span style="background: #1e293b; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; margin-left: 8px;">TODAY</span>' : '';
-    
-    html += `
-      <div style="background: ${bgColor}; padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <div style="font-weight: 600; color: ${textColor};">
-          <strong>${displayDate}</strong> - ${dow} ${todayBadge}
-        </div>
-        <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-          <span style="background: rgba(0,0,0,0.05); padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; color: ${textColor};">
-            ${demandLevel} Demand
-          </span>
-          <span style="font-size: 12px; color: ${textColor};">
-            ${recommendation}
-          </span>
-          <span style="font-size: 11px; color: ${textColor}; opacity: 0.7;">
-            ${occ.toFixed(0)}% Occ
-          </span>
-        </div>
-      </div>
-    `;
-  });
-  
-  html += '</div>';
-  document.getElementById("demandCalendar").innerHTML = html;
-}
-
-function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const futureDates = monthPerf.filter(r => {
-    const checkDate = new Date(r.stay_date);
-    checkDate.setHours(0, 0, 0, 0);
-    return checkDate >= today;
-  }).sort((a, b) => a.stay_date.localeCompare(b.stay_date));
-  
-  if (futureDates.length === 0 && isCurrentFuture) {
-    const noDatesHtml = `
-      <div style="text-align: center; padding: 40px; background: #fef3c7; border-radius: 12px;">
-        <div style="font-size: 48px; margin-bottom: 16px;">📅</div>
-        <h3>No upcoming dates in this month</h3>
-        <p>All dates in ${formatMonthLabel(monthKeys[currentMonthIndex])} have passed.</p>
-      </div>
-    `;
-    document.getElementById("strategyTable").innerHTML = noDatesHtml;
-    return;
-  }
-  
-  let html = `
-    <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
-      ℹ️ Rate suggestions based on historical day-of-week patterns and competitor positioning.
-    </div>
-    <div style="overflow-x: auto;">
-      <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 700px;">
-        <thead>
-          <tr><th>Date</th><th>DOW</th><th>Your Rate</th><th>Comp Avg</th><th>Recommendation</th><th>Suggested Rate</th></tr>
-        </thead>
-        <tbody>
-  `;
-  
-  for (const day of futureDates) {
-    const date = day.stay_date;
-    const [year, month, dayNum] = date.split("-");
-    const displayDate = `${dayNum}/${month}`;
-    const dow = getDayOfWeek(date);
-    
-    const compData = monthComp.find(c => c.stay_date === date);
-    let currentRate = compData ? compData.your_rate : null;
-    
-    if (currentRate === null || currentRate === undefined || currentRate === 0) {
-      currentRate = null;
-    }
-    
-    const compAvg = compData && compData.comps && compData.comps.length > 0 
-      ? compData.comps.reduce((a,b) => a + b, 0) / compData.comps.length 
-      : null;
-    
-    let suggestedRate = null;
-    let recommendation = "";
-    let bgColor = "";
-    let rateDisplay = "";
-    
-    const isToday = new Date(date).toDateString() === new Date().toDateString();
-    const todayBadge = isToday ? ' <span style="color: #3b82f6;">(TODAY)</span>' : '';
-    
-    if (!currentRate && !compAvg) {
-      rateDisplay = '<span style="color: #94a3b8;">—</span>';
-      suggestedRate = null;
-      recommendation = "No rate data available";
-      bgColor = "#f1f5f9";
-    } else if (currentRate && compAvg) {
-      rateDisplay = formatCurrency(currentRate);
-      suggestedRate = currentRate;
-      recommendation = compAvg > currentRate ? "Below competitors - consider increase" : "At or above competitors - maintain";
-      bgColor = "#f0fdf4";
-    } else if (currentRate && !compAvg) {
-      rateDisplay = formatCurrency(currentRate);
-      suggestedRate = currentRate;
-      recommendation = "Maintain current rate";
-      bgColor = "#fef3c7";
-    } else if (!currentRate && compAvg) {
-      rateDisplay = '<span style="color: #94a3b8;">—</span>';
-      suggestedRate = Math.round(compAvg / 10) * 10;
-      recommendation = "Use competitor rate as baseline";
-      bgColor = "#fef3c7";
-    }
-    
-    html += `
-      <tr style="background: ${bgColor};">
-        <td style="padding: 8px;">${displayDate}${todayBadge}</td>
-        <td style="padding: 8px;">${dow}</td>
-        <td style="padding: 8px; text-align: right;">${rateDisplay}</td>
-        <td style="padding: 8px; text-align: right;">${compAvg ? formatCurrency(compAvg) : '-'}</td>
-        <td style="padding: 8px; font-size: 11px;">${recommendation}</td>
-        <td style="padding: 8px; text-align: right;"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
-      </tr>
-    `;
-  }
-  
-  html += '</tbody></table></div>';
-  document.getElementById("strategyTable").innerHTML = html;
 }
