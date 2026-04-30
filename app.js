@@ -445,24 +445,147 @@ async function renderForecastForMonth(monthKey, monthName) {
       container.innerHTML = html;
     }
     
+    // ── Build day-by-day forecast charts for the full month ──
     const chartsContainer = document.getElementById("charts");
     if (chartsContainer) {
+      // Restore canvas elements (they may have been replaced by a previous call)
       chartsContainer.innerHTML = `
         <div class="chart-card">
-          <h3>Occupancy % Trend</h3>
-          <div style="padding:40px;text-align:center;background:#f8fafc;border-radius:8px;">
-            📊 Forecast data only<br>
-            <small>Upload actual data to see trends</small>
-          </div>
+          <h3>Occupancy % Trend <span style="font-size:11px;color:#6b7280;font-weight:normal;">(Forecast)</span></h3>
+          <canvas id="occChart"></canvas>
         </div>
         <div class="chart-card">
-          <h3>ADR Trend</h3>
-          <div style="padding:40px;text-align:center;background:#f8fafc;border-radius:8px;">
-            📈 Forecast: ${cur} ${Math.round(forecastAdr).toLocaleString()}<br>
-            <small>Range: ${cur} ${Math.round(forecastAdrMin).toLocaleString()} - ${cur} ${Math.round(forecastAdrMax).toLocaleString()}</small>
-          </div>
+          <h3>ADR Trend <span style="font-size:11px;color:#6b7280;font-weight:normal;">(Forecast)</span></h3>
+          <canvas id="adrChart"></canvas>
         </div>
       `;
+    }
+
+    // Generate one label + value per calendar day
+    const [fYear, fMonth] = monthKey.split('-').map(Number);
+    const fDaysInMonth = new Date(fYear, fMonth, 0).getDate();
+    const forecastLabels = [];
+    const forecastOccData = [];
+    const forecastOccMin  = [];
+    const forecastOccMax  = [];
+    const forecastAdrData = [];
+    const forecastAdrMinData = [];
+    const forecastAdrMaxData = [];
+
+    for (let d = 1; d <= fDaysInMonth; d++) {
+      const label = `${String(fMonth).padStart(2,'0')}/${String(d).padStart(2,'0')}`;
+      forecastLabels.push(label);
+      forecastOccData.push(parseFloat(forecastOcc));
+      forecastOccMin.push(parseFloat(forecastOcc) * 0.85);
+      forecastOccMax.push(parseFloat(forecastOcc) * 1.15);
+      forecastAdrData.push(Math.round(forecastAdr));
+      forecastAdrMinData.push(Math.round(forecastAdrMin));
+      forecastAdrMaxData.push(Math.round(forecastAdrMax));
+    }
+
+    const occCanvas = document.getElementById("occChart");
+    const adrCanvas = document.getElementById("adrChart");
+
+    if (occChart) occChart.destroy();
+    if (occCanvas) {
+      occChart = new Chart(occCanvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: forecastLabels,
+          datasets: [
+            {
+              label: "Forecast Occupancy %",
+              data: forecastOccData,
+              borderColor: "#2563eb",
+              backgroundColor: "rgba(37,99,235,0.08)",
+              borderWidth: 2,
+              borderDash: [6, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: false
+            },
+            {
+              label: "Upper Range",
+              data: forecastOccMax,
+              borderColor: "rgba(37,99,235,0.2)",
+              backgroundColor: "rgba(37,99,235,0.08)",
+              borderWidth: 1,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: "+1"
+            },
+            {
+              label: "Lower Range",
+              data: forecastOccMin,
+              borderColor: "rgba(37,99,235,0.2)",
+              backgroundColor: "rgba(37,99,235,0.08)",
+              borderWidth: 1,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: false
+            }
+          ]
+        },
+        options: {
+          ...chartOptions("Occupancy %"),
+          plugins: {
+            ...chartOptions("Occupancy %").plugins,
+            legend: { display: false }
+          },
+          scales: {
+            ...chartOptions("Occupancy %").scales,
+            y: { ...chartOptions("Occupancy %").scales.y, min: 0, max: 100 }
+          }
+        }
+      });
+    }
+
+    if (adrChart) adrChart.destroy();
+    if (adrCanvas) {
+      adrChart = new Chart(adrCanvas.getContext("2d"), {
+        type: "line",
+        data: {
+          labels: forecastLabels,
+          datasets: [
+            {
+              label: `Forecast ADR (${cur})`,
+              data: forecastAdrData,
+              borderColor: "#15803d",
+              backgroundColor: "rgba(21,128,61,0.08)",
+              borderWidth: 2,
+              borderDash: [6, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: false
+            },
+            {
+              label: "Upper Range",
+              data: forecastAdrMaxData,
+              borderColor: "rgba(21,128,61,0.2)",
+              backgroundColor: "rgba(21,128,61,0.08)",
+              borderWidth: 1,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: "+1"
+            },
+            {
+              label: "Lower Range",
+              data: forecastAdrMinData,
+              borderColor: "rgba(21,128,61,0.2)",
+              backgroundColor: "rgba(21,128,61,0.08)",
+              borderWidth: 1,
+              borderDash: [3, 3],
+              pointRadius: 0,
+              tension: 0,
+              fill: false
+            }
+          ]
+        },
+        options: chartOptions(`Rate (${cur})`)
+      });
     }
     
     document.getElementById("monthNav").hidden = false;
