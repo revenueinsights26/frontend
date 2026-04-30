@@ -1,4 +1,4 @@
-console.log("rate-intelligence.js loaded - COMPLETE FIX VERSION");
+console.log("rate-intelligence.js loaded - COMPLETE FIX VERSION (Past dates disabled)");
 
 // ─────────────────────────────────────────────
 // Config
@@ -49,7 +49,6 @@ let currentDisplayMonth = null;
 
 function navigatePrevMonth() {
   if (currentDisplayYear !== null && currentDisplayMonth !== null) {
-    // In manual navigation mode
     currentDisplayMonth--;
     if (currentDisplayMonth < 0) {
       currentDisplayMonth = 11;
@@ -64,7 +63,6 @@ function navigatePrevMonth() {
 
 function navigateNextMonth() {
   if (currentDisplayYear !== null && currentDisplayMonth !== null) {
-    // In manual navigation mode
     currentDisplayMonth++;
     if (currentDisplayMonth > 11) {
       currentDisplayMonth = 0;
@@ -75,7 +73,6 @@ function navigateNextMonth() {
     currentMonthIndex++;
     loadMonthData();
   } else if (monthKeys.length > 0) {
-    // Move to next month after last data month
     const lastMonth = monthKeys[monthKeys.length - 1];
     const [lastYear, lastMonthNum] = lastMonth.split('-').map(Number);
     currentDisplayYear = lastYear;
@@ -101,6 +98,25 @@ function loadDataForYearMonth(year, month) {
   } else {
     loadForecastForMonth(monthKey, monthName);
   }
+}
+
+// ─────────────────────────────────────────────
+// Check if a date is in the past
+// ─────────────────────────────────────────────
+function isPastDate(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(date);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate < today;
+}
+
+function isTodayDate(date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const checkDate = new Date(date);
+  checkDate.setHours(0, 0, 0, 0);
+  return checkDate.getTime() === today.getTime();
 }
 
 // ─────────────────────────────────────────────
@@ -151,7 +167,6 @@ function loadDashboardData() {
       allDailyComp = data.compset || [];
     }
     
-    // Build set of months that HAVE data
     allDailyPerf.forEach(r => {
       if (r.stay_date && r.stay_date.length >= 7) {
         allMonthsWithData.add(r.stay_date.substring(0, 7));
@@ -163,7 +178,6 @@ function loadDashboardData() {
     console.log("Months with data:", monthKeys);
     console.log("Total daily records:", allDailyPerf.length);
     
-    // Start with current month (April 2026)
     const today = new Date();
     const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     
@@ -338,10 +352,7 @@ function renderForecastUI(forecast, monthKey, monthName) {
     </div>
   `;
   
-  // Show forecast calendar
   renderForecastCalendar(forecast, monthKey);
-  
-  // Show forecast strategy table
   renderForecastStrategyTable(forecast, monthKey);
 }
 
@@ -363,7 +374,6 @@ function renderDemandCalendarFull(monthPerf, monthKey) {
     const dayData = monthPerf.find(r => r.stay_date === dateStr);
     const occ = dayData ? (dayData.rooms_sold / roomsAvailable) * 100 : 0;
     const dayOfWeek = date.toLocaleDateString('en-ZA', { weekday: 'short' });
-    const isWeekend = dayOfWeek === 'Sat' || dayOfWeek === 'Sun';
     const isToday = date.toDateString() === today.toDateString();
     const isPast = date < today;
     
@@ -423,7 +433,7 @@ function renderDemandCalendarFull(monthPerf, monthKey) {
 }
 
 // ─────────────────────────────────────────────
-// FULL DAY-BY-DAY STRATEGY TABLE (all days of month)
+// FULL DAY-BY-DAY STRATEGY TABLE (NO suggestions for past dates)
 // ─────────────────────────────────────────────
 function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
   const table = document.getElementById("strategyTable");
@@ -433,18 +443,17 @@ function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
   const [year, month] = monthKey.split("-").map(Number);
   const daysInMonth = new Date(year, month, 0).getDate();
   
-  // Calculate DOW averages for competitor suggestions
   const dowAverages = calculateDOWAverages(allDailyPerf, roomsAvailable);
   
   let html = `
     <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
-      ℹ️ Rate suggestions based on historical day-of-week patterns and competitor positioning.
+      ℹ️ Rate suggestions are only shown for TODAY and FUTURE dates. Past dates are for reference only.
     </div>
     <div style="overflow-x: auto;">
       <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 800px;">
         <thead>
           <tr style="background: #f1f5f9;">
-            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Rooms Sold</th><th style="padding: 12px;">Occupancy</th><th style="padding: 12px;">Your Rate</th><th style="padding: 12px;">Comp Avg</th><th style="padding: 12px;">Recommendation</th><th style="padding: 12px;">Suggested Rate</th>
+            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Rooms Sold</th><th style="padding: 12px;">Occupancy</th><th style="padding: 12px;">Your Rate</th><th style="padding: 12px;">Comp Avg</th><th style="padding: 12px;">Status</th><th style="padding: 12px;">Suggested Rate</th>
           </tr>
         </thead>
         <tbody>
@@ -457,6 +466,7 @@ function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
     const dow = date.toLocaleDateString('en-ZA', { weekday: 'short' });
     const isPast = date < today;
     const isToday = date.toDateString() === today.toDateString();
+    const isFuture = date > today;
     
     const dayData = monthPerf.find(r => r.stay_date === dateStr);
     const compData = monthComp.find(c => c.stay_date === dateStr);
@@ -472,38 +482,71 @@ function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
     const dowOccAvg = dowAverages.occupancy[dowName] || 50;
     
     let suggestedRate = null;
-    let recommendation = "";
+    let statusText = "";
     let bgColor = "#ffffff";
     
-    if (currentRate) {
-      if (compAvg && compAvg > currentRate * 1.05) {
-        suggestedRate = Math.round(currentRate * 1.03 / 10) * 10;
-        recommendation = "Below competitors - increase";
-        bgColor = "#f0fdf4";
-      } else if (compAvg && compAvg < currentRate * 0.95) {
-        suggestedRate = Math.round(currentRate * 0.97 / 10) * 10;
-        recommendation = "Above competitors - decrease";
-        bgColor = "#fef2f2";
+    // PAST DATES: No suggestions, just show historical data
+    if (isPast) {
+      statusText = "📅 Historical (No action needed)";
+      suggestedRate = null;
+      bgColor = "#f8fafc";
+    }
+    // TODAY: Show suggestion
+    else if (isToday) {
+      statusText = "🔴 TODAY - Action recommended";
+      if (currentRate) {
+        if (compAvg && compAvg > currentRate * 1.05) {
+          suggestedRate = Math.round(currentRate * 1.03 / 10) * 10;
+          bgColor = "#f0fdf4";
+        } else if (compAvg && compAvg < currentRate * 0.95) {
+          suggestedRate = Math.round(currentRate * 0.97 / 10) * 10;
+          bgColor = "#fef2f2";
+        } else {
+          suggestedRate = currentRate;
+          bgColor = "#fef3c7";
+        }
+      } else if (compAvg) {
+        const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+        suggestedRate = Math.round(compAvg * dowMultiplier / 10) * 10;
+        bgColor = "#e0f2fe";
       } else {
-        suggestedRate = currentRate;
-        recommendation = "Maintain current rate";
-        bgColor = "#fef3c7";
+        const baseRate = 1500;
+        const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+        suggestedRate = Math.round(baseRate * dowMultiplier / 10) * 10;
+        bgColor = "#f1f5f9";
       }
-    } else if (compAvg) {
-      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
-      suggestedRate = Math.round(compAvg * dowMultiplier / 10) * 10;
-      recommendation = "Use competitor rate + DOW adjustment";
-      bgColor = "#e0f2fe";
-    } else {
-      const baseRate = 1500;
-      const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
-      suggestedRate = Math.round(baseRate * dowMultiplier / 10) * 10;
-      recommendation = "Use market average + DOW adjustment";
-      bgColor = "#f1f5f9";
+    }
+    // FUTURE DATES: Show forecast suggestions
+    else if (isFuture) {
+      statusText = "🔮 Future - Forecast recommendation";
+      if (currentRate) {
+        if (compAvg && compAvg > currentRate * 1.05) {
+          suggestedRate = Math.round(currentRate * 1.03 / 10) * 10;
+          bgColor = "#f0fdf4";
+        } else if (compAvg && compAvg < currentRate * 0.95) {
+          suggestedRate = Math.round(currentRate * 0.97 / 10) * 10;
+          bgColor = "#fef2f2";
+        } else {
+          suggestedRate = currentRate;
+          bgColor = "#fef3c7";
+        }
+      } else if (compAvg) {
+        const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+        suggestedRate = Math.round(compAvg * dowMultiplier / 10) * 10;
+        bgColor = "#e0f2fe";
+      } else {
+        const baseRate = 1500;
+        const dowMultiplier = dowOccAvg > 60 ? 1.05 : (dowOccAvg > 45 ? 1.0 : 0.98);
+        suggestedRate = Math.round(baseRate * dowMultiplier / 10) * 10;
+        bgColor = "#f1f5f9";
+      }
     }
     
-    const todayBadge = isToday ? ' 🔴' : '';
-    const pastBadge = isPast && roomsSold === 0 ? ' (Past)' : '';
+    const todayBadge = isToday ? ' 🔴 TODAY' : '';
+    const pastBadge = isPast ? ' (Past)' : '';
+    
+    // For past dates, show "—" for suggested rate
+    const rateDisplay = suggestedRate ? formatCurrency(suggestedRate) : (isPast ? '—' : '—');
     
     html += `
       <tr style="background: ${bgColor};">
@@ -513,8 +556,8 @@ function renderDayStrategyFull(monthPerf, monthComp, monthKey) {
         <td style="padding: 10px; text-align: right;">${occupancy.toFixed(1)}%</td>
         <td style="padding: 10px; text-align: right;">${currentRate ? formatCurrency(currentRate) : '—'}</td>
         <td style="padding: 10px; text-align: right;">${compAvg ? formatCurrency(compAvg) : '—'}</td>
-        <td style="padding: 10px; font-size: 12px;">${recommendation}</td>
-        <td style="padding: 10px; text-align: right;"><strong>${suggestedRate ? formatCurrency(suggestedRate) : '—'}</strong></td>
+        <td style="padding: 10px; font-size: 12px;">${statusText}</td>
+        <td style="padding: 10px; text-align: right;"><strong>${rateDisplay}</strong></td>
       </tr>
     `;
   }
@@ -576,7 +619,7 @@ function renderForecastCalendar(forecast, monthKey) {
 }
 
 // ─────────────────────────────────────────────
-// FORECAST STRATEGY TABLE (all days)
+// FORECAST STRATEGY TABLE (NO suggestions for past dates)
 // ─────────────────────────────────────────────
 function renderForecastStrategyTable(forecast, monthKey) {
   const table = document.getElementById("strategyTable");
@@ -589,13 +632,13 @@ function renderForecastStrategyTable(forecast, monthKey) {
   
   let html = `
     <div style="font-size: 11px; color: #64748b; margin-bottom: 12px; padding: 8px; background: #f1f5f9; border-radius: 6px;">
-      ℹ️ Forecasted rate suggestions based on historical patterns.
+      ℹ️ Forecasted rate suggestions for TODAY and FUTURE dates only. Past dates are for reference.
     </div>
     <div style="overflow-x: auto;">
       <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 600px;">
         <thead>
           <tr style="background: #f1f5f9;">
-            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Forecast Occupancy</th><th style="padding: 12px;">Suggested Rate</th><th style="padding: 12px;">Strategy</th>
+            <th style="padding: 12px;">Date</th><th style="padding: 12px;">DOW</th><th style="padding: 12px;">Forecast Occupancy</th><th style="padding: 12px;">Suggested Rate</th><th style="padding: 12px;">Status</th>
           </tr>
         </thead>
         <tbody>
@@ -608,17 +651,22 @@ function renderForecastStrategyTable(forecast, monthKey) {
     const isWeekend = dow === 'Sat' || dow === 'Sun';
     const isPast = date < today;
     const isToday = date.toDateString() === today.toDateString();
+    const isFuture = date > today;
     
-    let occ, suggestedRate, strategy;
+    let occ, suggestedRate, statusText;
     
     if (isPast) {
       occ = 0;
-      suggestedRate = 0;
-      strategy = "Past date";
+      suggestedRate = null;
+      statusText = "📅 Past date - No action needed";
+    } else if (isToday) {
+      occ = isWeekend ? forecast.forecast_occupancy * 1.15 : forecast.forecast_occupancy * 0.95;
+      suggestedRate = isWeekend ? forecast.forecast_adr_max : forecast.forecast_adr_min;
+      statusText = "🔴 TODAY - Action recommended";
     } else {
       occ = isWeekend ? forecast.forecast_occupancy * 1.15 : forecast.forecast_occupancy * 0.95;
       suggestedRate = isWeekend ? forecast.forecast_adr_max : forecast.forecast_adr_min;
-      strategy = isWeekend ? "Weekend - Higher demand" : "Weekday - Standard rate";
+      statusText = "🔮 Future - Forecast recommendation";
     }
     
     const todayBadge = isToday ? ' 🔴' : '';
@@ -630,12 +678,12 @@ function renderForecastStrategyTable(forecast, monthKey) {
         <td style="padding: 10px;">${dow}</td>
         <td style="padding: 10px; text-align: center;"><strong>${isPast ? '—' : Math.round(occ) + '%'}</strong></td>
         <td style="padding: 10px; text-align: center;"><strong>${isPast ? '—' : formatCurrency(Math.round(suggestedRate))}</strong></td>
-        <td style="padding: 10px; font-size: 12px;">${isPast ? 'No action needed' : strategy}</td>
+        <td style="padding: 10px; font-size: 12px;">${statusText}</td>
       </tr>
     `;
   }
   
-  html += '</tbody><tr></div>';
+  html += '</tbody></table></div>';
   table.innerHTML = html;
 }
 
