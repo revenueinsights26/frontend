@@ -1,4 +1,4 @@
-console.log("rate-intelligence.js loaded - PERMANENT FORECAST FIX");
+console.log("rate-intelligence.js loaded - PERMANENT FORECAST FIX with CORRECT ROOMS");
 
 // ─────────────────────────────────────────────
 // Config
@@ -14,7 +14,7 @@ let allDailyPerf = [];
 let allDailyComp = [];
 let monthKeys = [];
 let currentMonthIndex = 0;
-let roomsAvailable = 100;
+let roomsAvailable = 6;  // FIXED: Default to 6 (ELLIPSE001 has 6 rooms)
 let allSnapshots = [];
 let allMonthsWithData = new Set();
 
@@ -28,7 +28,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return; 
   }
 
-  roomsAvailable = parseInt(localStorage.getItem("roomsAvailable") || "100", 10);
+  // Try to get roomsAvailable from localStorage first
+  const savedRooms = localStorage.getItem("roomsAvailable");
+  if (savedRooms && !isNaN(parseInt(savedRooms))) {
+    roomsAvailable = parseInt(savedRooms);
+    console.log("✅ roomsAvailable from localStorage:", roomsAvailable);
+  }
   
   const savedHotelId = localStorage.getItem("hotelId");
   if (savedHotelId) {
@@ -69,10 +74,8 @@ function navigateMonth(direction) {
   
   // Check if we have data for this month
   if (allMonthsWithData.has(monthKey)) {
-    // Load historical data
     loadHistoricalMonth(monthKey);
   } else {
-    // Load forecast
     loadForecastForMonth(monthKey);
   }
 }
@@ -136,17 +139,33 @@ function loadDashboardData() {
     summaryCard.innerHTML = `<div style="text-align: center; padding: 40px;">📊 Loading rate intelligence data...</div>`;
   }
 
+  // FIRST: Get hotel info to set correct roomsAvailable
   fetch(API + "/hotel_dashboard_history/" + hotelId, {
     headers: { "X-Owner-Token": token }
   })
   .then(res => res.json())
   .then(snapshots => {
+    if (snapshots && snapshots.length > 0) {
+      // Try to get rooms_available from snapshot or hotel data
+      const firstSnapshot = snapshots[0];
+      if (firstSnapshot.rooms_available) {
+        roomsAvailable = firstSnapshot.rooms_available;
+        localStorage.setItem("roomsAvailable", roomsAvailable);
+        console.log("✅ roomsAvailable set from snapshot:", roomsAvailable);
+      } else {
+        // Fallback: Use 6 for ELLIPSE001
+        roomsAvailable = 6;
+        localStorage.setItem("roomsAvailable", 6);
+        console.log("✅ roomsAvailable set to default (6)");
+      }
+    }
+    
     if (!snapshots || snapshots.length === 0) {
       allSnapshots = [];
       const today = new Date();
       const currentMonthKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       loadForecastForMonth(currentMonthKey);
-      return;
+      return Promise.resolve(null);
     }
     
     allSnapshots = snapshots;
@@ -173,6 +192,9 @@ function loadDashboardData() {
     });
     
     monthKeys = Array.from(allMonthsWithData).sort();
+    
+    console.log("📊 Months with data:", monthKeys);
+    console.log("🏨 roomsAvailable used for calculations:", roomsAvailable);
     
     if (monthKeys.length === 0 && allSnapshots.length === 0) {
       alert("No data available. Please upload data first.");
@@ -207,7 +229,7 @@ function loadDashboardData() {
 async function loadForecastForMonth(monthKey) {
   const token = localStorage.getItem("ownerToken");
   const hotelId = localStorage.getItem("hotelId") || "ELLIPSE001";
-  const roomsAvail = parseInt(localStorage.getItem("roomsAvailable") || "100", 10);
+  const roomsAvail = roomsAvailable; // Use the correct roomsAvailable value
   
   // Update month display
   document.getElementById("monthLabel").textContent = formatMonthLabel(monthKey) + " 🔮";
@@ -332,7 +354,7 @@ function renderForecastUI(forecast, monthKey) {
     </div>
   `;
   
-  // Demand Calendar - Generate future dates
+  // Demand Calendar
   renderForecastDemandCalendar(forecast, monthKey);
   
   // Strategy Table
@@ -439,7 +461,7 @@ function renderForecastStrategyTable(forecast, monthKey) {
     
     html += `
       <tr style="background: ${bgColor};">
-        <td style="padding: 10px; font-weight: 600;">${s.day}<td>
+        <td style="padding: 10px; font-weight: 600;">${s.day}</td>
         <td style="padding: 10px; text-align: center;"><strong style="color: ${occColor};">${Math.round(occ)}%</strong></td>
         <td style="padding: 10px; text-align: center;"><strong>R ${suggested.toLocaleString()}</strong></td>
         <td style="padding: 10px; font-size: 12px;">${s.strategy}</td>
@@ -453,7 +475,7 @@ function renderForecastStrategyTable(forecast, monthKey) {
 }
 
 // =========================================================
-// Helper Functions - Keep all your existing ones
+// Helper Functions for Historical Data
 // =========================================================
 
 function isCurrentOrFutureMonth(monthKey) {
@@ -506,7 +528,7 @@ function analyzeDOWPatterns(perf, roomsAvailable) {
   perf.forEach(r => {
     const date = new Date(r.stay_date);
     const dow = dowMap[date.getDay()];
-    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
+    const occ = (r.rooms_sold / roomsAvailable) * 100;
     dowOcc[dow].push(occ);
   });
   
@@ -530,7 +552,7 @@ function analyzeDemand(perf, roomsAvailable) {
   perf.forEach(r => {
     const date = new Date(r.stay_date);
     const dow = dowMap[date.getDay()];
-    const occ = roomsAvailable > 0 ? (r.rooms_sold / roomsAvailable) * 100 : 0;
+    const occ = (r.rooms_sold / roomsAvailable) * 100;
     if (!dowOcc[dow]) dowOcc[dow] = [];
     dowOcc[dow].push(occ);
   });
@@ -884,7 +906,7 @@ function renderDayStrategy(monthPerf, monthComp, roomsAvailable, isCurrentFuture
     <div style="overflow-x: auto;">
       <table class="detailed-table" style="width: 100%; border-collapse: collapse; min-width: 700px;">
         <thead>
-          <tr><th>Date</th><th>DOW</th><th>Your Rate</th><th>Comp Avg</th><th>Recommendation</th><th>Suggested Rate</th></table>
+          <tr><th>Date</th><th>DOW</th><th>Your Rate</th><th>Comp Avg</th><th>Recommendation</th><th>Suggested Rate</th></tr>
         </thead>
         <tbody>
   `;
