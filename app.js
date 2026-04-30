@@ -104,7 +104,6 @@ async function renderMonthForDate(date) {
     drawTrendCharts(monthPerf, monthComp, roomsAvailable);
     drawDOWCharts(monthPerf, roomsAvailable);
     
-    // Show detailed comparison for this specific month
     renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
     
     document.getElementById("dowSection").hidden = false;
@@ -125,16 +124,13 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
     return;
   }
   
-  // Sort by date
   currentMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
   
-  // Find previous month data (same month from previous year or previous month)
   const [year, month] = currentMonthKey.split('-');
   const prevYear = String(parseInt(year) - 1);
   const prevYearMonthKey = `${prevYear}-${month}`;
   let previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevYearMonthKey));
   
-  // If no previous year data, try previous month
   if (previousMonthPerf.length === 0) {
     const currentDate = new Date(parseInt(year), parseInt(month) - 1, 1);
     currentDate.setMonth(currentDate.getMonth() - 1);
@@ -144,7 +140,6 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
   
   previousMonthPerf.sort((a, b) => a.stay_date.localeCompare(b.stay_date));
   
-  // Create map of previous data by day of month
   const prevMonthMap = new Map();
   previousMonthPerf.forEach(day => {
     const dayNum = parseInt(day.stay_date.split("-")[2]);
@@ -224,7 +219,7 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
         <td class="number-cell">${formatCurrency(currentADR)}</td>
         <td class="number-cell">${hasPrevData ? formatCurrency(prevADR) : '-'}</td>
         <td class="pickup-cell ${adrPickupClass}">${hasPrevData ? formatPickup(adrPickup) : '-'}</td>
-      </tr>
+       </tr>
     `;
     rowIndex++;
   }
@@ -261,13 +256,13 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
                 <th colspan="3">Occupancy %</th>
                 <th colspan="3">Room Revenue</th>
                 <th colspan="3">ADR</th>
-              </tr>
+               </tr>
               <tr>
                 <th>Current</th><th>Prev</th><th>Pickup</th>
                 <th>Current</th><th>Prev</th><th>Pickup</th>
                 <th>Current</th><th>Prev</th><th>Pickup</th>
                 <th>Current</th><th>Prev</th><th>Pickup</th>
-              </tr>
+               </tr>
             </thead>
             <tbody>
               ${tableRows}
@@ -368,8 +363,8 @@ async function renderForecastForMonth(monthKey, monthName) {
       confidenceText = "Low Confidence";
     }
     
-    const daysInMonth = new Date(parseInt(monthKey.split('-')[0]), parseInt(monthKey.split('-')[1]), 0).getDate();
-    const estimatedRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
+    const daysInMonthTotal = new Date(parseInt(monthKey.split('-')[0]), parseInt(monthKey.split('-')[1]), 0).getDate();
+    const estimatedRevenue = forecastRevPAR * roomsAvailable * daysInMonthTotal;
     
     const html = `
       <div class="kpi">
@@ -589,7 +584,6 @@ function renderMonth() {
   drawTrendCharts(monthPerf, monthComp, roomsAvailable);
   drawDOWCharts(monthPerf, roomsAvailable);
   
-  // Use the new detailed comparison function
   renderDetailedComparisonForMonth(monthKey, monthPerf, roomsAvailable);
   
   document.getElementById("dowSection").hidden = false;
@@ -1022,10 +1016,10 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
         const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
         
-        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
-        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
-        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
-        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
+        const daysInMonthTotal = getDaysInMonth(targetYearNum, targetMonthNum);
+        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonthTotal;
         
         return {
             occupancy: Math.round(forecastOcc),
@@ -1072,13 +1066,13 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
             }
         }
         
-        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
+        const daysInMonthTotal = getDaysInMonth(targetYearNum, targetMonthNum);
         const today = new Date();
         let remainingDays = 0;
         let forecastOcc = 0;
         let forecastADR = 0;
         
-        for (let d = 1; d <= daysInMonth; d++) {
+        for (let d = 1; d <= daysInMonthTotal; d++) {
             const checkDate = new Date(targetYearNum, targetMonthNum - 1, d);
             if (checkDate >= today) {
                 remainingDays++;
@@ -1110,10 +1104,9 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
         const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
         
-        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
-        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
-        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
-        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
+        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonthTotal;
         
         return {
             occupancy: Math.round(forecastOcc),
@@ -1153,14 +1146,14 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         const forecastADRMin = forecastADR * 0.9;
         const forecastADRMax = forecastADR * 1.1;
         
-        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
+        const daysInMonthTotal = getDaysInMonth(targetYearNum, targetMonthNum);
         const forecastRevPAR = (forecastOcc / 100) * forecastADR;
         const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
         const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
         
-        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
-        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
-        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
+        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonthTotal;
         
         return {
             occupancy: Math.round(forecastOcc),
@@ -1209,14 +1202,14 @@ function calculateImprovedForecast(targetMonthKey, roomsAvailable) {
         const forecastADRMin = forecastADR * 0.85;
         const forecastADRMax = forecastADR * 1.15;
         
-        const daysInMonth = getDaysInMonth(targetYearNum, targetMonthNum);
+        const daysInMonthTotal = getDaysInMonth(targetYearNum, targetMonthNum);
         const forecastRevPAR = (forecastOcc / 100) * forecastADR;
         const forecastRevPARMin = (forecastOccMin / 100) * forecastADRMin;
         const forecastRevPARMax = (forecastOccMax / 100) * forecastADRMax;
         
-        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonth;
-        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonth;
-        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonth;
+        const forecastRevenue = forecastRevPAR * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMin = forecastRevPARMin * roomsAvailable * daysInMonthTotal;
+        const forecastRevenueMax = forecastRevPARMax * roomsAvailable * daysInMonthTotal;
         
         return {
             occupancy: Math.round(forecastOcc),
