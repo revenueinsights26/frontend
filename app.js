@@ -152,23 +152,21 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
   const yearNum = parseInt(year);
   const monthNum = parseInt(month);
 
-  // Build previous period map (YoY first, then MoM fallback)
+  // Build previous period map — YoY same month (different year) only.
+  // We do NOT fall back to a different calendar month because day numbers
+  // don't align meaningfully across months of different lengths/positions.
   const prevYear = String(yearNum - 1);
-  const prevYearMonthKey = `${prevYear}-${month}`;
-  let previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevYearMonthKey));
-
-  if (previousMonthPerf.length === 0) {
-    const currentDate = new Date(yearNum, monthNum - 1, 1);
-    currentDate.setMonth(currentDate.getMonth() - 1);
-    const prevMonthKey = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
-    previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(prevMonthKey));
-  }
+  const yoyMonthKey = `${prevYear}-${month}`;
+  const previousMonthPerf = allDailyPerf.filter(r => r.stay_date && r.stay_date.startsWith(yoyMonthKey));
+  const prevPeriodLabel = previousMonthPerf.length > 0 ? prevYear : null;
 
   const prevMonthMap = new Map();
   previousMonthPerf.forEach(day => {
     const dayNum = parseInt(day.stay_date.split("-")[2]);
     prevMonthMap.set(dayNum, day);
   });
+
+  const hasPrevPeriod = prevMonthMap.size > 0;
 
   let tableRows = '';
   let totals = {
@@ -285,10 +283,10 @@ function renderDetailedComparisonForMonth(currentMonthKey, currentMonthPerf, roo
                 <th colspan="3">ADR</th>
                </tr>
               <tr>
-                <th>Current</th><th>Prev</th><th>Pickup</th>
-                <th>Current</th><th>Prev</th><th>Pickup</th>
-                <th>Current</th><th>Prev</th><th>Pickup</th>
-                <th>Current</th><th>Prev</th><th>Pickup</th>
+                <th>Current</th><th>${hasPrevPeriod ? prevPeriodLabel : 'Prev'}</th><th>Pickup</th>
+                <th>Current</th><th>${hasPrevPeriod ? prevPeriodLabel : 'Prev'}</th><th>Pickup</th>
+                <th>Current</th><th>${hasPrevPeriod ? prevPeriodLabel : 'Prev'}</th><th>Pickup</th>
+                <th>Current</th><th>${hasPrevPeriod ? prevPeriodLabel : 'Prev'}</th><th>Pickup</th>
                </tr>
             </thead>
             <tbody>
