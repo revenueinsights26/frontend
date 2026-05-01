@@ -55,6 +55,14 @@
             background: #0f172a;
         }
         
+        .btn-create {
+            background: #10b981;
+        }
+        
+        .btn-create:hover {
+            background: #059669;
+        }
+        
         .btn-copy {
             background: #2563eb;
         }
@@ -207,6 +215,67 @@
             background: #1e293b;
             color: white;
         }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 28px;
+            border-radius: 16px;
+            width: 450px;
+            max-width: 90%;
+        }
+        
+        .modal-content h3 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+        
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .modal-create {
+            background: #10b981;
+            color: white;
+        }
+        
+        .modal-cancel {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
         
         @media (max-width: 768px) {
             body {
@@ -228,6 +297,7 @@
             <h1>👥 Client Management</h1>
             <div style="display: flex; gap: 12px;">
                 <input type="text" id="searchInput" class="search-box" placeholder="Search by name, email, or hotel..." onkeyup="filterTable()">
+                <button class="btn btn-create" onclick="showCreateOwnerModal()">➕ Create Owner</button>
                 <button class="btn" onclick="fetchClients()">Refresh</button>
             </div>
         </div>
@@ -241,6 +311,24 @@
         
         <div id="content" class="client-list">
             <div class="loading">📊 Loading client data...</div>
+        </div>
+    </div>
+
+    <!-- Create Owner Modal -->
+    <div id="createOwnerModal" class="modal">
+        <div class="modal-content">
+            <h3>➕ Create New Owner</h3>
+            <input type="text" id="ownerId" placeholder="Owner ID (e.g., IMTIAZ002, HILTON001)">
+            <input type="text" id="ownerName" placeholder="Owner Name (e.g., Imtiaz, Hilton Hotels)">
+            <input type="email" id="ownerEmail" placeholder="Email address">
+            <select id="serviceTier">
+                <option value="pro">Pro</option>
+                <option value="enterprise">Enterprise</option>
+            </select>
+            <div class="modal-buttons">
+                <button class="modal-create" onclick="createOwner()">Create Owner</button>
+                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            </div>
         </div>
     </div>
 
@@ -263,7 +351,6 @@
                 allOwners = data.owners || [];
                 allHotels = data.hotels || [];
                 
-                // Update stats
                 statsContainer.innerHTML = `
                     <div class="stat-card">
                         <div class="stat-number">${data.total_owners || 0}</div>
@@ -282,7 +369,7 @@
                 renderCurrentTab();
                 
             } catch (err) {
-                container.innerHTML = `<div class="error">❌ Error: ${err.message}. Make sure the /admin/clients endpoint is added to main.py and deployed.</div>`;
+                container.innerHTML = `<div class="error">❌ Error: ${err.message}. Make sure the backend is running.</div>`;
                 console.error(err);
             }
         }
@@ -306,7 +393,7 @@
             );
             
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No owners found</div>';
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No owners found. Click "Create Owner" to add one.</div>';
                 return;
             }
             
@@ -332,13 +419,13 @@
                 
                 html += `
                     <tr>
-                        <td><strong>${escapeHtml(owner.owner_id)}</strong></td>
-                        <td>${escapeHtml(owner.owner_name || '-')}</td>
-                        <td>${escapeHtml(owner.email || '-')}</td>
+                        <td><strong>${escapeHtml(owner.owner_id)}</strong></strong></td>
+                        <td>${escapeHtml(owner.owner_name || '-')}</strong></td>
+                        <td>${escapeHtml(owner.email || '-')}</strong></td>
                         <td class="token-cell">
                             ${escapeHtml(owner.access_token?.substring(0, 20) || '-')}...
                             <button class="copy-btn" onclick="copyToClipboard('${owner.access_token}')">Copy</button>
-                        </td>
+                         </td>
                         <td class="${statusClass}">${statusText}</td>
                         <td><span class="badge">${escapeHtml(owner.service_tier || 'pro')}</span></td>
                         <td>${formatDate(owner.created_at)}</td>
@@ -400,7 +487,11 @@
         function showTab(tab) {
             currentTab = tab;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            if (tab === 'owners') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
             renderCurrentTab();
         }
         
@@ -411,7 +502,7 @@
         function copyToClipboard(text) {
             if (!text) return;
             navigator.clipboard.writeText(text);
-            alert('Token copied to clipboard!');
+            alert('✓ Token copied to clipboard!');
         }
         
         function escapeHtml(str) {
@@ -431,6 +522,56 @@
                 return d.toLocaleDateString('en-ZA');
             } catch {
                 return dateStr.substring(0, 10);
+            }
+        }
+        
+        // Modal functions
+        function showCreateOwnerModal() {
+            document.getElementById('createOwnerModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('createOwnerModal').style.display = 'none';
+            document.getElementById('ownerId').value = '';
+            document.getElementById('ownerName').value = '';
+            document.getElementById('ownerEmail').value = '';
+            document.getElementById('serviceTier').value = 'pro';
+        }
+        
+        async function createOwner() {
+            const ownerId = document.getElementById('ownerId').value.trim();
+            const ownerName = document.getElementById('ownerName').value.trim();
+            const email = document.getElementById('ownerEmail').value.trim();
+            const serviceTier = document.getElementById('serviceTier').value;
+            
+            if (!ownerId || !ownerName || !email) {
+                alert('❌ Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API}/owners/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        owner_id: ownerId, 
+                        owner_name: ownerName, 
+                        email: email, 
+                        service_tier: serviceTier 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Owner created successfully!\n\nOwner ID: ${ownerId}\nToken: ${data.owner_token}\n\n📌 Save this token — the owner will need it to access their dashboard.`);
+                    closeModal();
+                    fetchClients(); // Refresh the list
+                } else {
+                    alert(`❌ Error: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (err) {
+                alert(`❌ Network error: ${err.message}\n\nMake sure the backend is running.`);
             }
         }
         
