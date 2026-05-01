@@ -715,6 +715,224 @@
       text-decoration: underline;
     }
     
+    /* ══════════════════════════════════════════
+       INTERACTIVE DEMO SECTION STYLES
+       ══════════════════════════════════════════ */
+
+    .demo-section {
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      padding: 60px 0;
+      border-radius: 24px;
+      margin: 40px 0;
+    }
+
+    .demo-launch-btn {
+      padding: 16px 40px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+    }
+    .demo-launch-btn:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(59,130,246,0.5);
+    }
+
+    /* FORM CARD */
+    .demo-form-card {
+      max-width: 640px;
+      margin: 0 auto;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 36px 40px;
+    }
+
+    /* PROGRESS */
+    .demo-progress {
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      margin-bottom: 6px;
+      overflow: hidden;
+    }
+    .demo-progress-bar {
+      height: 100%;
+      background: #3b82f6;
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .demo-progress-label {
+      font-size: 11px;
+      color: #64748b;
+      margin-bottom: 28px;
+      text-align: right;
+    }
+
+    /* QUESTIONS */
+    .demo-question { display: none; animation: fadeSlideIn 0.3s ease; }
+    .demo-question.active { display: block; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .dq-icon { font-size: 36px; margin-bottom: 12px; }
+    .dq-title { font-size: 20px; font-weight: 700; color: #ffffff; margin-bottom: 8px; }
+    .dq-sub { font-size: 14px; color: #94a3b8; margin-bottom: 20px; line-height: 1.5; }
+
+    /* Inputs */
+    .dq-input-row { display: flex; align-items: center; gap: 10px; }
+    .dq-input {
+      padding: 12px 16px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      font-size: 18px;
+      background: rgba(255,255,255,0.07);
+      color: #ffffff;
+      width: 160px;
+      transition: border-color 0.2s;
+    }
+    .dq-input:focus { outline: none; border-color: #3b82f6; }
+    .dq-input-small {
+      padding: 8px 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      font-size: 16px;
+      background: rgba(255,255,255,0.07);
+      color: #ffffff;
+      width: 80px;
+    }
+    .dq-input-small:focus { outline: none; border-color: #3b82f6; }
+    .dq-select {
+      padding: 12px 14px;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      font-size: 14px;
+      background: rgba(30,41,59,0.9);
+      color: #ffffff;
+    }
+    .dq-unit { font-size: 14px; color: #94a3b8; }
+
+    /* Slider */
+    .dq-slider-wrap { margin-bottom: 12px; }
+    .dq-slider {
+      width: 100%;
+      height: 4px;
+      accent-color: #3b82f6;
+      cursor: pointer;
+    }
+    .dq-slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+    .dq-slider-display { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+    .dq-occ-label {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      background: rgba(59,130,246,0.2);
+      color: #93c5fd;
+    }
+
+    /* Option grid */
+    .dq-option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .dq-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: #cbd5e1;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dq-option:hover { background: rgba(59,130,246,0.15); border-color: #3b82f6; }
+    .dq-option.selected { background: rgba(59,130,246,0.25); border-color: #3b82f6; color: #ffffff; }
+    .dq-option span { font-size: 13px; }
+
+    /* Nav buttons */
+    .dq-next {
+      flex: 1;
+      padding: 12px 24px;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .dq-next:hover { background: #2563eb; }
+    .dq-next.dq-launch { background: #10b981; }
+    .dq-next.dq-launch:hover { background: #059669; }
+    .dq-back {
+      padding: 12px 20px;
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .dq-back:hover { color: #ffffff; border-color: rgba(255,255,255,0.3); }
+    .dq-error {
+      display: none;
+      color: #f87171;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    /* IFRAME WRAPPER */
+    .demo-iframe-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      background: #f8fafc;
+    }
+    .demo-iframe-wrap iframe {
+      width: 100%;
+      height: 820px;
+      border: none;
+      display: block;
+    }
+
+    .demo-restart-btn {
+      background: transparent;
+      color: #94a3b8;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .demo-restart-btn:hover { color: #ffffff; border-color: rgba(255,255,255,0.3); }
+
+    /* END DEMO STYLES */
+
     @media (max-width: 768px) {
       .features-grid, .screenshot-grid, .testimonial-grid {
         grid-template-columns: 1fr;
@@ -816,39 +1034,164 @@
     </div>
   </div>
 
-  <div id="screenshots" class="screenshot-section">
-    <h2 class="section-title">See what you get</h2>
-    <p class="section-subtitle">Real dashboard views from actual property data</p>
-    
-    <div class="screenshot-grid">
-      <div class="screenshot-card">
-        <div class="screenshot-img">
-          <img src="images/kpi-cards.png" alt="KPI Cards">
-        </div>
-        <div class="screenshot-caption">📊 Key performance indicators at a glance</div>
-      </div>
-      
-      <div class="screenshot-card">
-        <div class="screenshot-img">
-          <img src="images/dow-charts.png" alt="Day-of-Week patterns">
-        </div>
-        <div class="screenshot-caption">📈 Which days drive revenue vs which need attention</div>
-      </div>
-      
-      <div class="screenshot-card full-width">
-        <div class="screenshot-img">
-          <img src="images/trend-chart.png" alt="Occupancy trend">
-        </div>
-        <div class="screenshot-caption">📉 Track performance against last year</div>
-      </div>
-      
-      <div class="screenshot-card full-width">
-        <div class="screenshot-img">
-          <img src="images/rate-intel.png" alt="Rate recommendations">
-        </div>
-        <div class="screenshot-caption">💡 AI-powered pricing suggestions for upcoming dates</div>
+  <!-- ═══════════════════════════════════════════════════════
+       INTERACTIVE DEMO SECTION  (replaces static screenshots)
+       ═══════════════════════════════════════════════════════ -->
+  <div id="screenshots" class="demo-section">
+
+    <!-- ── PHASE 0: CTA TRIGGER (visible by default) ── -->
+    <div id="demoTrigger">
+      <h2 class="section-title">Try it for free — right now</h2>
+      <p class="section-subtitle">Answer 5 quick questions. Your personalised dashboard appears instantly below.</p>
+      <div style="text-align:center; margin-top: 8px;">
+        <button class="demo-launch-btn" onclick="showDemoForm()">
+          ⚡ See your revenue picture →
+        </button>
+        <div style="font-size:13px; color:#94a3b8; margin-top:10px;">No signup required • Takes 30 seconds</div>
       </div>
     </div>
+
+    <!-- ── PHASE 1: QUESTIONS FORM (hidden until trigger) ── -->
+    <div id="demoForm" style="display:none;">
+      <h2 class="section-title">Tell us about your property</h2>
+      <p class="section-subtitle">We'll calculate your KPIs, RevPAR, day-of-week patterns, and rate recommendations instantly.</p>
+
+      <div class="demo-form-card">
+
+        <!-- Progress bar -->
+        <div class="demo-progress">
+          <div class="demo-progress-bar" id="demoProgressBar" style="width:20%;"></div>
+        </div>
+        <div class="demo-progress-label" id="demoProgressLabel">Question 1 of 5</div>
+
+        <!-- Q1: Rooms -->
+        <div class="demo-question active" id="dq1">
+          <div class="dq-icon">🏨</div>
+          <h3 class="dq-title">How many rooms does your property have?</h3>
+          <p class="dq-sub">Guesthouses, lodges, B&Bs — any size from 1 to 60 rooms.</p>
+          <div class="dq-input-row">
+            <input type="number" id="dq1_val" class="dq-input" min="1" max="60" placeholder="e.g., 8" />
+            <span class="dq-unit">rooms</span>
+          </div>
+          <div class="dq-error" id="dq1_err">Please enter a number between 1 and 60.</div>
+          <button class="dq-next" onclick="nextQuestion(1)">Next →</button>
+        </div>
+
+        <!-- Q2: Occupancy -->
+        <div class="demo-question" id="dq2">
+          <div class="dq-icon">📊</div>
+          <h3 class="dq-title">What's your average monthly occupancy?</h3>
+          <p class="dq-sub">A rough estimate is fine. Drag the slider or type a number.</p>
+          <div class="dq-slider-wrap">
+            <input type="range" id="dq2_slider" class="dq-slider" min="10" max="100" value="65"
+              oninput="document.getElementById('dq2_val').value=this.value; updateOccLabel(this.value)">
+            <div class="dq-slider-labels">
+              <span>10%</span><span>55%</span><span>100%</span>
+            </div>
+          </div>
+          <div class="dq-slider-display">
+            <input type="number" id="dq2_val" class="dq-input-small" min="10" max="100" value="65"
+              oninput="document.getElementById('dq2_slider').value=this.value; updateOccLabel(this.value)">
+            <span class="dq-unit">%</span>
+            <span class="dq-occ-label" id="dq2_occLabel">Good</span>
+          </div>
+          <div class="dq-error" id="dq2_err">Please enter a value between 10 and 100.</div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="dq-back" onclick="prevQuestion(2)">← Back</button>
+            <button class="dq-next" onclick="nextQuestion(2)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Q3: ADR + Currency -->
+        <div class="demo-question" id="dq3">
+          <div class="dq-icon">💰</div>
+          <h3 class="dq-title">What's your average selling rate per room per night?</h3>
+          <p class="dq-sub">Your ADR (Average Daily Rate). Don't worry about being precise.</p>
+          <div class="dq-input-row">
+            <select id="dq3_currency" class="dq-select">
+              <option value="R" selected>R (ZAR)</option>
+              <option value="$">$ (USD)</option>
+              <option value="€">€ (EUR)</option>
+              <option value="£">£ (GBP)</option>
+              <option value="KSh">KSh (KES)</option>
+              <option value="₦">₦ (NGN)</option>
+            </select>
+            <input type="number" id="dq3_val" class="dq-input" min="50" placeholder="e.g., 1450" />
+            <span class="dq-unit">/ night</span>
+          </div>
+          <div class="dq-error" id="dq3_err">Please enter a rate greater than 0.</div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="dq-back" onclick="prevQuestion(3)">← Back</button>
+            <button class="dq-next" onclick="nextQuestion(3)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Q4: Area Type -->
+        <div class="demo-question" id="dq4">
+          <div class="dq-icon">📍</div>
+          <h3 class="dq-title">What type of area is your property in?</h3>
+          <p class="dq-sub">This shapes demand patterns — beach properties peak on weekends; business areas on weekdays.</p>
+          <div class="dq-option-grid">
+            <button class="dq-option" data-val="beach" onclick="selectOption('dq4', 'beach', this)">
+              🏖️<span>Beach / Coastal</span>
+            </button>
+            <button class="dq-option" data-val="city" onclick="selectOption('dq4', 'city', this)">
+              🏙️<span>City / Urban</span>
+            </button>
+            <button class="dq-option" data-val="countryside" onclick="selectOption('dq4', 'countryside', this)">
+              🌿<span>Countryside / Rural</span>
+            </button>
+            <button class="dq-option" data-val="business" onclick="selectOption('dq4', 'business', this)">
+              💼<span>Business / Corporate</span>
+            </button>
+          </div>
+          <input type="hidden" id="dq4_val" value="">
+          <div class="dq-error" id="dq4_err">Please select an area type.</div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="dq-back" onclick="prevQuestion(4)">← Back</button>
+            <button class="dq-next" onclick="nextQuestion(4)">Next →</button>
+          </div>
+        </div>
+
+        <!-- Q5: Competitors -->
+        <div class="demo-question" id="dq5">
+          <div class="dq-icon">🏆</div>
+          <h3 class="dq-title">Are there similar properties nearby you compete with?</h3>
+          <p class="dq-sub">We use this to benchmark your rate and show competitive positioning.</p>
+          <div class="dq-option-grid" style="grid-template-columns: 1fr 1fr;">
+            <button class="dq-option" data-val="yes" onclick="selectOption('dq5', 'yes', this)">
+              ✅<span>Yes, a few</span>
+            </button>
+            <button class="dq-option" data-val="no" onclick="selectOption('dq5', 'no', this)">
+              🏝️<span>No, I'm fairly unique</span>
+            </button>
+          </div>
+          <input type="hidden" id="dq5_val" value="">
+          <div class="dq-error" id="dq5_err">Please select one option.</div>
+          <div style="display:flex;gap:10px;margin-top:16px;">
+            <button class="dq-back" onclick="prevQuestion(5)">← Back</button>
+            <button class="dq-next dq-launch" onclick="launchDemo()">🚀 Show my dashboard →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PHASE 2: DASHBOARD IFRAME (hidden until form complete) ── -->
+    <div id="demoFrame" style="display:none;">
+      <h2 class="section-title" style="margin-bottom:4px;">Your personalised revenue picture</h2>
+      <p class="section-subtitle" style="margin-bottom:20px;">
+        Calculated live from your answers. Change values inside the dashboard to see numbers update in real time.
+      </p>
+      <div class="demo-iframe-wrap">
+        <iframe id="demoIframe" src="" title="Revenue Insights Demo Dashboard"
+          allowtransparency="true" scrolling="yes"></iframe>
+      </div>
+      <div style="text-align:center; margin-top:16px;">
+        <button class="demo-restart-btn" onclick="restartDemo()">← Start over with different numbers</button>
+      </div>
+    </div>
+
   </div>
 
   <div id="testimonials" class="testimonials">
@@ -1114,6 +1457,163 @@
       if (target) target.scrollIntoView({ behavior: 'smooth' });
     });
   });
+
+  // Also wire the nav "Demo" link to the demo section
+  document.querySelector('a[href="#screenshots"]') &&
+    document.querySelector('a[href="#screenshots"]').addEventListener('click', function(e) {
+      e.preventDefault();
+      document.getElementById('screenshots').scrollIntoView({ behavior: 'smooth' });
+    });
+
+  // ══════════════════════════════════════════════
+  // INTERACTIVE DEMO FUNNEL
+  // ══════════════════════════════════════════════
+
+  let demoAnswers = { rooms: null, occ: null, adr: null, currency: 'R', area: null, hasComp: null };
+  let currentDemoQ = 1;
+  const TOTAL_DEMO_Q = 5;
+
+  function showDemoForm() {
+    document.getElementById('demoTrigger').style.display = 'none';
+    document.getElementById('demoForm').style.display = 'block';
+    showQuestion(1);
+    document.getElementById('screenshots').scrollIntoView({ behavior: 'smooth' });
+  }
+  window.showDemoForm = showDemoForm;
+
+  function showQuestion(n) {
+    currentDemoQ = n;
+    for (let i = 1; i <= TOTAL_DEMO_Q; i++) {
+      const el = document.getElementById('dq' + i);
+      if (el) el.classList.remove('active');
+    }
+    const target = document.getElementById('dq' + n);
+    if (target) target.classList.add('active');
+
+    const pct = (n / TOTAL_DEMO_Q) * 100;
+    document.getElementById('demoProgressBar').style.width = pct + '%';
+    document.getElementById('demoProgressLabel').textContent = 'Question ' + n + ' of ' + TOTAL_DEMO_Q;
+  }
+  window.showQuestion = showQuestion;
+
+  function nextQuestion(from) {
+    // Validate current question
+    if (from === 1) {
+      const val = parseInt(document.getElementById('dq1_val').value);
+      const err = document.getElementById('dq1_err');
+      if (!val || val < 1 || val > 60) { err.style.display = 'block'; return; }
+      err.style.display = 'none';
+      demoAnswers.rooms = val;
+
+    } else if (from === 2) {
+      const val = parseFloat(document.getElementById('dq2_val').value);
+      const err = document.getElementById('dq2_err');
+      if (!val || val < 10 || val > 100) { err.style.display = 'block'; return; }
+      err.style.display = 'none';
+      demoAnswers.occ = val;
+
+    } else if (from === 3) {
+      const val = parseFloat(document.getElementById('dq3_val').value);
+      const err = document.getElementById('dq3_err');
+      if (!val || val <= 0) { err.style.display = 'block'; return; }
+      err.style.display = 'none';
+      demoAnswers.adr = val;
+      demoAnswers.currency = document.getElementById('dq3_currency').value;
+
+    } else if (from === 4) {
+      const val = document.getElementById('dq4_val').value;
+      const err = document.getElementById('dq4_err');
+      if (!val) { err.style.display = 'block'; return; }
+      err.style.display = 'none';
+      demoAnswers.area = val;
+    }
+
+    showQuestion(from + 1);
+  }
+  window.nextQuestion = nextQuestion;
+
+  function prevQuestion(from) {
+    showQuestion(from - 1);
+  }
+  window.prevQuestion = prevQuestion;
+
+  function selectOption(qId, val, btn) {
+    // Clear siblings
+    const grid = btn.closest('.dq-option-grid');
+    grid.querySelectorAll('.dq-option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    document.getElementById(qId + '_val').value = val;
+    document.getElementById(qId + '_err').style.display = 'none';
+  }
+  window.selectOption = selectOption;
+
+  function updateOccLabel(val) {
+    const n = parseFloat(val) || 0;
+    const lbl = document.getElementById('dq2_occLabel');
+    if (n >= 80)      { lbl.textContent = 'Excellent'; lbl.style.background = 'rgba(16,185,129,0.2)'; lbl.style.color = '#6ee7b7'; }
+    else if (n >= 65) { lbl.textContent = 'Good';     lbl.style.background = 'rgba(59,130,246,0.2)'; lbl.style.color = '#93c5fd'; }
+    else if (n >= 50) { lbl.textContent = 'Moderate'; lbl.style.background = 'rgba(245,158,11,0.2)'; lbl.style.color = '#fcd34d'; }
+    else              { lbl.textContent = 'Low';      lbl.style.background = 'rgba(239,68,68,0.2)';  lbl.style.color = '#fca5a5'; }
+  }
+  window.updateOccLabel = updateOccLabel;
+
+  function launchDemo() {
+    const val = document.getElementById('dq5_val').value;
+    const err = document.getElementById('dq5_err');
+    if (!val) { err.style.display = 'block'; return; }
+    err.style.display = 'none';
+    demoAnswers.hasComp = (val === 'yes');
+
+    // Stash in sessionStorage so demo-dashboard.html can read it
+    sessionStorage.setItem('demoInputs', JSON.stringify(demoAnswers));
+
+    // Show iframe
+    document.getElementById('demoForm').style.display = 'none';
+    document.getElementById('demoFrame').style.display = 'block';
+
+    const iframe = document.getElementById('demoIframe');
+    iframe.src = 'demo-dashboard.html?t=' + Date.now(); // cache-bust
+
+    setTimeout(() => {
+      document.getElementById('demoFrame').scrollIntoView({ behavior: 'smooth' });
+    }, 200);
+  }
+  window.launchDemo = launchDemo;
+
+  function restartDemo() {
+    demoAnswers = { rooms: null, occ: null, adr: null, currency: 'R', area: null, hasComp: null };
+    document.getElementById('demoFrame').style.display = 'none';
+    document.getElementById('demoTrigger').style.display = 'block';
+    document.getElementById('screenshots').scrollIntoView({ behavior: 'smooth' });
+    // Reset form fields
+    document.getElementById('dq1_val').value = '';
+    document.getElementById('dq2_val').value = 65;
+    document.getElementById('dq2_slider').value = 65;
+    document.getElementById('dq3_val').value = '';
+    document.getElementById('dq4_val').value = '';
+    document.getElementById('dq5_val').value = '';
+    document.querySelectorAll('.dq-option').forEach(b => b.classList.remove('selected'));
+  }
+  window.restartDemo = restartDemo;
+
+  // Handle messages from demo iframe (CTA buttons)
+  window.addEventListener('message', function(e) {
+    if (!e.data || typeof e.data !== 'object') return;
+    if (e.data.action === 'openTrial') {
+      modal.style.display = 'flex';
+    }
+    if (e.data.action === 'scrollToTop') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  });
+
+  // Wire "See Demo" hero button to show the funnel
+  const seeDemoBtn = document.querySelector('.btn-secondary');
+  if (seeDemoBtn && seeDemoBtn.textContent.trim().startsWith('See Demo')) {
+    seeDemoBtn.onclick = function() {
+      document.getElementById('screenshots').scrollIntoView({ behavior: 'smooth' });
+    };
+  }
 </script>
 
 </body>
