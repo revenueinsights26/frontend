@@ -6,28 +6,24 @@
     <title>Rate Shop - Data Entry</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #e2e8f0; padding: 24px; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #ffffff; color: #1e293b; padding: 24px; }
         .container { max-width: 1400px; margin: 0 auto; }
         h1 { color: #3b82f6; margin-bottom: 8px; font-size: 28px; }
-        .sub { color: #94a3b8; margin-bottom: 24px; }
-        .bar { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; }
+        .sub { color: #64748b; margin-bottom: 24px; }
+        .bar { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #e2e8f0; }
         .bar-field { display: flex; flex-direction: column; gap: 6px; }
-        .bar-field label { font-size: 12px; font-weight: 600; color: #94a3b8; }
-        .bar-field input, .bar-field select { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
-        .bar-field input:focus { outline: none; border-color: #3b82f6; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        button:hover { background: #2563eb; transform: translateY(-1px); }
+        .bar-field label { font-size: 12px; font-weight: 600; color: #64748b; }
+        .bar-field input, .bar-field select { background: white; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
+        button { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        button:hover { background: #2563eb; }
         .status { padding: 14px; border-radius: 10px; margin: 20px 0; display: none; font-weight: 500; }
-        .success { background: #064e3b; color: #86efac; display: block; border-left: 4px solid #22c55e; }
-        .error { background: #7f1d1d; color: #fca5a5; display: block; border-left: 4px solid #ef4444; }
-        .loading { background: #1e3a8a; color: #93c5fd; display: block; }
-        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; margin-top: 20px; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #334155; }
-        th { background: #0f172a; color: #94a3b8; font-weight: 600; font-size: 13px; }
-        td { font-size: 14px; }
-        input { background: #0f172a; border: 1px solid #334155; color: white; padding: 8px 10px; border-radius: 6px; width: 100%; }
-        input:focus { outline: none; border-color: #3b82f6; }
-        .required-star { color: #ef4444; margin-left: 2px; }
+        .success { background: #dcfce7; color: #15803d; display: block; border-left: 4px solid #22c55e; }
+        .error { background: #fee2e2; color: #b91c1c; display: block; border-left: 4px solid #ef4444; }
+        .loading { background: #dbeafe; color: #1e40af; display: block; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; margin-top: 20px; border: 1px solid #e2e8f0; }
+        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; font-size: 13px; }
+        input { background: white; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 10px; border-radius: 6px; width: 100%; }
         .note { font-size: 12px; color: #64748b; margin-top: 20px; text-align: center; }
         @media (max-width: 1000px) { table { display: block; overflow-x: auto; } }
     </style>
@@ -36,39 +32,18 @@
 <div class="container">
     <h1>🏨 Rate Shop — Weekly Data Entry</h1>
     <div class="sub">Enter competitor rates. Only Week 4 rate is required — everything else optional.</div>
-
     <div class="bar">
-        <div class="bar-field">
-            <label>Week Starting (Monday) <span style="color:#ef4444;">*</span></label>
-            <input type="date" id="weekStart" style="width: 180px;">
-        </div>
-        <div class="bar-field">
-            <label>API Password <span style="color:#ef4444;">*</span></label>
-            <input type="password" id="apiKey" placeholder="Your Render password" style="width: 200px;">
-        </div>
-        <div class="bar-field">
-            <label>&nbsp;</label>
-            <button id="saveBtn">💾 Save This Week's Data</button>
-        </div>
+        <div class="bar-field"><label>Week Starting (Monday) <span style="color:#ef4444;">*</span></label><input type="date" id="weekStart" style="width: 180px;"></div>
+        <div class="bar-field"><label>API Password <span style="color:#ef4444;">*</span></label><input type="password" id="apiKey" placeholder="Your Render password" style="width: 200px;"></div>
+        <div class="bar-field"><button id="saveBtn">💾 Save This Week's Data</button></div>
     </div>
-
     <div id="status" class="status"></div>
-    <div id="loadingMsg" style="text-align: center; padding: 40px;">Loading properties...</div>
-
-    <div style="overflow-x: auto;">
-        <table id="dataTable" style="display: none;">
-            <thead>
-                <tr><th>Property ID</th><th>Property Name</th><th>Rate Wk1</th><th>Rate Wk2</th><th>Rate Wk3</th><th>Rate Wk4 <span style="color:#ef4444;">*</span></th><th>Sold Out %</th><th>Min Stay</th><th>Review Score</th></tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
-    </div>
-    <div class="note">💡 Tip: Week 4 is the CURRENT week's rate. Previous weeks (1-3) are optional but help calculate 4-week trends.</div>
+    <div id="loadingMsg">Loading properties...</div>
+    <div style="overflow-x: auto;"><table id="dataTable" style="display: none;"><thead><tr><th>Property Name</th><th>Rate Wk1</th><th>Rate Wk2</th><th>Rate Wk3</th><th>Rate Wk4 <span style="color:#ef4444;">*</span></th><th>Sold Out %</th><th>Min Stay</th><th>Review Score</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+    <div class="note">💡 Week 4 is the CURRENT week's rate. Previous weeks (1-3) are optional but help calculate 4-week trends.</div>
 </div>
-
 <script>
     const API_BASE = 'https://backend-x5sw.onrender.com';
-
     let properties = [];
 
     async function loadProperties() {
@@ -82,8 +57,7 @@
             table.style.display = 'table';
             renderTable();
         } catch (err) {
-            loadingDiv.innerHTML = `❌ Error loading properties: ${err.message}<br><br><button onclick="location.reload()">Retry</button>`;
-            loadingDiv.style.color = '#fca5a5';
+            loadingDiv.innerHTML = `❌ Error: ${err.message}<br><br><button onclick="location.reload()">Retry</button>`;
         }
     }
 
@@ -92,54 +66,32 @@
         tbody.innerHTML = '';
         for (let p of properties) {
             const row = tbody.insertRow();
-            row.insertCell(0).innerHTML = `<input type="hidden" class="prop-id" value="${p.id}">${p.id}`;
-            row.insertCell(1).innerHTML = p.property_name;
-            row.insertCell(2).innerHTML = `<input type="number" class="rate-wk1" step="10" placeholder="e.g., 1050">`;
-            row.insertCell(3).innerHTML = `<input type="number" class="rate-wk2" step="10" placeholder="e.g., 1120">`;
-            row.insertCell(4).innerHTML = `<input type="number" class="rate-wk3" step="10" placeholder="e.g., 1200">`;
-            row.insertCell(5).innerHTML = `<input type="number" class="rate-wk4" step="10" placeholder="e.g., 1380" required>`;
-            row.insertCell(6).innerHTML = `<input type="number" class="sold-out" min="0" max="100" placeholder="85">`;
-            row.insertCell(7).innerHTML = `<input type="number" class="min-stay" min="1" placeholder="2">`;
-            row.insertCell(8).innerHTML = `<input type="number" class="review-score" step="0.1" min="0" max="10" placeholder="8.7">`;
+            row.insertCell(0).innerHTML = `<strong>${escapeHtml(p.property_name)}</strong><input type="hidden" class="prop-id" value="${p.id}">`;
+            row.insertCell(1).innerHTML = `<input type="number" class="rate-wk1" step="10" placeholder="e.g., 1050">`;
+            row.insertCell(2).innerHTML = `<input type="number" class="rate-wk2" step="10" placeholder="e.g., 1120">`;
+            row.insertCell(3).innerHTML = `<input type="number" class="rate-wk3" step="10" placeholder="e.g., 1200">`;
+            row.insertCell(4).innerHTML = `<input type="number" class="rate-wk4" step="10" placeholder="e.g., 1380" required>`;
+            row.insertCell(5).innerHTML = `<input type="number" class="sold-out" min="0" max="100" placeholder="85">`;
+            row.insertCell(6).innerHTML = `<input type="number" class="min-stay" min="1" placeholder="2">`;
+            row.insertCell(7).innerHTML = `<input type="number" class="review-score" step="0.1" min="0" max="10" placeholder="8.7">`;
         }
     }
 
-    function getMonday() {
-        const today = new Date();
-        const day = today.getDay();
-        const diff = (day === 0 ? 6 : day - 1);
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - diff);
-        return monday.toISOString().split('T')[0];
-    }
+    function getMonday() { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toISOString().split('T')[0]; }
 
     async function saveData() {
         const weekStart = document.getElementById('weekStart').value;
         const apiKey = document.getElementById('apiKey').value;
         const statusDiv = document.getElementById('status');
         const saveBtn = document.getElementById('saveBtn');
-
-        if (!weekStart) {
-            statusDiv.className = 'status error';
-            statusDiv.innerText = '❌ Please select a week start date';
-            return;
-        }
-        if (!apiKey) {
-            statusDiv.className = 'status error';
-            statusDiv.innerText = '❌ Please enter your API password';
-            return;
-        }
-
+        if (!weekStart) { statusDiv.className = 'status error'; statusDiv.innerText = '❌ Select a week start date'; return; }
+        if (!apiKey) { statusDiv.className = 'status error'; statusDiv.innerText = '❌ Enter API password'; return; }
         const data = [];
         const rows = document.querySelectorAll('#tableBody tr');
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const rateWk4 = row.querySelector('.rate-wk4').value;
-            if (!rateWk4) {
-                statusDiv.className = 'status error';
-                statusDiv.innerText = `❌ Missing Week 4 rate for ${properties[i].property_name}`;
-                return;
-            }
+            if (!rateWk4) { statusDiv.className = 'status error'; statusDiv.innerText = `❌ Missing Week 4 rate for ${properties[i].property_name}`; return; }
             data.push({
                 property_id: properties[i].id,
                 rate_wk1: parseFloat(row.querySelector('.rate-wk1').value) || null,
@@ -151,52 +103,23 @@
                 review_score: parseFloat(row.querySelector('.review-score').value) || null
             });
         }
-
         statusDiv.className = 'status loading';
-        statusDiv.innerText = '⏳ Saving to database...';
+        statusDiv.innerText = '⏳ Saving...';
         saveBtn.disabled = true;
-
         try {
-            const response = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-Key': apiKey
-                },
-                body: JSON.stringify({
-                    week_start_date: weekStart,
-                    data: data
-                })
+            const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+                body: JSON.stringify({ week_start_date: weekStart, data: data })
             });
-
-            if (response.ok) {
-                const result = await response.json();
-                statusDiv.className = 'status success';
-                statusDiv.innerText = `✅ Success! Saved ${result.saved_count} properties for week starting ${weekStart}`;
-                // Clear only week 4 inputs after success (optional)
-                document.querySelectorAll('.rate-wk4').forEach(inp => inp.value = '');
-            } else {
-                const error = await response.json();
-                statusDiv.className = 'status error';
-                statusDiv.innerText = `❌ Error: ${error.detail || 'Check your API password'}`;
-            }
-        } catch (err) {
-            statusDiv.className = 'status error';
-            statusDiv.innerText = `❌ Network error: ${err.message}`;
-        } finally {
-            saveBtn.disabled = false;
-            setTimeout(() => {
-                if (statusDiv.className === 'status success') {
-                    setTimeout(() => { statusDiv.style.display = 'none'; }, 3000);
-                }
-            }, 1000);
-        }
+            if (res.ok) { const result = await res.json(); statusDiv.className = 'status success'; statusDiv.innerText = `✅ Saved ${result.saved_count} properties for week starting ${weekStart}`; document.querySelectorAll('.rate-wk4').forEach(inp => inp.value = ''); }
+            else { const err = await res.json(); statusDiv.className = 'status error'; statusDiv.innerText = `❌ Error: ${err.detail || 'Check password'}`; }
+        } catch (err) { statusDiv.className = 'status error'; statusDiv.innerText = `❌ Network error: ${err.message}`; }
+        finally { saveBtn.disabled = false; setTimeout(() => { statusDiv.style.display = 'none'; }, 3000); }
     }
 
-    // Set default week start
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
     document.getElementById('weekStart').value = getMonday();
     document.getElementById('saveBtn').onclick = saveData;
-
     loadProperties();
 </script>
 </body>
