@@ -63,12 +63,23 @@
             background: #059669;
         }
         
-        .btn-copy {
+        .btn-add-hotel {
             background: #2563eb;
+            font-size: 12px;
+            padding: 6px 12px;
+        }
+        
+        .btn-add-hotel:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-copy {
+            background: #e2e8f0;
+            color: #1e293b;
         }
         
         .btn-copy:hover {
-            background: #1d4ed8;
+            background: #cbd5e1;
         }
         
         .stats {
@@ -135,7 +146,7 @@
         .token-cell {
             font-family: monospace;
             font-size: 11px;
-            max-width: 300px;
+            max-width: 250px;
             word-break: break-all;
         }
         
@@ -234,7 +245,7 @@
             background: white;
             padding: 28px;
             border-radius: 16px;
-            width: 450px;
+            width: 500px;
             max-width: 90%;
         }
         
@@ -250,6 +261,13 @@
             border: 1px solid #cbd5e1;
             border-radius: 8px;
             font-size: 14px;
+        }
+        
+        .modal-content label {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 8px;
+            display: block;
         }
         
         .modal-buttons {
@@ -275,6 +293,12 @@
         .modal-cancel {
             background: #e2e8f0;
             color: #1e293b;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         
         @media (max-width: 768px) {
@@ -327,7 +351,30 @@
             </select>
             <div class="modal-buttons">
                 <button class="modal-create" onclick="createOwner()">Create Owner</button>
-                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+                <button class="modal-cancel" onclick="closeOwnerModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Hotel Modal -->
+    <div id="createHotelModal" class="modal">
+        <div class="modal-content">
+            <h3>🏨 Add Hotel for Owner</h3>
+            <label>Owner ID (auto-filled)</label>
+            <input type="text" id="hotelOwnerId" readonly style="background: #f1f5f9;">
+            <label>Hotel ID *</label>
+            <input type="text" id="hotelId" placeholder="e.g., ELLIPSE001, HILTONNYC">
+            <label>Hotel Name *</label>
+            <input type="text" id="hotelName" placeholder="e.g., Ellipse Waterfall B&B">
+            <label>Rooms Available *</label>
+            <input type="number" id="roomsAvailable" placeholder="e.g., 6">
+            <label>Currency Code *</label>
+            <input type="text" id="currencyCode" placeholder="e.g., ZAR, USD, EUR" value="ZAR">
+            <label>Currency Symbol *</label>
+            <input type="text" id="currencySymbol" placeholder="e.g., R, $, €" value="R">
+            <div class="modal-buttons">
+                <button class="modal-create" onclick="createHotel()">Create Hotel</button>
+                <button class="modal-cancel" onclick="closeHotelModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -408,6 +455,7 @@
                             <th>Status</th>
                             <th>Tier</th>
                             <th>Created</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -419,16 +467,19 @@
                 
                 html += `
                     <tr>
-                        <td><strong>${escapeHtml(owner.owner_id)}</strong></strong></td>
-                        <td>${escapeHtml(owner.owner_name || '-')}</strong></td>
-                        <td>${escapeHtml(owner.email || '-')}</strong></td>
+                        <td><strong>${escapeHtml(owner.owner_id)}</strong></td>
+                        <td>${escapeHtml(owner.owner_name || '-')}</td>
+                        <td>${escapeHtml(owner.email || '-')}</td>
                         <td class="token-cell">
                             ${escapeHtml(owner.access_token?.substring(0, 20) || '-')}...
                             <button class="copy-btn" onclick="copyToClipboard('${owner.access_token}')">Copy</button>
-                         </td>
+                        </td>
                         <td class="${statusClass}">${statusText}</td>
                         <td><span class="badge">${escapeHtml(owner.service_tier || 'pro')}</span></td>
                         <td>${formatDate(owner.created_at)}</td>
+                        <td class="action-buttons">
+                            <button class="btn-add-hotel btn" onclick="showCreateHotelModal('${owner.owner_id}')">🏨 Add Hotel</button>
+                        </td>
                     </tr>
                 `;
             }
@@ -448,7 +499,7 @@
             );
             
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No hotels found</div>';
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #64748b;">No hotels found. Click "Add Hotel" next to an owner to create one.</div>';
                 return;
             }
             
@@ -525,12 +576,12 @@
             }
         }
         
-        // Modal functions
+        // Owner Modal functions
         function showCreateOwnerModal() {
             document.getElementById('createOwnerModal').style.display = 'flex';
         }
         
-        function closeModal() {
+        function closeOwnerModal() {
             document.getElementById('createOwnerModal').style.display = 'none';
             document.getElementById('ownerId').value = '';
             document.getElementById('ownerName').value = '';
@@ -565,13 +616,79 @@
                 
                 if (response.ok) {
                     alert(`✅ Owner created successfully!\n\nOwner ID: ${ownerId}\nToken: ${data.owner_token}\n\n📌 Save this token — the owner will need it to access their dashboard.`);
-                    closeModal();
-                    fetchClients(); // Refresh the list
+                    closeOwnerModal();
+                    fetchClients();
                 } else {
                     alert(`❌ Error: ${data.detail || 'Unknown error'}`);
                 }
             } catch (err) {
-                alert(`❌ Network error: ${err.message}\n\nMake sure the backend is running.`);
+                alert(`❌ Network error: ${err.message}`);
+            }
+        }
+        
+        // Hotel Modal functions
+        let currentOwnerId = '';
+        
+        function showCreateHotelModal(ownerId) {
+            currentOwnerId = ownerId;
+            document.getElementById('hotelOwnerId').value = ownerId;
+            document.getElementById('hotelId').value = '';
+            document.getElementById('hotelName').value = '';
+            document.getElementById('roomsAvailable').value = '';
+            document.getElementById('currencyCode').value = 'ZAR';
+            document.getElementById('currencySymbol').value = 'R';
+            document.getElementById('createHotelModal').style.display = 'flex';
+        }
+        
+        function closeHotelModal() {
+            document.getElementById('createHotelModal').style.display = 'none';
+            currentOwnerId = '';
+        }
+        
+        async function createHotel() {
+            const hotelId = document.getElementById('hotelId').value.trim();
+            const hotelName = document.getElementById('hotelName').value.trim();
+            const roomsAvailable = parseInt(document.getElementById('roomsAvailable').value);
+            const currencyCode = document.getElementById('currencyCode').value.trim();
+            const currencySymbol = document.getElementById('currencySymbol').value.trim();
+            
+            if (!hotelId || !hotelName || !roomsAvailable || !currencyCode || !currencySymbol) {
+                alert('❌ Please fill in all fields');
+                return;
+            }
+            
+            if (isNaN(roomsAvailable) || roomsAvailable < 1) {
+                alert('❌ Rooms Available must be a positive number');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API}/hotels/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        hotel_id: hotelId,
+                        owner_id: currentOwnerId,
+                        hotel_name: hotelName,
+                        rooms_available: roomsAvailable,
+                        currency_code: currencyCode,
+                        currency_symbol: currencySymbol
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ Hotel "${hotelName}" created successfully for owner ${currentOwnerId}!`);
+                    closeHotelModal();
+                    fetchClients();
+                    // Switch to Hotels tab to show the new hotel
+                    showTab('hotels');
+                } else {
+                    alert(`❌ Error: ${data.detail || 'Unknown error'}`);
+                }
+            } catch (err) {
+                alert(`❌ Network error: ${err.message}`);
             }
         }
         
