@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Revenue Insights — Live Demo</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --blue: #3b82f6;
+      --blue-dark: #2563eb;
+      --green: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-400: #94a3b8;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--slate-50);
+      color: var(--slate-800);
+      font-size: 14px;
+    }
+
+    /* ── DEMO BANNER ── */
+    .demo-banner {
+      background: linear-gradient(90deg, #1e293b 0%, #3b82f6 100%);
+      color: white;
+      text-align: center;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+    .demo-banner a {
+      color: #fbbf24;
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* ── HEADER ── */
+    .dash-header {
+      background: white;
+      border-bottom: 1px solid var(--slate-200);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dash-logo { font-size: 18px; font-weight: 700; color: var(--slate-800); }
+    .dash-logo span { color: var(--blue); }
+    .dash-tagline { font-size: 11px; color: var(--slate-400); }
+    .demo-badge {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fcd34d;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* ── PAGE WRAP ── */
+    .page { max-width: 1100px; margin: 0 auto; padding: 24px 20px 60px; }
+
+    /* ── SECTION TITLE ── */
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--slate-400);
+      margin-bottom: 12px;
+    }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .kpi-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--slate-400);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+    .kpi-value {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--slate-800);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+    .kpi-sub {
+      font-size: 12px;
+      color: var(--slate-400);
+    }
+    .kpi-card.highlight { border-color: var(--blue); border-width: 2px; }
+    .kpi-card.highlight .kpi-value { color: var(--blue); }
+
+    /* ── STORY CARD ── */
+    .story-card {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-radius: 16px;
+      padding: 28px 32px;
+      color: white;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+      flex-wrap: wrap;
+    }
+    .story-text { flex: 1; min-width: 240px; }
+    .story-text h3 { font-size: 16px; margin-bottom: 10px; color: white; }
+    .story-text p { font-size: 14px; line-height: 1.7; color: #cbd5e1; }
+    .story-rec {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 16px 20px;
+      text-align: center;
+      min-width: 160px;
+    }
+    .story-rec-label { font-size: 11px; opacity: 0.7; margin-bottom: 6px; }
+    .story-rec-value { font-size: 18px; font-weight: 700; }
+    .story-rec-sub { font-size: 11px; opacity: 0.7; margin-top: 4px; }
+    .story-missed {
+      background: rgba(239,68,68,0.15);
+      border: 1px solid rgba(239,68,68,0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-top: 12px;
+      font-size: 13px;
+      color: #fca5a5;
+    }
+    .story-missed strong { color: #f87171; }
+
+    /* ── CHARTS ROW ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .chart-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .chart-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 16px;
+    }
+    .chart-wrap { position: relative; height: 200px; }
+
+    /* ── RATE TABLE ── */
+    .rate-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .rate-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .rate-card h4 {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--slate-700);
+      margin-bottom: 16px;
+    }
+    .rate-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      background: var(--slate-50);
+      border: 1px solid var(--slate-100);
+    }
+    .rate-row-label { font-weight: 500; font-size: 13px; }
+    .rate-row-sub { font-size: 12px; color: var(--slate-400); margin-top: 2px; }
+    .rate-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .pill-up { background: #dcfce7; color: #15803d; }
+    .pill-hold { background: #fef3c7; color: #92400e; }
+    .pill-down { background: #fee2e2; color: #b91c1c; }
+    .rate-suggested { font-size: 13px; font-weight: 700; color: var(--slate-800); }
+
+    /* ── REVENUE TRIANGLE ── */
+    .triangle-visual {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .revpar-circle {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue) 0%, #6366f1 100%);
+      color: white;
+      margin-bottom: 8px;
+    }
+    .revpar-circle .rv-val { font-size: 24px; font-weight: 700; line-height: 1; }
+    .revpar-circle .rv-label { font-size: 10px; opacity: 0.85; margin-top: 2px; }
+    .metric-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .metric-bar-label { width: 80px; font-size: 12px; color: var(--slate-600); }
+    .metric-bar-track {
+      flex: 1;
+      height: 8px;
+      background: var(--slate-100);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .metric-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s ease;
+    }
+    .metric-bar-value { font-size: 12px; font-weight: 600; width: 60px; text-align: right; }
+
+    /* ── LIVE RECALCULATE ── */
+    .recalc-section {
+      background: white;
+      border: 2px solid var(--blue);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 28px;
+    }
+    .recalc-section h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--slate-800); }
+    .recalc-section p { font-size: 13px; color: var(--slate-400); margin-bottom: 16px; }
+    .recalc-inputs {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+    }
+    .recalc-field { display: flex; flex-direction: column; gap: 4px; }
+    .recalc-field label { font-size: 12px; font-weight: 600; color: var(--slate-600); }
+    .recalc-field input, .recalc-field select {
+      padding: 8px 12px;
+      border: 1px solid var(--slate-200);
+      border-radius: 8px;
+      font-size: 14px;
+      background: var(--slate-50);
+      color: var(--slate-800);
+      width: 140px;
+    }
+    .recalc-btn {
+      padding: 9px 20px;
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .recalc-btn:hover { background: var(--blue-dark); }
+
+    /* ── CTA ── */
+    .cta-strip {
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      border-radius: 20px;
+      padding: 40px 40px;
+      text-align: center;
+      color: white;
+    }
+    .cta-strip h2 { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+    .cta-strip p { font-size: 15px; opacity: 0.85; max-width: 500px; margin: 0 auto 24px; }
+    .cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .cta-primary {
+      padding: 14px 32px;
+      background: white;
+      color: #2563eb;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .cta-primary:hover { transform: translateY(-2px); }
+    .cta-secondary {
+      padding: 14px 32px;
+      background: transparent;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .cta-secondary:hover { border-color: white; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 700px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .charts-row, .rate-grid { grid-template-columns: 1fr; }
+      .story-card { flex-direction: column; }
+      .recalc-inputs { flex-direction: column; }
+      .recalc-field input, .recalc-field select { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner">
+  ✨ You're viewing a <strong>live interactive demo</strong> — all numbers are calculated from your inputs. &nbsp;
+  <a onclick="window.parent.postMessage({action:'openTrial'},'*')">Start your free 30-day trial →</a>
+</div>
+
+<!-- HEADER -->
+<div class="dash-header">
+  <div>
+    <div class="dash-logo">Revenue <span>Insights</span></div>
+    <div class="dash-tagline">Price with confidence</div>
+  </div>
+  <div class="demo-badge">🔒 DEMO MODE</div>
+</div>
+
+<div class="page">
+
+  <!-- Hotel name & period -->
+  <div style="margin-bottom: 24px;">
+    <h2 id="hotelTitle" style="font-size: 20px; font-weight: 700; color: var(--slate-800);">Demo Property</h2>
+    <p id="hotelSub" style="font-size: 13px; color: var(--slate-400); margin-top: 2px;"></p>
+  </div>
+
+  <!-- ── LIVE RECALCULATE ── -->
+  <div class="recalc-section">
+    <h4>🔄 Adjust your numbers — watch the dashboard update live</h4>
+    <p>Change any value below and hit Recalculate to see how your metrics shift.</p>
+    <div class="recalc-inputs">
+      <div class="recalc-field">
+        <label>Rooms</label>
+        <input type="number" id="rc_rooms" min="1" max="60" value="8">
+      </div>
+      <div class="recalc-field">
+        <label>Occupancy %</label>
+        <input type="number" id="rc_occ" min="10" max="100" value="65">
+      </div>
+      <div class="recalc-field">
+        <label>ADR (<span id="currSymbol">R</span>)</label>
+        <input type="number" id="rc_adr" min="100" value="1450">
+      </div>
+      <div class="recalc-field">
+        <label>Area Type</label>
+        <select id="rc_area">
+          <option value="beach">Beach / Coastal</option>
+          <option value="city">City / Urban</option>
+          <option value="countryside" selected>Countryside / Rural</option>
+          <option value="business">Business / Corporate</option>
+        </select>
+      </div>
+      <div class="recalc-field">
+        <label>Currency</label>
+        <select id="rc_currency">
+          <option value="R" selected>ZAR (R)</option>
+          <option value="$">USD ($)</option>
+          <option value="€">EUR (€)</option>
+          <option value="£">GBP (£)</option>
+          <option value="KSh">KES (KSh)</option>
+          <option value="₦">NGN (₦)</option>
+        </select>
+      </div>
+      <button class="recalc-btn" onclick="recalculate()">↻ Recalculate</button>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="section-label">Key Performance Indicators</div>
+  <div class="kpi-grid" id="kpiGrid">
+    <!-- injected -->
+  </div>
+
+  <!-- STORY / INSIGHT CARD -->
+  <div id="storyCard" class="story-card">
+    <!-- injected -->
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h4>📅 Occupancy by Day of Week</h4>
+      <div class="chart-wrap">
+        <canvas id="dowOccChart"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h4>💰 Suggested ADR by Day of Week</h4>
+      <div class="chart-wrap">
+        <canvas id="dowAdrChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- RATE RECS + TRIANGLE -->
+  <div class="rate-grid">
+    <div class="rate-card">
+      <h4>💡 Rate Recommendations</h4>
+      <div id="rateRecs"><!-- injected --></div>
+    </div>
+    <div class="rate-card">
+      <h4>🔺 Revenue Triangle</h4>
+      <div id="revTriangle"><!-- injected --></div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-strip">
+    <h2>Ready to see your <em>real</em> data?</h2>
+    <p>This demo uses estimates. When you sign up, we load your actual booking history and give you precise, actionable intelligence.</p>
+    <div class="cta-btns">
+      <button class="cta-primary" onclick="window.parent.postMessage({action:'openTrial'},'*')">Start 30-Day Free Trial →</button>
+      <button class="cta-secondary" onclick="window.parent.postMessage({action:'scrollToTop'},'*')">Learn more</button>
+    </div>
+    <p style="font-size: 12px; opacity: 0.6; margin-top: 16px;">No credit card required • Setup in 5 minutes • Cancel anytime</p>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let state = {
+  rooms: 8,
+  occ: 65,
+  adr: 1450,
+  area: 'countryside',
+  currency: 'R',
+  hasCompetitors: true
+};
+
+let dowOccChartInst = null;
+let dowAdrChartInst = null;
+
+// ════════════════════════════════════════════════
+// BOOT — read from sessionStorage (set by parent page)
+// ════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  const raw = sessionStorage.getItem('demoInputs');
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      state.rooms    = parseInt(parsed.rooms)    || 8;
+      state.occ      = parseFloat(parsed.occ)    || 65;
+      state.adr      = parseFloat(parsed.adr)    || 1450;
+      state.area     = parsed.area               || 'countryside';
+      state.currency = parsed.currency           || 'R';
+      state.hasCompetitors = parsed.hasComp !== false;
+    } catch(e) {}
+  }
+
+  // Seed input fields
+  document.getElementById('rc_rooms').value    = state.rooms;
+  document.getElementById('rc_occ').value      = state.occ;
+  document.getElementById('rc_adr').value      = state.adr;
+  document.getElementById('rc_area').value     = state.area;
+  document.getElementById('rc_currency').value = state.currency;
+  document.getElementById('currSymbol').textContent = state.currency;
+
+  // Currency symbol live update
+  document.getElementById('rc_currency').addEventListener('change', function() {
+    document.getElementById('currSymbol').textContent = this.value;
+  });
+
+  render();
+});
+
+// ════════════════════════════════════════════════
+// RECALCULATE
+// ════════════════════════════════════════════════
+function recalculate() {
+  state.rooms    = parseInt(document.getElementById('rc_rooms').value)    || 8;
+  state.occ      = parseFloat(document.getElementById('rc_occ').value)   || 65;
+  state.adr      = parseFloat(document.getElementById('rc_adr').value)   || 1450;
+  state.area     = document.getElementById('rc_area').value;
+  state.currency = document.getElementById('rc_currency').value;
+  document.getElementById('currSymbol').textContent = state.currency;
+  render();
+}
+
+// ════════════════════════════════════════════════
+// CALCULATIONS ENGINE
+// ════════════════════════════════════════════════
+
+// Day-of-week occupancy profile per area type (multipliers around 1.0)
+const DOW_PROFILES = {
+  beach:      { Mon:0.72, Tue:0.70, Wed:0.73, Thu:0.78, Fri:1.05, Sat:1.28, Sun:1.14 },
+  city:       { Mon:0.95, Tue:1.02, Wed:1.05, Thu:1.03, Fri:1.04, Sat:0.98, Sun:0.93 },
+  countryside:{ Mon:0.78, Tue:0.75, Wed:0.76, Thu:0.80, Fri:1.08, Sat:1.24, Sun:1.09 },
+  business:   { Mon:1.10, Tue:1.15, Wed:1.12, Thu:1.08, Fri:0.95, Sat:0.72, Sun:0.88 }
+};
+
+// Competitor position per area
+const COMP_POSITION = {
+  beach:      { factor: 1.08, label: 'Beach / Coastal' },
+  city:       { factor: 1.12, label: 'City / Urban' },
+  countryside:{ factor: 0.95, label: 'Countryside / Rural' },
+  business:   { factor: 1.10, label: 'Business / Corporate' }
+};
+
+function fmt(n) {
+  return state.currency + Math.round(n).toLocaleString('en-ZA');
+}
+
+function calcDOW(baseOcc, baseAdr, area) {
+  const profile = DOW_PROFILES[area] || DOW_PROFILES.countryside;
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const occArr = [], adrArr = [], suggestedArr = [];
+
+  days.forEach(d => {
+    const mult = profile[d];
+    const dayOcc = Math.min(100, Math.max(10, baseOcc * mult));
+    occArr.push(Math.round(dayOcc * 10) / 10);
+
+    // ADR suggestion: higher occ → push rate, lower occ → small discount
+    let adrMult = 1.0;
+    if (dayOcc > 80)      adrMult = 1.12;
+    else if (dayOcc > 70) adrMult = 1.06;
+    else if (dayOcc > 55) adrMult = 1.00;
+    else if (dayOcc > 40) adrMult = 0.96;
+    else                  adrMult = 0.90;
+
+    const sugAdr = Math.round((baseAdr * adrMult) / 10) * 10;
+    adrArr.push(baseAdr);
+    suggestedArr.push(sugAdr);
+  });
+
+  return { days, occArr, adrArr, suggestedArr };
+}
+
+function calcKPIs(rooms, occ, adr) {
+  const occFrac     = occ / 100;
+  const revpar      = adr * occFrac;
+  const roomsSoldNight = rooms * occFrac;
+  const monthlyRev  = revpar * rooms * 30;
+  const potential   = adr * rooms * 30;          // at 100% occ
+  const leftOnTable = potential - monthlyRev;
+
+  return { rooms, occ, adr, revpar, roomsSoldNight, monthlyRev, potential, leftOnTable };
+}
+
+function compData(adr, area) {
+  const pos = COMP_POSITION[area] || COMP_POSITION.countryside;
+  const compAvg = adr * pos.factor;
+  const gap = adr - compAvg;
+  return { compAvg, gap, label: pos.label };
+}
+
+function dowAverages(dow) {
+  const weekend = [dow.occArr[4], dow.occArr[5], dow.occArr[6]]; // Fri Sat Sun
+  const weekday = [dow.occArr[0], dow.occArr[1], dow.occArr[2], dow.occArr[3]]; // Mon-Thu
+  const avgWE = weekend.reduce((a,b) => a+b, 0) / weekend.length;
+  const avgWD = weekday.reduce((a,b) => a+b, 0) / weekday.length;
+  return { avgWE, avgWD };
+}
+
+// ════════════════════════════════════════════════
+// NARRATIVE BRANCHING — 4 story archetypes
+// ════════════════════════════════════════════════
+function buildStory(kpis, comp) {
+  const { occ, adr, revpar, leftOnTable } = kpis;
+  const { compAvg, gap } = comp;
+  const curr = state.currency;
+
+  let headline, narrative, rec, focus, pillClass, highlight;
+
+  const pricingPower = adr / compAvg; // >1 = above comp, <1 = below
+
+  // ── BRANCH 1: High Occ + Below Comp Rate → Volume driver, leaving ADR on table
+  if (occ >= 75 && pricingPower < 0.95) {
+    headline = "🏆 You're filling rooms — but undercharging for them.";
+    narrative = `Your occupancy of <strong>${occ.toFixed(0)}%</strong> is impressive — you clearly have demand. 
+    But your ADR of <strong>${fmt(adr)}</strong> sits below the estimated area average of <strong>${fmt(compAvg)}</strong>. 
+    You are effectively subsidising your guests. At this occupancy, you have genuine pricing power. 
+    A <strong>${curr}${Math.round((compAvg - adr) * 0.5).toLocaleString()}</strong> rate increase would not hurt occupancy — 
+    and it would add roughly <strong>${fmt((compAvg - adr) * 0.5 * kpis.roomsSoldNight * 30)}</strong> to your monthly revenue.`;
+    rec = "↑ Raise Your Rate";
+    focus = "ADR Optimisation";
+    pillClass = 'pill-up';
+    highlight = `Estimated revenue being left per month: <strong>${fmt(leftOnTable)}</strong>`;
+  }
+
+  // ── BRANCH 2: High Occ + Rate above comp → Excellent, protect & push peak only
+  else if (occ >= 75 && pricingPower >= 0.95) {
+    headline = "🌟 Strong occupancy, competitive rates — now protect peak days.";
+    narrative = `You're running at <strong>${occ.toFixed(0)}%</strong> and charging <strong>${fmt(adr)}</strong> — 
+    broadly in line with your area. This is a healthy position. 
+    The key opportunity is <em>not</em> to raise rates across the board, but to identify your 2–3 highest demand days 
+    and push those specifically. Maintain your weekday rates and test a <strong>10–15% weekend premium</strong>.`;
+    rec = "↗ Push Peak Days";
+    focus = "Revenue Maximisation";
+    pillClass = 'pill-up';
+    highlight = `Monthly potential if peak days are optimised: <strong>${fmt(kpis.monthlyRev * 1.08)}</strong>`;
+  }
+
+  // ── BRANCH 3: Moderate Occ + Below Comp → Rate & demand issue together
+  else if (occ >= 50 && occ < 75 && pricingPower < 0.95) {
+    headline = "⚖️ You have a rate confidence problem — not a demand problem.";
+    narrative = `At <strong>${occ.toFixed(0)}%</strong> occupancy and <strong>${fmt(adr)}</strong> ADR, 
+    you are below both targets. But the instinct to discount further is wrong here — 
+    your area comp average is <strong>${fmt(compAvg)}</strong>, meaning you're already the cheaper option. 
+    Discounting signals low quality. Instead, focus on <strong>value-add packaging</strong> 
+    (breakfast, late checkout, local experience) to justify holding or gently increasing your rate.`;
+    rec = "📦 Package & Hold";
+    focus = "Value Positioning";
+    pillClass = 'pill-hold';
+    highlight = `Revenue gap vs full potential: <strong>${fmt(leftOnTable)}</strong> per month`;
+  }
+
+  // ── BRANCH 4: Low Occ → Demand issue, strategic targeting
+  else if (occ < 50) {
+    headline = "🎯 Low occupancy: your pricing may not be the issue — visibility is.";
+    narrative = `With occupancy at <strong>${occ.toFixed(0)}%</strong>, the priority is filling rooms, 
+    not maximising rate. At <strong>${fmt(adr)}</strong>, you are ${pricingPower < 0.95 ? 'below' : 'near'} the area average of <strong>${fmt(compAvg)}</strong>. 
+    Consider a short-term promotional rate on low-demand days only, while protecting your weekend rate. 
+    A <strong>15% weekday discount</strong> applied selectively could recover <strong>10–15 room nights</strong> per month 
+    without damaging your rate integrity.`;
+    rec = "🎯 Targeted Promotions";
+    focus = "Volume Recovery";
+    pillClass = 'pill-down';
+    highlight = `At ${occ.toFixed(0)}% occ, you're selling <strong>${Math.round(kpis.roomsSoldNight)} of ${kpis.rooms} rooms</strong> per night`;
+  }
+
+  // ── BRANCH 5: High Occ + Well Above Comp → Premium strategy, watch for ceiling
+  else {
+    headline = "💼 Balanced position — maintain and monitor for premium opportunities.";
+    narrative = `You're operating at <strong>${occ.toFixed(0)}%</strong> with an ADR of <strong>${fmt(adr)}</strong>. 
+    This is a stable position relative to your area. The focus for you should be on <strong>consistency</strong> 
+    and identifying seasonal peaks where a rate premium is justified. 
+    Use day-of-week data below to see which specific nights have the most pricing flexibility.`;
+    rec = "⚖️ Maintain Strategy";
+    focus = "Consistency & Peaks";
+    pillClass = 'pill-hold';
+    highlight = `Monthly revenue estimate: <strong>${fmt(kpis.monthlyRev)}</strong>`;
+  }
+
+  return { headline, narrative, rec, focus, pillClass, highlight };
+}
+
+// ════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════
+function render() {
+  const { rooms, occ, adr, area, currency } = state;
+
+  const kpis = calcKPIs(rooms, occ, adr);
+  const comp = compData(adr, area);
+  const dow  = calcDOW(occ, adr, area);
+  const { avgWE, avgWD } = dowAverages(dow);
+  const story = buildStory(kpis, comp);
+
+  renderHeader();
+  renderKPIs(kpis, comp);
+  renderStory(kpis, comp, story);
+  renderDOWCharts(dow);
+  renderRateRecs(kpis, comp, dow, avgWE, avgWD);
+  renderTriangle(kpis, comp);
+}
+
+function renderHeader() {
+  document.getElementById('hotelTitle').textContent = 'Demo Property — ' + (COMP_POSITION[state.area]?.label || 'Your Area');
+  const today = new Date();
+  document.getElementById('hotelSub').textContent =
+    `Simulated data for ${today.toLocaleString('en-ZA', {month:'long', year:'numeric'})} · ${state.rooms} rooms · Based on your inputs`;
+}
+
+function renderKPIs(k, comp) {
+  const html = `
+    <div class="kpi-card">
+      <div class="kpi-label">Occupancy</div>
+      <div class="kpi-value">${k.occ.toFixed(0)}%</div>
+      <div class="kpi-sub">${Math.round(k.roomsSoldNight)} of ${k.rooms} rooms / night</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">ADR (Your Rate)</div>
+      <div class="kpi-value">${fmt(k.adr)}</div>
+      <div class="kpi-sub">Area avg: ${fmt(comp.compAvg)}</div>
+    </div>
+    <div class="kpi-card highlight">
+      <div class="kpi-label">RevPAR</div>
+      <div class="kpi-value">${fmt(k.revpar)}</div>
+      <div class="kpi-sub">Revenue per available room</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Est. Monthly Revenue</div>
+      <div class="kpi-value" style="font-size:22px;">${fmt(k.monthlyRev)}</div>
+      <div class="kpi-sub">Potential: ${fmt(k.potential)}</div>
+    </div>
+  `;
+  document.getElementById('kpiGrid').innerHTML = html;
+}
+
+function renderStory(k, comp, story) {
+  const html = `
+    <div class="story-text">
+      <h3>${story.headline}</h3>
+      <p>${story.narrative}</p>
+      <div class="story-missed">${story.highlight}</div>
+    </div>
+    <div class="story-rec">
+      <div class="story-rec-label">RECOMMENDATION</div>
+      <div class="story-rec-value">${story.rec}</div>
+      <div class="story-rec-sub">${story.focus}</div>
+    </div>
+  `;
+  document.getElementById('storyCard').innerHTML = html;
+}
+
+function renderDOWCharts(dow) {
+  const labels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const occColors = dow.occArr.map(v =>
+    v > 80 ? '#10b981' : v > 60 ? '#3b82f6' : v > 40 ? '#f59e0b' : '#ef4444'
+  );
+
+  // Destroy previous
+  if (dowOccChartInst) { dowOccChartInst.destroy(); dowOccChartInst = null; }
+  if (dowAdrChartInst) { dowAdrChartInst.destroy(); dowAdrChartInst = null; }
+
+  const occCtx = document.getElementById('dowOccChart').getContext('2d');
+  dowOccChartInst = new Chart(occCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Occupancy %',
+        data: dow.occArr,
+        backgroundColor: occColors,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          min: 0, max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: '#f1f5f9' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  const adrCtx = document.getElementById('dowAdrChart').getContext('2d');
+  dowAdrChartInst = new Chart(adrCtx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'Current ADR',
+          data: dow.adrArr,
+          backgroundColor: 'rgba(148,163,184,0.4)',
+          borderRadius: 6
+        },
+        {
+          label: 'Suggested ADR',
+          data: dow.suggestedArr,
+          backgroundColor: 'rgba(59,130,246,0.7)',
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 11 } } }
+      },
+      scales: {
+        y: {
+          ticks: { callback: v => state.currency + v.toLocaleString() },
+          grid: { color: '#f1f5f9' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderRateRecs(k, comp, dow, avgWE, avgWD) {
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const labels = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+
+  let rows = '';
+  days.forEach((d, i) => {
+    const occ = dow.occArr[i];
+    const suggested = dow.suggestedArr[i];
+    const diff = suggested - k.adr;
+    const diffPct = Math.round((diff / k.adr) * 100);
+    let pill, action;
+    if (diff > 0)      { pill = 'pill-up';   action = `↑ ${diffPct > 0 ? '+' : ''}${diffPct}%`; }
+    else if (diff < 0) { pill = 'pill-down';  action = `↓ ${diffPct}%`; }
+    else               { pill = 'pill-hold';  action = '⚖ Hold'; }
+
+    rows += `
+      <div class="rate-row">
+        <div>
+          <div class="rate-row-label">${labels[i]}</div>
+          <div class="rate-row-sub">Est. occ: ${occ.toFixed(0)}%</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="rate-pill ${pill}">${action}</span>
+          <span class="rate-suggested">${fmt(suggested)}</span>
+        </div>
+      </div>
+    `;
+  });
+
+  const compNote = k.adr < comp.compAvg
+    ? `⚠️ Your rate is <strong>${fmt(comp.compAvg - k.adr)}</strong> below the area average of <strong>${fmt(comp.compAvg)}</strong>.`
+    : `✅ Your rate is above the area average of <strong>${fmt(comp.compAvg)}</strong>.`;
+
+  document.getElementById('rateRecs').innerHTML = `
+    <div style="background:#f0f9ff;padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:13px;border-left:3px solid #3b82f6;">
+      ${compNote}
+    </div>
+    ${rows}
+  `;
+}
+
+function renderTriangle(k, comp) {
+  const occPct = Math.min(100, k.occ);
+  const adrPct = Math.min(100, (k.adr / (comp.compAvg * 1.5)) * 100);
+  const revparPct = Math.min(100, (k.revpar / (comp.compAvg * 1.5)) * 100);
+
+  let insight, action;
+  if (k.occ < 60 && k.adr > comp.compAvg) {
+    insight = "High rate, lower occupancy — rate-first strategy.";
+    action = "Consider selective weekday discounts to fill more rooms without harming your weekend rate.";
+  } else if (k.occ > 80 && k.adr < comp.compAvg * 0.95) {
+    insight = "High occupancy, below-market rate — classic volume trap.";
+    action = "You have the demand to justify higher rates. A phased increase of 8–12% is recommended.";
+  } else if (k.occ > 75 && k.adr >= comp.compAvg * 0.95) {
+    insight = "Excellent balance of occupancy and rate.";
+    action = "Protect this position. Focus on peak-day premiums and loyalty to defend occupancy.";
+  } else {
+    insight = "Balanced but below potential.";
+    action = "Focus on day-of-week differentiation — charge more on high-demand nights, protect low-demand nights with value-adds.";
+  }
+
+  document.getElementById('revTriangle').innerHTML = `
+    <div class="triangle-visual">
+      <div class="revpar-circle">
+        <div class="rv-val">${fmt(k.revpar)}</div>
+        <div class="rv-label">RevPAR</div>
+      </div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-bar-label">Occupancy</div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${occPct}%;background:#3b82f6;"></div></div>
+      <div class="metric-bar-value">${k.occ.toFixed(0)}%</div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-bar-label">ADR vs Comp</div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${adrPct}%;background:#10b981;"></div></div>
+      <div class="metric-bar-value">${fmt(k.adr)}</div>
+    </div>
+    <div class="metric-bar">
+      <div class="metric-bar-label">RevPAR</div>
+      <div class="metric-bar-track"><div class="metric-bar-fill" style="width:${revparPct}%;background:#6366f1;"></div></div>
+      <div class="metric-bar-value">${fmt(k.revpar)}</div>
+    </div>
+    <div style="background:#fef3c7;padding:12px;border-radius:8px;margin-top:14px;border-left:3px solid #f59e0b;">
+      <div style="font-size:13px;font-weight:600;color:#92400e;margin-bottom:4px;">💡 ${insight}</div>
+      <div style="font-size:12px;color:#78350f;">${action}</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
