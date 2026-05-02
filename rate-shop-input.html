@@ -1,439 +1,429 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rate Shop — Upload Lighthouse Data</title>
-  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
-    .topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 28px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-    .logo { width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
-    .topbar-title { font-size: 16px; font-weight: 700; }
-    .badge-internal { font-size: 11px; background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
-    .main { max-width: 1000px; margin: 0 auto; padding: 36px 20px 80px; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; margin-bottom: 24px; }
-    .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
-    .card-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
-    .drop-zone { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 48px; text-align: center; cursor: pointer; transition: all 0.2s; }
-    .drop-zone:hover { border-color: #3b82f6; background: #f0f9ff; }
-    .drop-zone.has-file { border-color: #22c55e; background: #f0fdf4; }
-    .drop-icon { font-size: 48px; margin-bottom: 12px; }
-    .drop-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
-    .drop-sub { font-size: 13px; color: #64748b; }
-    .drop-btn { margin-top: 14px; padding: 9px 22px; background: #3b82f6; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; }
-    .file-info { display: none; align-items: center; gap: 12px; padding: 14px 18px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; margin-top: 12px; }
-    .file-info.show { display: flex; }
-    .btn-clear { padding: 5px 12px; background: transparent; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; }
-    .steps { display: flex; align-items: center; margin-bottom: 28px; }
-    .step { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 40px; font-size: 13px; font-weight: 600; color: #94a3b8; }
-    .step.active { background: #eff6ff; color: #1d4ed8; }
-    .step.done { color: #15803d; }
-    .step-num { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
-    .step.active .step-num { background: #3b82f6; color: #fff; }
-    .step.done .step-num { background: #22c55e; color: #fff; }
-    .step-sep { width: 30px; height: 2px; background: #e2e8f0; }
-    .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-    .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
-    .ctrl-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
-    .ctrl-input { padding: 10px 13px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fff; }
-    .preview-table { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 12px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-    th { background: #f8fafc; font-weight: 600; }
-    .stat-chip { display: inline-block; padding: 6px 14px; background: #f8fafc; border-radius: 30px; font-size: 12px; margin-right: 10px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
-    .action-bar { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; flex-wrap: wrap; }
-    .btn-primary { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-    .btn-secondary { background: #fff; border: 1.5px solid #e2e8f0; padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-    .status-banner { padding: 14px; border-radius: 12px; margin-top: 20px; display: none; font-weight: 500; }
-    .status-banner.success { background: #dcfce7; color: #15803d; display: block; }
-    .status-banner.error { background: #fee2e2; color: #b91c1c; display: block; }
-    .status-banner.loading { background: #dbeafe; color: #1e40af; display: block; }
-    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .help-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 14px 18px; margin-top: 16px; font-size: 13px; color: #78350f; }
-    .auth-gate { max-width: 420px; margin: 80px auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; text-align: center; }
-    .auth-gate input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
-    .auth-gate button { width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; }
-    .auth-error { color: #dc2626; font-size: 13px; margin-top: 12px; display: none; }
-    @media (max-width: 700px) { .ctrl-grid { grid-template-columns: 1fr; } .steps { flex-wrap: wrap; } }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Rate Shop — Upload Lighthouse Data</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f8fafc; color: #1e293b; }
+        .topbar { background: #fff; border-bottom: 1px solid #e2e8f0; padding: 0 28px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+        .logo { width: 32px; height: 32px; background: #3b82f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; }
+        .topbar-title { font-size: 16px; font-weight: 700; }
+        .badge-internal { font-size: 11px; background: #fef3c7; color: #92400e; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+        .main { max-width: 1000px; margin: 0 auto; padding: 36px 20px 80px; }
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 20px; padding: 28px; margin-bottom: 24px; }
+        .card-title { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+        .card-sub { font-size: 13px; color: #64748b; margin-bottom: 20px; }
+        .drop-zone { border: 2px dashed #cbd5e1; border-radius: 16px; padding: 48px; text-align: center; cursor: pointer; transition: all 0.2s; }
+        .drop-zone:hover { border-color: #3b82f6; background: #f0f9ff; }
+        .drop-zone.has-file { border-color: #22c55e; background: #f0fdf4; }
+        .drop-icon { font-size: 48px; margin-bottom: 12px; }
+        .drop-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .drop-sub { font-size: 13px; color: #64748b; }
+        .drop-btn { margin-top: 14px; padding: 9px 22px; background: #3b82f6; border: none; border-radius: 8px; color: #fff; font-weight: 600; cursor: pointer; }
+        .file-info { display: none; align-items: center; gap: 12px; padding: 14px 18px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; margin-top: 12px; }
+        .file-info.show { display: flex; }
+        .btn-clear { padding: 5px 12px; background: transparent; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; }
+        .steps { display: flex; align-items: center; margin-bottom: 28px; }
+        .step { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-radius: 40px; font-size: 13px; font-weight: 600; color: #94a3b8; }
+        .step.active { background: #eff6ff; color: #1d4ed8; }
+        .step.done { color: #15803d; }
+        .step-num { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .step.active .step-num { background: #3b82f6; color: #fff; }
+        .step.done .step-num { background: #22c55e; color: #fff; }
+        .step-sep { width: 30px; height: 2px; background: #e2e8f0; }
+        .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .ctrl-group { display: flex; flex-direction: column; gap: 6px; }
+        .ctrl-label { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; }
+        .ctrl-input { padding: 10px 13px; border: 1.5px solid #e2e8f0; border-radius: 10px; font-size: 14px; background: #fff; }
+        .preview-table { overflow-x: auto; border-radius: 12px; border: 1px solid #e2e8f0; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th, td { padding: 12px 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 600; }
+        .stat-chip { display: inline-block; padding: 6px 14px; background: #f8fafc; border-radius: 30px; font-size: 12px; margin-right: 10px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .action-bar { display: flex; justify-content: space-between; margin-top: 24px; gap: 12px; flex-wrap: wrap; }
+        .btn-primary { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .btn-secondary { background: #fff; border: 1.5px solid #e2e8f0; padding: 10px 24px; border-radius: 10px; font-weight: 600; cursor: pointer; }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .status-banner { padding: 14px; border-radius: 12px; margin-top: 20px; display: none; font-weight: 500; }
+        .status-banner.success { background: #dcfce7; color: #15803d; display: block; }
+        .status-banner.error { background: #fee2e2; color: #b91c1c; display: block; }
+        .status-banner.loading { background: #dbeafe; color: #1e40af; display: block; }
+        .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 6px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .help-box { background: #fffbeb; border: 1px solid #fcd34d; border-radius: 12px; padding: 14px 18px; margin-top: 16px; font-size: 13px; color: #78350f; }
+        .auth-gate { max-width: 420px; margin: 80px auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; text-align: center; }
+        .auth-gate input { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+        .auth-gate button { width: 100%; padding: 12px; background: #3b82f6; border: none; border-radius: 10px; color: #fff; font-weight: 600; cursor: pointer; }
+        .auth-error { color: #dc2626; font-size: 13px; margin-top: 12px; display: none; }
+        @media (max-width: 700px) { .ctrl-grid { grid-template-columns: 1fr; } .steps { flex-wrap: wrap; } }
+    </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div style="display: flex; align-items: center; gap: 12px;">
-    <div class="logo">RI</div>
-    <div class="topbar-title">Rate Shop — Upload</div>
-  </div>
-  <span class="badge-internal" id="authBadge" style="display: none;">✓ Authenticated</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div class="logo">RI</div>
+        <div class="topbar-title">Rate Shop — Upload</div>
+    </div>
+    <span class="badge-internal" id="authBadge" style="display: none;">✓ Authenticated</span>
 </div>
 
 <div id="authGate" class="auth-gate">
-  <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
-  <h2 style="margin-bottom: 8px;">Enter password</h2>
-  <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;">Internal use only</p>
-  <input type="password" id="passwordInput" placeholder="Your RATE_SHOP_PASSWORD">
-  <button onclick="authenticate()">Unlock →</button>
-  <div id="authError" class="auth-error"></div>
+    <div style="font-size: 48px; margin-bottom: 16px;">🔐</div>
+    <h2 style="margin-bottom: 8px;">Enter password</h2>
+    <p style="color: #64748b; margin-bottom: 24px; font-size: 14px;">Internal use only</p>
+    <input type="password" id="passwordInput" placeholder="Your RATE_SHOP_PASSWORD">
+    <button onclick="authenticate()">Unlock →</button>
+    <div id="authError" class="auth-error"></div>
 </div>
 
 <div id="app" style="display: none;">
-  <div class="main">
+    <div class="main">
 
-    <!-- STEPS -->
-    <div class="steps">
-      <div class="step active" id="step1El"><div class="step-num">1</div> Upload file</div>
-      <div class="step-sep"></div>
-      <div class="step" id="step2El"><div class="step-num">2</div> Select week</div>
-      <div class="step-sep"></div>
-      <div class="step" id="step3El"><div class="step-num">3</div> Save</div>
-    </div>
-
-    <!-- STEP 1: UPLOAD -->
-    <div id="step1" class="card">
-      <div class="card-title">Upload Lighthouse export</div>
-      <div class="card-sub">Drop the Excel file. The "Rates" sheet is read automatically.</div>
-      <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
-        <div class="drop-icon" id="dropIcon">📂</div>
-        <div class="drop-title" id="dropTitle">Drop your Lighthouse .xlsx here</div>
-        <div class="drop-sub" id="dropSub">or click to browse</div>
-        <button class="drop-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Choose file</button>
-      </div>
-      <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleFile(this.files[0])">
-      <div id="fileInfo" class="file-info">
-        <span>📊</span>
-        <span id="fileNameLabel" style="flex:1;">—</span>
-        <button class="btn-clear" onclick="clearFile()">Remove</button>
-      </div>
-      <div class="help-box">
-        <strong>📋 Format:</strong> Sheet named "Rates" · First column = dates · Other columns = property names · Values = rates or "Sold out"
-      </div>
-    </div>
-
-    <!-- STEP 2: REVIEW -->
-    <div id="step2" style="display: none;">
-      <div class="card">
-        <div class="card-title">Select a week</div>
-        <div class="card-sub">Choose the Monday that starts the week you want to save.</div>
-        <div class="ctrl-grid">
-          <div class="ctrl-group">
-            <div class="ctrl-label">Week Starting (Monday)</div>
-            <input type="date" class="ctrl-input" id="weekStart">
-          </div>
-          <div class="ctrl-group">
-            <div class="ctrl-label">Available weeks in file</div>
-            <select class="ctrl-input" id="weekPicker" onchange="selectWeekFromPicker()">
-              <option value="">— pick from file —</option>
-            </select>
-          </div>
+        <div class="steps">
+            <div class="step active" id="step1El"><div class="step-num">1</div> Upload file</div>
+            <div class="step-sep"></div>
+            <div class="step" id="step2El"><div class="step-num">2</div> Select week</div>
+            <div class="step-sep"></div>
+            <div class="step" id="step3El"><div class="step-num">3</div> Save</div>
         </div>
-        <button class="btn-primary" onclick="buildPreview()" style="background: #64748b;">🔍 Preview this week</button>
-      </div>
 
-      <div id="previewSection" style="display: none;">
-        <div class="card">
-          <div class="card-title">Rate preview</div>
-          <div id="statsContainer" style="margin-bottom: 16px;"></div>
-          <div class="preview-table">
-            <table id="previewTable">
-              <thead><tr><th>Property</th><th>Avg Rate (R)</th><th>Min</th><th>Max</th><th>Days with data</th><th>Sold out days</th></tr></thead>
-              <tbody id="previewBody"></tbody>
-            </table>
-          </div>
-          <div class="action-bar">
-            <button class="btn-secondary" onclick="backToUpload()">← Upload different file</button>
-            <button class="btn-primary" id="saveBtn" onclick="saveData()">💾 Save to dashboard</button>
-          </div>
-          <div id="statusBanner" class="status-banner"></div>
+        <div id="step1" class="card">
+            <div class="card-title">Upload Lighthouse export</div>
+            <div class="card-sub">Drop the Excel file. The "Rates" sheet is read automatically.</div>
+            <div id="dropZone" class="drop-zone" onclick="document.getElementById('fileInput').click()">
+                <div class="drop-icon" id="dropIcon">📂</div>
+                <div class="drop-title" id="dropTitle">Drop your Lighthouse .xlsx here</div>
+                <div class="drop-sub" id="dropSub">or click to browse</div>
+                <button class="drop-btn" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">Choose file</button>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleFile(this.files[0])">
+            <div id="fileInfo" class="file-info">
+                <span>📊</span>
+                <span id="fileNameLabel" style="flex:1;">—</span>
+                <button class="btn-clear" onclick="clearFile()">Remove</button>
+            </div>
+            <div class="help-box">
+                <strong>📋 Format:</strong> Sheet named "Rates" · First column = dates · Other columns = property names · Values = rates or "Sold out"
+            </div>
         </div>
-      </div>
-    </div>
 
-  </div>
+        <div id="step2" style="display: none;">
+            <div class="card">
+                <div class="card-title">Select a week</div>
+                <div class="card-sub">Choose the Monday that starts the week you want to save.</div>
+                <div class="ctrl-grid">
+                    <div class="ctrl-group">
+                        <div class="ctrl-label">Week Starting (Monday)</div>
+                        <input type="date" class="ctrl-input" id="weekStart">
+                    </div>
+                    <div class="ctrl-group">
+                        <div class="ctrl-label">Available weeks in file</div>
+                        <select class="ctrl-input" id="weekPicker" onchange="selectWeekFromPicker()">
+                            <option value="">— pick from file —</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="buildPreview()" style="background: #64748b;">🔍 Preview this week</button>
+            </div>
+
+            <div id="previewSection" style="display: none;">
+                <div class="card">
+                    <div class="card-title">Rate preview</div>
+                    <div id="statsContainer" style="margin-bottom: 16px;"></div>
+                    <div class="preview-table">
+                        <table id="previewTable">
+                            <thead><tr><th>Property</th><th>Avg Rate (R)</th><th>Min</th><th>Max</th><th>Days with data</th><th>Sold out days</th></tr></thead>
+                            <tbody id="previewBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="action-bar">
+                        <button class="btn-secondary" onclick="backToUpload()">← Upload different file</button>
+                        <button class="btn-primary" id="saveBtn" onclick="saveData()">💾 Save to dashboard</button>
+                    </div>
+                    <div id="statusBanner" class="status-banner"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 
 <script>
-  const API_BASE = 'https://backend-x5sw.onrender.com';
-  let apiKey = '';
-  let allProperties = [];
-  let allDates = [];
-  let rateMatrix = {};
-  let currentWeekData = [];
-  let currentWeekStart = null;
+    const API_BASE = 'https://backend-x5sw.onrender.com';
+    let apiKey = '';
+    let allProperties = [];
+    let allDates = [];
+    let rateMatrix = {};
+    let currentWeekData = [];
+    let currentWeekStart = null;
 
-  // AUTH
-  async function authenticate() {
-    const pw = document.getElementById('passwordInput').value;
-    if (!pw) return;
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`, {
-        headers: { 'X-API-Key': pw }
-      });
-      if (res.status === 401) {
-        document.getElementById('authError').innerText = '❌ Incorrect password';
-        document.getElementById('authError').style.display = 'block';
-        return;
-      }
-      apiKey = pw;
-      document.getElementById('authGate').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('authBadge').style.display = 'inline';
-      setDefaultWeekStart();
-    } catch (err) {
-      document.getElementById('authError').innerText = '❌ Cannot reach backend';
-      document.getElementById('authError').style.display = 'block';
-    }
-  }
-
-  function setDefaultWeekStart() {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = day === 0 ? 6 : day - 1;
-    const monday = new Date(today);
-    monday.setDate(today.getDate() - diff);
-    document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
-  }
-
-  // FILE HANDLING
-  function handleFile(file) {
-    if (!file) return;
-    if (!file.name.match(/\.(xlsx|xls)$/i)) {
-      alert('Please upload an Excel file (.xlsx or .xls)');
-      return;
-    }
-    document.getElementById('dropZone').classList.add('has-file');
-    document.getElementById('dropIcon').textContent = '✅';
-    document.getElementById('dropTitle').textContent = 'File loaded!';
-    document.getElementById('dropSub').textContent = file.name;
-    document.getElementById('fileInfo').classList.add('show');
-    document.getElementById('fileNameLabel').textContent = file.name;
-
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      try {
-        const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data, { type: 'array', cellDates: true });
-        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || wb.SheetNames[0];
-        const ws = wb.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
-        if (rows.length < 2) throw new Error('Sheet is empty');
-
-        const headers = rows[0];
-        allProperties = headers.slice(1).map(h => String(h || '').trim()).filter(Boolean);
-        rateMatrix = {};
-        allDates = [];
-
-        for (let i = 1; i < rows.length; i++) {
-          const row = rows[i];
-          const rawDate = row[0];
-          if (!rawDate) continue;
-          let dateStr = null;
-          if (rawDate instanceof Date) {
-            dateStr = rawDate.toISOString().split('T')[0];
-          } else if (typeof rawDate === 'number') {
-            const d = XLSX.SSF.parse_date_code(rawDate);
-            dateStr = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
-          } else {
-            const parsed = new Date(rawDate);
-            if (!isNaN(parsed)) dateStr = parsed.toISOString().split('T')[0];
-          }
-          if (!dateStr) continue;
-          allDates.push(dateStr);
-
-          allProperties.forEach((prop, idx) => {
-            const val = row[idx + 1];
-            if (!rateMatrix[prop]) rateMatrix[prop] = {};
-            if (val === null || val === undefined || val === '') {
-              rateMatrix[prop][dateStr] = null;
-            } else if (String(val).toLowerCase().includes('sold')) {
-              rateMatrix[prop][dateStr] = 'sold_out';
-            } else {
-              const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
-              rateMatrix[prop][dateStr] = isNaN(num) ? null : num;
+    async function authenticate() {
+        const pw = document.getElementById('passwordInput').value;
+        if (!pw) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`, {
+                headers: { 'X-API-Key': pw }
+            });
+            if (res.status === 401) {
+                document.getElementById('authError').innerText = '❌ Incorrect password';
+                document.getElementById('authError').style.display = 'block';
+                return;
             }
-          });
+            apiKey = pw;
+            document.getElementById('authGate').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            document.getElementById('authBadge').style.display = 'inline';
+            setDefaultWeekStart();
+        } catch (err) {
+            document.getElementById('authError').innerText = '❌ Cannot reach backend';
+            document.getElementById('authError').style.display = 'block';
+        }
+    }
+
+    function setDefaultWeekStart() {
+        const today = new Date();
+        const day = today.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - diff);
+        document.getElementById('weekStart').value = monday.toISOString().split('T')[0];
+    }
+
+    function handleFile(file) {
+        if (!file) return;
+        if (!file.name.match(/\.(xlsx|xls)$/i)) {
+            alert('Please upload an Excel file (.xlsx or .xls)');
+            return;
+        }
+        document.getElementById('dropZone').classList.add('has-file');
+        document.getElementById('dropIcon').textContent = '✅';
+        document.getElementById('dropTitle').textContent = 'File loaded!';
+        document.getElementById('dropSub').textContent = file.name;
+        document.getElementById('fileInfo').classList.add('show');
+        document.getElementById('fileNameLabel').textContent = file.name;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const wb = XLSX.read(data, { type: 'array', cellDates: true });
+                const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || wb.SheetNames[0];
+                const ws = wb.Sheets[sheetName];
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+                if (rows.length < 2) throw new Error('Sheet is empty');
+
+                const headers = rows[0];
+                allProperties = headers.slice(1).map(h => String(h || '').trim()).filter(Boolean);
+                rateMatrix = {};
+                allDates = [];
+
+                for (let i = 1; i < rows.length; i++) {
+                    const row = rows[i];
+                    const rawDate = row[0];
+                    if (!rawDate) continue;
+                    let dateStr = null;
+                    if (rawDate instanceof Date) {
+                        dateStr = rawDate.toISOString().split('T')[0];
+                    } else if (typeof rawDate === 'number') {
+                        const d = XLSX.SSF.parse_date_code(rawDate);
+                        dateStr = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+                    } else {
+                        const parsed = new Date(rawDate);
+                        if (!isNaN(parsed)) dateStr = parsed.toISOString().split('T')[0];
+                    }
+                    if (!dateStr) continue;
+                    allDates.push(dateStr);
+
+                    allProperties.forEach((prop, idx) => {
+                        const val = row[idx + 1];
+                        if (!rateMatrix[prop]) rateMatrix[prop] = {};
+                        if (val === null || val === undefined || val === '') {
+                            rateMatrix[prop][dateStr] = null;
+                        } else if (String(val).toLowerCase().includes('sold')) {
+                            rateMatrix[prop][dateStr] = 'sold_out';
+                        } else {
+                            const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+                            rateMatrix[prop][dateStr] = isNaN(num) ? null : num;
+                        }
+                    });
+                }
+
+                allDates = [...new Set(allDates)].sort();
+                populateWeekPicker();
+                goToStep2();
+                showBanner('success', `Loaded ${allProperties.length} properties over ${allDates.length} days`);
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function clearFile() {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileInfo').classList.remove('show');
+        document.getElementById('dropZone').classList.remove('has-file');
+        document.getElementById('dropIcon').textContent = '📂';
+        document.getElementById('dropTitle').textContent = 'Drop your Lighthouse .xlsx here';
+        document.getElementById('dropSub').textContent = 'or click to browse';
+        allProperties = [];
+        allDates = [];
+        rateMatrix = {};
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step1El').className = 'step active';
+        document.getElementById('step2El').className = 'step';
+        document.getElementById('step3El').className = 'step';
+    }
+
+    function populateWeekPicker() {
+        const mondays = allDates.filter(d => new Date(d).getDay() === 1);
+        const picker = document.getElementById('weekPicker');
+        picker.innerHTML = '<option value="">— pick from file —</option>';
+        mondays.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            const mon = new Date(m);
+            const sun = new Date(mon);
+            sun.setDate(sun.getDate() + 6);
+            opt.textContent = `${mon.toLocaleDateString()} – ${sun.toLocaleDateString()}`;
+            picker.appendChild(opt);
+        });
+    }
+
+    function selectWeekFromPicker() {
+        const val = document.getElementById('weekPicker').value;
+        if (val) document.getElementById('weekStart').value = val;
+    }
+
+    function buildPreview() {
+        const weekStart = document.getElementById('weekStart').value;
+        if (!weekStart) { alert('Select a week start date'); return; }
+        if (new Date(weekStart).getDay() !== 1) { alert('Must start on Monday'); return; }
+
+        currentWeekStart = weekStart;
+        const weekDates = [];
+        const mon = new Date(weekStart);
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(mon);
+            d.setDate(d.getDate() + i);
+            weekDates.push(d.toISOString().split('T')[0]);
         }
 
-        allDates = [...new Set(allDates)].sort();
-        populateWeekPicker();
-        goToStep2();
-        showToast('success', `Loaded ${allProperties.length} properties over ${allDates.length} days`);
-      } catch (err) {
-        alert('Error: ' + err.message);
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
+        currentWeekData = [];
+        const tbody = document.getElementById('previewBody');
+        tbody.innerHTML = '';
+        let withDataCount = 0;
 
-  function clearFile() {
-    document.getElementById('fileInput').value = '';
-    document.getElementById('fileInfo').classList.remove('show');
-    document.getElementById('dropZone').classList.remove('has-file');
-    document.getElementById('dropIcon').textContent = '📂';
-    document.getElementById('dropTitle').textContent = 'Drop your Lighthouse .xlsx here';
-    document.getElementById('dropSub').textContent = 'or click to browse';
-    allProperties = [];
-    allDates = [];
-    rateMatrix = {};
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step1El').className = 'step active';
-    document.getElementById('step2El').className = 'step';
-    document.getElementById('step3El').className = 'step';
-  }
+        for (const prop of allProperties) {
+            const rates = [];
+            let soldDays = 0;
+            let dataDays = 0;
+            for (const date of weekDates) {
+                const val = rateMatrix[prop]?.[date];
+                if (val === 'sold_out') { soldDays++; dataDays++; }
+                else if (typeof val === 'number') { rates.push(val); dataDays++; }
+            }
+            if (dataDays > 0) withDataCount++;
+            const avg = rates.length ? Math.round(rates.reduce((a,b)=>a+b,0)/rates.length) : null;
+            const min = rates.length ? Math.min(...rates) : null;
+            const max = rates.length ? Math.max(...rates) : null;
 
-  function populateWeekPicker() {
-    const mondays = allDates.filter(d => new Date(d).getDay() === 1);
-    const picker = document.getElementById('weekPicker');
-    picker.innerHTML = '<option value="">— pick from file —</option>';
-    mondays.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      const mon = new Date(m);
-      const sun = new Date(mon);
-      sun.setDate(sun.getDate() + 6);
-      opt.textContent = `${mon.toLocaleDateString()} – ${sun.toLocaleDateString()}`;
-      picker.appendChild(opt);
-    });
-  }
+            const row = tbody.insertRow();
+            row.insertCell(0).innerText = prop;
+            row.insertCell(1).innerHTML = avg ? `R ${avg.toLocaleString()}` : '—';
+            row.insertCell(2).innerHTML = min ? `R ${min.toLocaleString()}` : '—';
+            row.insertCell(3).innerHTML = max ? `R ${max.toLocaleString()}` : '—';
+            row.insertCell(4).innerHTML = `${dataDays}/7`;
+            row.insertCell(5).innerHTML = soldDays > 0 ? `${soldDays} days` : '—';
 
-  function selectWeekFromPicker() {
-    const val = document.getElementById('weekPicker').value;
-    if (val) document.getElementById('weekStart').value = val;
-  }
+            currentWeekData.push({
+                property_name: prop,
+                rate_avg: avg,
+                rate_min: min,
+                rate_max: max,
+                sold_out_days: soldDays,
+                total_days_with_data: dataDays
+            });
+        }
 
-  function buildPreview() {
-    const weekStart = document.getElementById('weekStart').value;
-    if (!weekStart) { alert('Select a week start date'); return; }
-    if (new Date(weekStart).getDay() !== 1) { alert('Must start on Monday'); return; }
-
-    currentWeekStart = weekStart;
-    const weekDates = [];
-    const mon = new Date(weekStart);
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(mon);
-      d.setDate(d.getDate() + i);
-      weekDates.push(d.toISOString().split('T')[0]);
+        document.getElementById('statsContainer').innerHTML = `
+            <span class="stat-chip">🏨 ${allProperties.length} properties</span>
+            <span class="stat-chip">📊 ${withDataCount} have data this week</span>
+            <span class="stat-chip">📅 ${allDates.length} days in file</span>
+        `;
+        document.getElementById('previewSection').style.display = 'block';
+        document.getElementById('step2El').className = 'step done';
+        document.getElementById('step3El').className = 'step active';
+        showBanner('success', `Preview ready for week starting ${weekStart}`);
     }
 
-    currentWeekData = [];
-    const tbody = document.getElementById('previewBody');
-    tbody.innerHTML = '';
-    let withDataCount = 0;
+    async function saveData() {
+        if (!currentWeekStart || !currentWeekData.length) {
+            showBanner('error', 'No data to save — please preview first');
+            return;
+        }
 
-    for (const prop of allProperties) {
-      const rates = [];
-      let soldDays = 0;
-      let dataDays = 0;
-      for (const date of weekDates) {
-        const val = rateMatrix[prop]?.[date];
-        if (val === 'sold_out') { soldDays++; dataDays++; }
-        else if (typeof val === 'number') { rates.push(val); dataDays++; }
-      }
-      if (dataDays > 0) withDataCount++;
-      const avg = rates.length ? Math.round(rates.reduce((a,b)=>a+b,0)/rates.length) : null;
-      const min = rates.length ? Math.min(...rates) : null;
-      const max = rates.length ? Math.max(...rates) : null;
+        const saveBtn = document.getElementById('saveBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
+        showBanner('loading', `Saving ${currentWeekData.length} properties...`);
 
-      const row = tbody.insertRow();
-      row.insertCell(0).innerText = prop;
-      row.insertCell(1).innerHTML = avg ? `R ${avg.toLocaleString()}` : '—';
-      row.insertCell(2).innerHTML = min ? `R ${min.toLocaleString()}` : '—';
-      row.insertCell(3).innerHTML = max ? `R ${max.toLocaleString()}` : '—';
-      row.insertCell(4).innerHTML = `${dataDays}/7`;
-      row.insertCell(5).innerHTML = soldDays > 0 ? `${soldDays} days` : '—';
-
-      currentWeekData.push({
-        property_name: prop,
-        rate_avg: avg,
-        rate_min: min,
-        rate_max: max,
-        sold_out_days: soldDays,
-        total_days_with_data: dataDays
-      });
+        try {
+            const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': apiKey
+                },
+                body: JSON.stringify({
+                    week_start_date: currentWeekStart,
+                    data: currentWeekData
+                })
+            });
+            const result = await res.json();
+            if (res.ok) {
+                showBanner('success', `✅ Saved! ${result.saved_count} properties for week of ${currentWeekStart}`);
+                document.getElementById('step3El').className = 'step done';
+            } else {
+                showBanner('error', `❌ Error: ${result.detail || 'Unknown error'}`);
+            }
+        } catch (err) {
+            showBanner('error', `❌ Network error: ${err.message}`);
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '💾 Save to dashboard';
+        }
     }
 
-    document.getElementById('statsContainer').innerHTML = `
-      <span class="stat-chip">🏨 ${allProperties.length} properties</span>
-      <span class="stat-chip">📊 ${withDataCount} have data this week</span>
-      <span class="stat-chip">📅 ${allDates.length} days in file</span>
-    `;
-    document.getElementById('previewSection').style.display = 'block';
-    document.getElementById('step2El').className = 'step done';
-    document.getElementById('step3El').className = 'step active';
-    showBanner('success', `Preview ready for week starting ${weekStart}`);
-  }
-
-  async function saveData() {
-    if (!currentWeekStart || !currentWeekData.length) {
-      showBanner('error', 'No data to save — please preview first');
-      return;
+    function goToStep2() {
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        document.getElementById('step1El').className = 'step done';
+        document.getElementById('step2El').className = 'step active';
     }
 
-    const saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<span class="spinner"></span> Saving...';
-    showBanner('loading', `Saving ${currentWeekData.length} properties...`);
-
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': apiKey
-        },
-        body: JSON.stringify({
-          week_start_date: currentWeekStart,
-          data: currentWeekData
-        })
-      });
-      const result = await res.json();
-      if (res.ok) {
-        showBanner('success', `✅ Saved! ${result.saved_count} properties for week of ${currentWeekStart}`);
-        document.getElementById('step3El').className = 'step done';
-      } else {
-        showBanner('error', `❌ Error: ${result.detail || 'Unknown error'}`);
-      }
-    } catch (err) {
-      showBanner('error', `❌ Network error: ${err.message}`);
-    } finally {
-      saveBtn.disabled = false;
-      saveBtn.innerHTML = '💾 Save to dashboard';
+    function backToUpload() {
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('previewSection').style.display = 'none';
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step1El').className = 'step active';
+        document.getElementById('step2El').className = 'step';
+        document.getElementById('step3El').className = 'step';
     }
-  }
 
-  function goToStep2() {
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = 'block';
-    document.getElementById('step1El').className = 'step done';
-    document.getElementById('step2El').className = 'step active';
-  }
+    function showBanner(type, msg) {
+        const banner = document.getElementById('statusBanner');
+        banner.className = `status-banner ${type}`;
+        banner.innerText = msg;
+        if (type === 'success') setTimeout(() => banner.style.display = 'none', 4000);
+    }
 
-  function backToUpload() {
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('previewSection').style.display = 'none';
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step1El').className = 'step active';
-    document.getElementById('step2El').className = 'step';
-    document.getElementById('step3El').className = 'step';
-  }
-
-  function showBanner(type, msg) {
-    const banner = document.getElementById('statusBanner');
-    banner.className = `status-banner ${type}`;
-    banner.innerText = msg;
-    if (type === 'success') setTimeout(() => banner.style.display = 'none', 4000);
-  }
-
-  function showToast(type, msg) {
-    // simple alert for now
-    console.log(type, msg);
-  }
-
-  document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') authenticate(); });
+    document.getElementById('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') authenticate(); });
 </script>
 </body>
 </html>
