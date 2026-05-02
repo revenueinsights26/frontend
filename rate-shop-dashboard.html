@@ -8,7 +8,6 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background:#f8fafc; color:#1e293b; }
 
-    /* TOP BAR */
     .topbar { background:white; border-bottom:1px solid #e2e8f0; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,.06); }
     .topbar-left { display:flex; align-items:center; gap:12px; }
     .logo { width:32px; height:32px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:white; }
@@ -17,17 +16,14 @@
     .live-dot { width:7px; height:7px; background:#22c55e; border-radius:50%; display:inline-block; margin-right:5px; animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-    /* WEEK PICKER BAR */
     .week-bar { background:white; border-bottom:1px solid #e2e8f0; padding:0 28px; height:46px; display:flex; align-items:center; gap:12px; overflow-x:auto; }
     .week-bar-label { font-size:11px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
     .week-btn { padding:5px 16px; border-radius:20px; font-size:12px; font-weight:500; border:1px solid #e2e8f0; background:white; color:#64748b; cursor:pointer; white-space:nowrap; font-family:inherit; transition:all .15s; }
     .week-btn:hover { background:#f1f5f9; color:#1e293b; }
     .week-btn.active { background:#3b82f6; border-color:#3b82f6; color:white; font-weight:600; }
 
-    /* MAIN */
     .main { max-width:1300px; margin:0 auto; padding:24px 20px 60px; }
 
-    /* EMPTY STATE */
     #empty-state { text-align:center; padding:80px 20px; background:white; border-radius:16px; border:1px solid #e2e8f0; margin-top:20px; }
     #empty-state .empty-icon { font-size:52px; margin-bottom:16px; }
     #empty-state h2 { font-size:20px; font-weight:700; color:#0f172a; margin-bottom:8px; }
@@ -36,13 +32,9 @@
     #empty-state .hint-box p { color:#1d4ed8; font-size:13px; }
     #empty-state .hint-box strong { display:block; margin-bottom:6px; color:#1e40af; }
 
-    /* LOADING */
     #loading-state { text-align:center; padding:80px 20px; color:#94a3b8; font-size:14px; display:none; }
-
-    /* DASHBOARD */
     #dashboard { display:none; }
 
-    /* HEADER ROW */
     .dash-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
     .dash-title { font-size:20px; font-weight:700; color:#0f172a; }
     .dash-sub { font-size:13px; color:#64748b; margin-top:3px; }
@@ -51,7 +43,6 @@
     .heat-stable { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
     .heat-cool   { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
 
-    /* KPI CARDS */
     .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
     @media(max-width:800px) { .kpi-grid { grid-template-columns:repeat(2,1fr); } }
     .kpi { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:18px 20px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
@@ -62,10 +53,8 @@
     .txt-down  { color:#dc2626; }
     .txt-muted { color:#64748b; }
 
-    /* SECTION TITLE */
     .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#64748b; margin:24px 0 12px; }
 
-    /* FAST MOVERS */
     .movers-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:4px; }
     @media(max-width:900px) { .movers-grid { grid-template-columns:repeat(3,1fr); } }
     @media(max-width:560px) { .movers-grid { grid-template-columns:repeat(2,1fr); } }
@@ -76,7 +65,6 @@
     .mover-rate { font-size:18px; font-weight:800; color:#0f172a; }
     .mover-chg  { font-size:12px; font-weight:600; margin-top:3px; }
 
-    /* TREND GRID */
     .trend-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
     @media(max-width:768px) { .trend-grid { grid-template-columns:repeat(2,1fr); } }
     .trend-card { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
@@ -87,7 +75,6 @@
     .trend-bar-bg { height:3px; background:#f1f5f9; border-radius:2px; margin-top:8px; }
     .trend-bar-fill { height:100%; border-radius:2px; }
 
-    /* MAIN TABLE */
     .table-card { background:white; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.04); }
     .tbl-scroll { overflow-x:auto; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -106,7 +93,6 @@
     .badge-down   { background:#fee2e2; color:#dc2626; }
     .badge-stable { background:#f1f5f9; color:#475569; }
 
-    /* INSIGHTS */
     .insights-card { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:18px 22px; box-shadow:0 1px 3px rgba(0,0,0,.04); }
     .insight-row { display:flex; align-items:flex-start; gap:10px; padding:9px 0; border-bottom:1px solid #f1f5f9; font-size:13px; color:#1e293b; line-height:1.55; }
     .insight-row:last-child { border-bottom:none; padding-bottom:0; }
@@ -118,12 +104,11 @@
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="logo">RI</div>
     <div>
-      <div class="topbar-title">Waterfall B&amp;B — Rate Intelligence</div>
+      <div class="topbar-title">Waterfall B&B — Rate Intelligence</div>
       <div class="topbar-sub">Competitor pricing · Waterfall / Ellipse area</div>
     </div>
   </div>
@@ -132,7 +117,6 @@
   </div>
 </div>
 
-<!-- WEEK PICKER BAR -->
 <div class="week-bar">
   <span class="week-bar-label">View week:</span>
   <div id="week-buttons" style="display:flex;gap:8px;align-items:center;">
@@ -140,24 +124,20 @@
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main">
 
-  <!-- LOADING -->
   <div id="loading-state">⏳ Loading market data…</div>
 
-  <!-- EMPTY STATE (shown when no data at all) -->
   <div id="empty-state" style="display:none;">
     <div class="empty-icon">📊</div>
     <h2>Dashboard is ready</h2>
     <p>No rate data has been entered yet. The dashboard will populate automatically once you enter your first week of competitor rates.</p>
     <div class="hint-box">
       <strong>📋 How to add data:</strong>
-      <p>Open <strong>rate-shop-input.html</strong> → enter your password → fill in competitor rates → click Save. Come back here and the dashboard updates instantly.</p>
+      <p>Open <strong>rate-shop-input.html</strong> → enter your password → upload Lighthouse file → select week → Save. Come back here and the dashboard updates instantly.</p>
     </div>
   </div>
 
-  <!-- DASHBOARD (shown when data exists) -->
   <div id="dashboard">
 
     <div class="dash-header">
@@ -170,7 +150,6 @@
       </div>
     </div>
 
-    <!-- KPI CARDS -->
     <div class="kpi-grid">
       <div class="kpi">
         <div class="kpi-label">Avg Market Rate</div>
@@ -185,7 +164,7 @@
       <div class="kpi">
         <div class="kpi-label">High Demand</div>
         <div class="kpi-value" id="kpi-demand">—</div>
-        <div class="kpi-change txt-muted">Properties ≥70% sold out</div>
+        <div class="kpi-change txt-muted">Properties high occupancy</div>
       </div>
       <div class="kpi">
         <div class="kpi-label">Biggest Mover</div>
@@ -194,19 +173,16 @@
       </div>
     </div>
 
-    <!-- FAST MOVERS -->
     <div class="section-title">🚀 Fast movers this week</div>
     <div class="movers-grid" id="movers-grid">
       <div class="no-comparison">Enter a second week of data to see week-over-week movers.</div>
     </div>
 
-    <!-- 4-WEEK TREND -->
     <div class="section-title">📈 4-week price trend (Wk1 → Wk4)</div>
     <div class="trend-grid" id="trend-grid">
       <div class="no-comparison" style="grid-column:1/-1;">Enter Wk1–Wk4 rates to see 4-week trends.</div>
     </div>
 
-    <!-- MAIN TABLE -->
     <div class="section-title">📋 Weekly rate movement <span style="font-size:11px;font-weight:400;color:#94a3b8;">(click headers to sort)</span></div>
     <div class="table-card">
       <div class="tbl-scroll">
@@ -218,7 +194,7 @@
               <th onclick="sortTable('this_week')">This Week</th>
               <th onclick="sortTable('change_rand')">Change (R)</th>
               <th onclick="sortTable('change_pct')">Change %</th>
-              <th onclick="sortTable('sold_out')">Sold Out %</th>
+              <th onclick="sortTable('sold_out')">Occupancy</th>
               <th onclick="sortTable('status')">Status</th>
             </tr>
           </thead>
@@ -227,15 +203,13 @@
       </div>
     </div>
 
-    <!-- INSIGHTS -->
     <div class="section-title">🔍 Market intelligence</div>
     <div class="insights-card" id="insights-card"></div>
 
     <div class="updated-note" id="updated-note"></div>
 
-  </div><!-- /dashboard -->
-
-</div><!-- /main -->
+  </div>
+</div>
 
 <script>
   const API_BASE = 'https://backend-x5sw.onrender.com';
@@ -320,17 +294,13 @@
   }
 
   function renderDashboard(d) {
-    // Sub header
-    const prevText = d.prev_week_date ? ` · vs week of ${fmtDate(d.prev_week_date)}` : '';
-    document.getElementById('dash-sub').textContent = `${d.total_properties} properties tracked${prevText}`;
+    document.getElementById('dash-sub').textContent = `${d.total_properties} properties tracked`;
 
-    // Heat pill
     const pill = document.getElementById('heat-pill');
     if (d.market_heat === 'Warming up')   { pill.className='heat-pill heat-warm'; pill.textContent='🔥 Market warming up'; }
     else if (d.market_heat === 'Cooling down') { pill.className='heat-pill heat-cool'; pill.textContent='❄️ Cooling down'; }
     else { pill.className='heat-pill heat-stable'; pill.textContent='📊 Market stable'; }
 
-    // KPIs
     document.getElementById('kpi-avg').textContent = fmtR(d.avg_rate);
     const chgEl = document.getElementById('kpi-avg-change');
     if (d.prev_week_date) {
@@ -343,20 +313,17 @@
     document.getElementById('kpi-median').textContent = fmtR(d.median_rate);
     document.getElementById('kpi-demand').textContent = `${d.high_demand_count} / ${d.total_properties}`;
 
-    // Biggest mover
     if (d.fast_movers && d.fast_movers.length > 0) {
       const top = d.fast_movers[0];
       const sign = top.change >= 0 ? '+' : '';
       document.getElementById('kpi-mover-val').textContent = sign + fmtR(Math.abs(top.change));
-      document.getElementById('kpi-mover-name').innerHTML =
-        `<span class="${top.change >= 0 ? 'txt-up' : 'txt-down'}">${esc(top.name)}</span>`;
+      document.getElementById('kpi-mover-name').innerHTML = `<span class="${top.change >= 0 ? 'txt-up' : 'txt-down'}">${esc(top.name)}</span>`;
     } else {
       document.getElementById('kpi-mover-val').textContent = '—';
       document.getElementById('kpi-mover-name').textContent = 'Enter a 2nd week to compare';
       document.getElementById('kpi-mover-name').className = 'kpi-change txt-muted';
     }
 
-    // Fast movers
     const moversEl = document.getElementById('movers-grid');
     if (d.fast_movers && d.fast_movers.length > 0) {
       moversEl.innerHTML = d.fast_movers.map(m => `
@@ -372,7 +339,6 @@
       moversEl.innerHTML = '<div class="no-comparison" style="grid-column:1/-1;">Enter a second week of data to see week-over-week movers.</div>';
     }
 
-    // 4-week trends
     const trendEl = document.getElementById('trend-grid');
     if (d.four_week_trends && d.four_week_trends.length > 0) {
       trendEl.innerHTML = d.four_week_trends.map(t => {
@@ -394,10 +360,8 @@
       trendEl.innerHTML = '<div class="no-comparison" style="grid-column:1/-1;">Enter Wk1–Wk4 rates on the input page to see 4-week trends.</div>';
     }
 
-    // Main table
     renderTable(d.main_table);
 
-    // Insights
     const insEl = document.getElementById('insights-card');
     if (d.insights && d.insights.length > 0) {
       insEl.innerHTML = d.insights.map(i => `
@@ -410,8 +374,7 @@
       insEl.innerHTML = '<div class="insight-row"><div class="insight-dot"></div><div>Market rates are stable. Enter more weeks of data to unlock detailed insights.</div></div>';
     }
 
-    document.getElementById('updated-note').textContent =
-      `Week of ${fmtDate(d.week_start_date)} · ${d.total_properties} properties tracked`;
+    document.getElementById('updated-note').textContent = `Week of ${fmtDate(d.week_start_date)} · ${d.total_properties} properties tracked`;
   }
 
   function renderTable(rows) {
@@ -434,18 +397,20 @@
         ? `<span style="color:${r.sold_out>=70?'#15803d':r.sold_out>=50?'#92400e':'#64748b'};font-weight:600;">${r.sold_out}%</span>`
         : '<span style="color:#94a3b8;">—</span>';
 
-      return `<tr>
-        <td class="td-prop">
-          ${esc(r.property)}
-          <div class="td-type-tag">${esc(r.property_type || '')}</div>
-        </td>
-        <td style="font-variant-numeric:tabular-nums;">${hasPrev ? fmtR(r.last_week) : '<span style="color:#94a3b8;">—</span>'}</td>
-        <td style="font-weight:700;font-variant-numeric:tabular-nums;">${fmtR(r.this_week)}</td>
-        <td class="${chgCls}" style="font-variant-numeric:tabular-nums;">${hasPrev ? (r.change_rand >= 0 ? '+' : '') + fmtR(Math.abs(r.change_rand)) : '<span style="color:#94a3b8;">—</span>'}</td>
-        <td class="${chgCls}">${hasPrev ? fmtPct(r.change_pct) : '<span style="color:#94a3b8;">—</span>'}</td>
-        <td>${sold}</td>
-        <td>${badge}</td>
-      </tr>`;
+      return `
+        <tr>
+          <td class="td-prop">
+            ${esc(r.property)}
+            <div class="td-type-tag">${esc(r.property_type || '')}</div>
+          </td>
+          <td style="font-variant-numeric:tabular-nums;">${hasPrev ? fmtR(r.last_week) : '<span style="color:#94a3b8;">—</span>'}</td>
+          <td style="font-weight:700;font-variant-numeric:tabular-nums;">${fmtR(r.this_week)}</td>
+          <td class="${chgCls}" style="font-variant-numeric:tabular-nums;">${hasPrev ? (r.change_rand >= 0 ? '+' : '') + fmtR(Math.abs(r.change_rand)) : '<span style="color:#94a3b8;">—</span>'}</td>
+          <td class="${chgCls}">${hasPrev ? fmtPct(r.change_pct) : '<span style="color:#94a3b8;">—</span>'}</td>
+          <td>${sold}</td>
+          <td>${badge}</td>
+        </tr>
+      `;
     }).join('');
   }
 
