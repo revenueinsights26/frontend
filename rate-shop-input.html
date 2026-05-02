@@ -1,126 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Rate Shop - Data Entry</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #ffffff; color: #1e293b; padding: 24px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        h1 { color: #3b82f6; margin-bottom: 8px; font-size: 28px; }
-        .sub { color: #64748b; margin-bottom: 24px; }
-        .bar { background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 24px; display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end; border: 1px solid #e2e8f0; }
-        .bar-field { display: flex; flex-direction: column; gap: 6px; }
-        .bar-field label { font-size: 12px; font-weight: 600; color: #64748b; }
-        .bar-field input, .bar-field select { background: white; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 12px; border-radius: 8px; font-size: 14px; }
-        button { background: #3b82f6; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        button:hover { background: #2563eb; }
-        .status { padding: 14px; border-radius: 10px; margin: 20px 0; display: none; font-weight: 500; }
-        .success { background: #dcfce7; color: #15803d; display: block; border-left: 4px solid #22c55e; }
-        .error { background: #fee2e2; color: #b91c1c; display: block; border-left: 4px solid #ef4444; }
-        .loading { background: #dbeafe; color: #1e40af; display: block; }
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; margin-top: 20px; border: 1px solid #e2e8f0; }
-        th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 600; font-size: 13px; }
-        input { background: white; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 10px; border-radius: 6px; width: 100%; }
-        .note { font-size: 12px; color: #64748b; margin-top: 20px; text-align: center; }
-        @media (max-width: 1000px) { table { display: block; overflow-x: auto; } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rate Shop — Data Entry</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; background:#f8fafc; color:#1e293b; }
+
+    .topbar { background:#ffffff; border-bottom:1px solid #e2e8f0; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+    .topbar-left { display:flex; align-items:center; gap:12px; }
+    .logo { width:32px; height:32px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:white; }
+    .topbar-title { font-size:16px; font-weight:700; color:#0f172a; }
+    .topbar-sub { font-size:12px; color:#64748b; }
+    .badge-internal { font-size:11px; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:20px; font-weight:600; border:1px solid #fcd34d; }
+
+    .main { max-width:1300px; margin:0 auto; padding:28px 20px 60px; }
+
+    /* AUTH GATE */
+    #auth-gate { max-width:420px; margin:80px auto; background:white; border:1px solid #e2e8f0; border-radius:16px; padding:36px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    #auth-gate .lock-icon { font-size:40px; margin-bottom:16px; }
+    #auth-gate h2 { font-size:20px; font-weight:700; margin-bottom:6px; color:#0f172a; }
+    #auth-gate p { font-size:13px; color:#64748b; margin-bottom:24px; line-height:1.6; }
+    .auth-input { width:100%; padding:11px 14px; border:1.5px solid #e2e8f0; border-radius:10px; color:#1e293b; font-size:14px; font-family:inherit; margin-bottom:12px; background:#f8fafc; }
+    .auth-input:focus { outline:none; border-color:#3b82f6; background:white; }
+    .btn-unlock { width:100%; padding:11px; background:#3b82f6; border:none; border-radius:10px; color:white; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-unlock:hover { background:#2563eb; }
+    .auth-error { color:#dc2626; font-size:13px; margin-top:10px; display:none; background:#fef2f2; padding:8px 12px; border-radius:8px; }
+
+    /* APP */
+    #app { display:none; }
+
+    .controls { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:18px 22px; margin-bottom:20px; display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+    .ctrl-group { display:flex; flex-direction:column; gap:5px; }
+    .ctrl-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
+    .ctrl-input { padding:9px 13px; border:1.5px solid #e2e8f0; border-radius:8px; color:#1e293b; font-size:14px; font-family:inherit; background:white; min-width:180px; }
+    .ctrl-input:focus { outline:none; border-color:#3b82f6; }
+    .btn-save { padding:10px 30px; background:#3b82f6; border:none; border-radius:8px; color:white; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .btn-save:hover { background:#2563eb; }
+    .btn-save:disabled { opacity:.5; cursor:not-allowed; }
+    .spacer { flex:1; }
+
+    #status-banner { padding:13px 16px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:16px; display:none; }
+    #status-banner.success { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; display:block; }
+    #status-banner.error   { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; display:block; }
+    #status-banner.loading { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; display:block; }
+
+    .progress-wrap { margin-bottom:20px; }
+    .progress-label { font-size:12px; color:#64748b; margin-bottom:6px; display:flex; justify-content:space-between; }
+    .progress-bar { height:4px; background:#e2e8f0; border-radius:4px; overflow:hidden; }
+    .progress-fill { height:100%; background:#3b82f6; border-radius:4px; width:0%; transition:width .3s; }
+
+    .table-wrap { background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.04); }
+    .table-header { padding:16px 22px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; }
+    .table-title { font-size:15px; font-weight:700; color:#0f172a; }
+    .table-sub { font-size:12px; color:#64748b; margin-top:3px; }
+    .prop-pill { font-size:12px; background:#eff6ff; color:#1d4ed8; padding:3px 12px; border-radius:20px; font-weight:600; }
+
+    .tbl-scroll { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { padding:10px 12px; text-align:left; color:#64748b; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+    thead th.col-blue { color:#3b82f6; }
+    tbody tr { border-bottom:1px solid #f1f5f9; transition:background .1s; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:#f8fafc; }
+    td { padding:9px 12px; vertical-align:middle; }
+    .td-id { color:#94a3b8; font-size:11px; width:30px; }
+    .td-name { font-weight:600; color:#0f172a; font-size:13px; }
+    .td-type { font-size:10px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:4px; display:inline-block; }
+
+    .rate-input { width:90px; padding:7px 9px; border:1.5px solid #e2e8f0; border-radius:6px; color:#1e293b; font-size:13px; font-family:inherit; text-align:right; background:white; }
+    .rate-input:focus { outline:none; border-color:#3b82f6; background:#eff6ff; }
+    .rate-input.wk4-col { border-color:#bfdbfe; }
+    .rate-input.wk4-col:focus { border-color:#3b82f6; }
+    .small-input { width:68px; padding:7px 9px; border:1.5px solid #e2e8f0; border-radius:6px; color:#1e293b; font-size:13px; font-family:inherit; text-align:right; background:white; }
+    .small-input:focus { outline:none; border-color:#3b82f6; }
+    .prev-hint { font-size:10px; color:#94a3b8; margin-top:2px; text-align:right; }
+
+    .footer-bar { padding:13px 22px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; }
+    .footer-note { font-size:12px; color:#64748b; }
+    .footer-count { font-size:13px; font-weight:700; color:#3b82f6; }
+
+    .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+  </style>
 </head>
 <body>
-<div class="container">
-    <h1>🏨 Rate Shop — Weekly Data Entry</h1>
-    <div class="sub">Enter competitor rates. Only Week 4 rate is required — everything else optional.</div>
-    <div class="bar">
-        <div class="bar-field"><label>Week Starting (Monday) <span style="color:#ef4444;">*</span></label><input type="date" id="weekStart" style="width: 180px;"></div>
-        <div class="bar-field"><label>API Password <span style="color:#ef4444;">*</span></label><input type="password" id="apiKey" placeholder="Your Render password" style="width: 200px;"></div>
-        <div class="bar-field"><button id="saveBtn">💾 Save This Week's Data</button></div>
+
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">RI</div>
+    <div>
+      <div class="topbar-title">Rate Shop — Data Entry</div>
+      <div class="topbar-sub">Waterfall / Ellipse area · Internal use only</div>
     </div>
-    <div id="status" class="status"></div>
-    <div id="loadingMsg">Loading properties...</div>
-    <div style="overflow-x: auto;"><table id="dataTable" style="display: none;"><thead><tr><th>Property Name</th><th>Rate Wk1</th><th>Rate Wk2</th><th>Rate Wk3</th><th>Rate Wk4 <span style="color:#ef4444;">*</span></th><th>Sold Out %</th><th>Min Stay</th><th>Review Score</th></tr></thead><tbody id="tableBody"></tbody></table></div>
-    <div class="note">💡 Week 4 is the CURRENT week's rate. Previous weeks (1-3) are optional but help calculate 4-week trends.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span class="badge-internal">🔒 Internal</span>
+    <span id="auth-badge" style="font-size:12px;color:#15803d;display:none;font-weight:600;">✓ Authenticated</span>
+  </div>
 </div>
+
+<!-- AUTH GATE -->
+<div id="auth-gate">
+  <div class="lock-icon">🔐</div>
+  <h2>Enter your password</h2>
+  <p>This page is for your use only.<br>Enter the <strong>RATE_SHOP_PASSWORD</strong> you set in Render.</p>
+  <input type="password" class="auth-input" id="pw-input" placeholder="Your Render password">
+  <button class="btn-unlock" onclick="authenticate()">Unlock →</button>
+  <div class="auth-error" id="auth-error">❌ Incorrect password. Try again.</div>
+</div>
+
+<!-- MAIN APP (shown after auth) -->
+<div id="app">
+  <div class="main">
+
+    <div class="controls">
+      <div class="ctrl-group">
+        <div class="ctrl-label">Week Starting (Monday) ★</div>
+        <input type="date" class="ctrl-input" id="week-start">
+      </div>
+      <div class="spacer"></div>
+      <div style="align-self:center;font-size:13px;color:#64748b;" id="filled-label">0 of 0 filled</div>
+      <button class="btn-save" id="save-btn" onclick="saveData()">💾 Save this week</button>
+    </div>
+
+    <div id="status-banner"></div>
+
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span>Properties filled</span>
+        <span id="progress-text">0 / 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <div>
+          <div class="table-title">Weekly rate entry</div>
+          <div class="table-sub">Fill in Rate Wk4 for each property you have data for. Leave blank to skip a property.</div>
+        </div>
+        <span class="prop-pill" id="prop-pill">Loading…</span>
+      </div>
+
+      <div class="tbl-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Property</th>
+              <th>Type</th>
+              <th>Rate Wk 1</th>
+              <th>Rate Wk 2</th>
+              <th>Rate Wk 3</th>
+              <th class="col-blue">Rate Wk 4 ★ (Current)</th>
+              <th>Sold out %</th>
+              <th>Min stay</th>
+              <th>Review /10</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">Loading properties…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer-bar">
+        <div class="footer-note">★ Rate Wk4 is this week's rate. Weeks 1–3 are optional (used for trend charts). Skip any property by leaving Wk4 blank.</div>
+        <div class="footer-count" id="footer-count">0 ready to save</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
-    const API_BASE = 'https://backend-x5sw.onrender.com';
-    let properties = [];
+  const API_BASE = 'https://backend-x5sw.onrender.com';
+  let apiKey = '';
+  let properties = [];
 
-    async function loadProperties() {
-        const loadingDiv = document.getElementById('loadingMsg');
-        const table = document.getElementById('dataTable');
-        try {
-            const res = await fetch(`${API_BASE}/api/rate-shop/properties`);
-            if (!res.ok) throw new Error('Failed to load properties');
-            properties = await res.json();
-            loadingDiv.style.display = 'none';
-            table.style.display = 'table';
-            renderTable();
-        } catch (err) {
-            loadingDiv.innerHTML = `❌ Error: ${err.message}<br><br><button onclick="location.reload()">Retry</button>`;
-        }
+  document.getElementById('pw-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') authenticate();
+  });
+
+  async function authenticate() {
+    const pw = document.getElementById('pw-input').value.trim();
+    if (!pw) return;
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+    try {
+      const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': pw },
+        body: JSON.stringify({ week_start_date: '1999-01-01', data: [] })
+      });
+      if (res.status === 401) {
+        errEl.style.display = 'block';
+        return;
+      }
+      apiKey = pw;
+      document.getElementById('auth-gate').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('auth-badge').style.display = 'inline';
+      loadProperties();
+      setDefaultWeekStart();
+    } catch {
+      errEl.textContent = '❌ Cannot reach backend. Is it running?';
+      errEl.style.display = 'block';
+    }
+  }
+
+  function setDefaultWeekStart() {
+    const today = new Date();
+    const day = today.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - diff);
+    document.getElementById('week-start').value = monday.toISOString().split('T')[0];
+  }
+
+  async function loadProperties() {
+    try {
+      const res = await fetch(`${API_BASE}/api/rate-shop/properties`);
+      properties = await res.json();
+      document.getElementById('prop-pill').textContent = properties.length + ' properties';
+      renderTable();
+    } catch {
+      document.getElementById('table-body').innerHTML =
+        '<tr><td colspan="10" style="text-align:center;padding:40px;color:#dc2626;">❌ Failed to load properties. Check backend.</td></tr>';
+    }
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+    properties.forEach((p, i) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td class="td-id">${p.id}</td>
+        <td class="td-name">${esc(p.property_name)}</td>
+        <td><span class="td-type">${esc(p.property_type || '')}</span></td>
+        <td><input type="number" class="rate-input wk1" step="10" min="0" placeholder="e.g. 1050"></td>
+        <td><input type="number" class="rate-input wk2" step="10" min="0" placeholder="e.g. 1100"></td>
+        <td><input type="number" class="rate-input wk3" step="10" min="0" placeholder="e.g. 1150"></td>
+        <td>
+          <input type="number" class="rate-input wk4-col wk4" step="10" min="0" placeholder="e.g. 1200">
+          ${p.rate_wk4 ? `<div class="prev-hint">Last: R${p.rate_wk4}</div>` : ''}
+        </td>
+        <td><input type="number" class="small-input sold-out" step="5" min="0" max="100" placeholder="%"></td>
+        <td><input type="number" class="small-input min-stay" step="1" min="1" placeholder="nights"></td>
+        <td><input type="number" class="small-input review" step="0.1" min="0" max="10" placeholder="8.5"></td>
+      `;
+      tbody.appendChild(row);
+      row.querySelector('.wk4').addEventListener('input', updateProgress);
+    });
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const wk4s = document.querySelectorAll('.wk4');
+    const filled = Array.from(wk4s).filter(i => i.value.trim() !== '').length;
+    const total = wk4s.length;
+    const pct = total > 0 ? (filled / total * 100) : 0;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-text').textContent = filled + ' / ' + total;
+    document.getElementById('filled-label').textContent = filled + ' of ' + total + ' filled';
+    document.getElementById('footer-count').textContent = filled + ' ready to save';
+  }
+
+  async function saveData() {
+    const weekStart = document.getElementById('week-start').value;
+    const banner = document.getElementById('status-banner');
+
+    if (!weekStart) {
+      banner.className = 'error';
+      banner.textContent = '❌ Please select a week start date first.';
+      return;
     }
 
-    function renderTable() {
-        const tbody = document.getElementById('tableBody');
-        tbody.innerHTML = '';
-        for (let p of properties) {
-            const row = tbody.insertRow();
-            row.insertCell(0).innerHTML = `<strong>${escapeHtml(p.property_name)}</strong><input type="hidden" class="prop-id" value="${p.id}">`;
-            row.insertCell(1).innerHTML = `<input type="number" class="rate-wk1" step="10" placeholder="e.g., 1050">`;
-            row.insertCell(2).innerHTML = `<input type="number" class="rate-wk2" step="10" placeholder="e.g., 1120">`;
-            row.insertCell(3).innerHTML = `<input type="number" class="rate-wk3" step="10" placeholder="e.g., 1200">`;
-            row.insertCell(4).innerHTML = `<input type="number" class="rate-wk4" step="10" placeholder="e.g., 1380" required>`;
-            row.insertCell(5).innerHTML = `<input type="number" class="sold-out" min="0" max="100" placeholder="85">`;
-            row.insertCell(6).innerHTML = `<input type="number" class="min-stay" min="1" placeholder="2">`;
-            row.insertCell(7).innerHTML = `<input type="number" class="review-score" step="0.1" min="0" max="10" placeholder="8.7">`;
-        }
+    const rows = document.querySelectorAll('#table-body tr');
+    const data = [];
+    rows.forEach((row, i) => {
+      const wk4 = row.querySelector('.wk4')?.value;
+      if (!wk4) return; // skip blank rows — no error, just skip
+      data.push({
+        property_id:  properties[i].id,
+        rate_wk1:     parseFloat(row.querySelector('.wk1')?.value) || null,
+        rate_wk2:     parseFloat(row.querySelector('.wk2')?.value) || null,
+        rate_wk3:     parseFloat(row.querySelector('.wk3')?.value) || null,
+        rate_wk4:     parseFloat(wk4),
+        sold_out_pct: parseInt(row.querySelector('.sold-out')?.value) || null,
+        min_stay:     parseInt(row.querySelector('.min-stay')?.value) || null,
+        review_score: parseFloat(row.querySelector('.review')?.value) || null,
+      });
+    });
+
+    if (data.length === 0) {
+      banner.className = 'error';
+      banner.textContent = '❌ No rates entered. Fill in at least one Rate Wk4 value.';
+      return;
     }
 
-    function getMonday() { const d = new Date(); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toISOString().split('T')[0]; }
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Saving…';
+    banner.className = 'loading';
+    banner.textContent = '⏳ Saving to database…';
+    banner.style.display = 'block';
 
-    async function saveData() {
-        const weekStart = document.getElementById('weekStart').value;
-        const apiKey = document.getElementById('apiKey').value;
-        const statusDiv = document.getElementById('status');
-        const saveBtn = document.getElementById('saveBtn');
-        if (!weekStart) { statusDiv.className = 'status error'; statusDiv.innerText = '❌ Select a week start date'; return; }
-        if (!apiKey) { statusDiv.className = 'status error'; statusDiv.innerText = '❌ Enter API password'; return; }
-        const data = [];
-        const rows = document.querySelectorAll('#tableBody tr');
-        for (let i = 0; i < rows.length; i++) {
-            const row = rows[i];
-            const rateWk4 = row.querySelector('.rate-wk4').value;
-            if (!rateWk4) { statusDiv.className = 'status error'; statusDiv.innerText = `❌ Missing Week 4 rate for ${properties[i].property_name}`; return; }
-            data.push({
-                property_id: properties[i].id,
-                rate_wk1: parseFloat(row.querySelector('.rate-wk1').value) || null,
-                rate_wk2: parseFloat(row.querySelector('.rate-wk2').value) || null,
-                rate_wk3: parseFloat(row.querySelector('.rate-wk3').value) || null,
-                rate_wk4: parseFloat(rateWk4),
-                sold_out_pct: parseInt(row.querySelector('.sold-out').value) || null,
-                min_stay: parseInt(row.querySelector('.min-stay').value) || null,
-                review_score: parseFloat(row.querySelector('.review-score').value) || null
-            });
-        }
-        statusDiv.className = 'status loading';
-        statusDiv.innerText = '⏳ Saving...';
-        saveBtn.disabled = true;
-        try {
-            const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-                body: JSON.stringify({ week_start_date: weekStart, data: data })
-            });
-            if (res.ok) { const result = await res.json(); statusDiv.className = 'status success'; statusDiv.innerText = `✅ Saved ${result.saved_count} properties for week starting ${weekStart}`; document.querySelectorAll('.rate-wk4').forEach(inp => inp.value = ''); }
-            else { const err = await res.json(); statusDiv.className = 'status error'; statusDiv.innerText = `❌ Error: ${err.detail || 'Check password'}`; }
-        } catch (err) { statusDiv.className = 'status error'; statusDiv.innerText = `❌ Network error: ${err.message}`; }
-        finally { saveBtn.disabled = false; setTimeout(() => { statusDiv.style.display = 'none'; }, 3000); }
+    try {
+      const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+        body: JSON.stringify({ week_start_date: weekStart, data })
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        banner.className = 'success';
+        banner.textContent = `✅ Saved! ${result.saved_count} properties updated for week of ${weekStart}. The client dashboard now shows this data.`;
+      } else {
+        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+        banner.className = 'error';
+        banner.textContent = `❌ Error: ${err.detail}`;
+      }
+    } catch (e) {
+      banner.className = 'error';
+      banner.textContent = `❌ Network error: ${e.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Save this week';
     }
+  }
 
-    function escapeHtml(str) { return str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-    document.getElementById('weekStart').value = getMonday();
-    document.getElementById('saveBtn').onclick = saveData;
-    loadProperties();
+  function esc(str) {
+    return String(str).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');
+  }
 </script>
 </body>
 </html>
