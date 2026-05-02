@@ -504,10 +504,16 @@
   }
 
   // ─── SAVE ─────────────────────────────────────────────────────────
-  // ✨ THIS IS THE ONLY FUNCTION THAT WAS CHANGED ✨
   async function saveData() {
     const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
+
+    if (!weekStart) {
+      banner.className = 'error';
+      banner.textContent = '❌ Please select a week start date.';
+      banner.style.display = 'block';
+      return;
+    }
 
     const mon = new Date(weekStart + 'T00:00:00');
     const weekDates = [];
@@ -516,31 +522,31 @@
       weekDates.push(toISO(d));
     }
 
-    // Build payload — send property_name directly, NO matching to backend IDs
+    // Build payload using property NAMES — backend auto-creates missing properties
     const data = [];
-    for (const prop of allProperties) {
-      const rates = weekDates.map(d => parsedData[prop]?.[d]);
+    allProperties.forEach(prop => {
+      const rates    = weekDates.map(d => parsedData[prop]?.[d]);
       const numRates = rates.filter(r => typeof r === 'number');
       const soldDays = rates.filter(r => r === 'sold_out').length;
-      if (numRates.length === 0 && soldDays === 0) continue;
+      if (numRates.length === 0 && soldDays === 0) return;
 
-      const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0)/numRates.length) : null;
-      const min = numRates.length ? Math.min(...numRates) : null;
-      const max = numRates.length ? Math.max(...numRates) : null;
+      const avg     = numRates.length
+        ? Math.round(numRates.reduce((a, b) => a + b, 0) / numRates.length)
+        : null;
+      const soldPct = Math.round((soldDays / 7) * 100);
 
       data.push({
         property_name: prop,
-        rate_avg: avg,
-        rate_min: min,
-        rate_max: max,
-        sold_out_days: soldDays,
-        total_days_with_data: numRates.length + soldDays
+        area:          'Ellipse',
+        property_type: 'Competitor',
+        rate_wk4:      avg,
+        sold_out_pct:  soldPct || null,
       });
-    }
+    });
 
     if (data.length === 0) {
       banner.className = 'error';
-      banner.textContent = '❌ No data for this week.';
+      banner.textContent = '❌ No data found for this week in the file. Try a different week.';
       banner.style.display = 'block';
       return;
     }
@@ -553,25 +559,28 @@
     banner.style.display = 'block';
 
     try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
+      const res = await fetch(`${API_BASE}/api/rate-shop/upload-by-name`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-        body: JSON.stringify({ week_start_date: weekStart, data: data })
+        body: JSON.stringify({ week_start_date: weekStart, data })
       });
 
       if (res.ok) {
         const result = await res.json();
         banner.className = 'success';
-        banner.textContent = `✅ Saved! ${result.saved_count ?? data.length} properties updated for week of ${weekStart}. The dashboard now shows this data.`;
+        banner.textContent = `✅ Saved! ${result.saved_count} properties saved for week of ${weekStart}. Open the dashboard to see your data.`;
+        banner.style.display = 'block';
         document.getElementById('step3-el').className = 'step done';
       } else {
         const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
         banner.className = 'error';
         banner.textContent = `❌ Error: ${err.detail}`;
+        banner.style.display = 'block';
       }
     } catch (err) {
       banner.className = 'error';
       banner.textContent = `❌ Network error: ${err.message}`;
+      banner.style.display = 'block';
     } finally {
       btn.disabled = false;
       btn.innerHTML = '💾 Save to dashboard';
