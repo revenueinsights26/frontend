@@ -3,86 +3,124 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rate Shop — Data Entry</title>
+  <title>Rate Shop — Upload</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; background:#f8fafc; color:#1e293b; }
 
-    .topbar { background:#ffffff; border-bottom:1px solid #e2e8f0; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+    .topbar { background:#fff; border-bottom:1px solid #e2e8f0; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,.06); }
     .topbar-left { display:flex; align-items:center; gap:12px; }
-    .logo { width:32px; height:32px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:white; }
+    .logo { width:32px; height:32px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:#fff; }
     .topbar-title { font-size:16px; font-weight:700; color:#0f172a; }
     .topbar-sub { font-size:12px; color:#64748b; }
     .badge-internal { font-size:11px; background:#fef3c7; color:#92400e; padding:3px 10px; border-radius:20px; font-weight:600; border:1px solid #fcd34d; }
 
-    .main { max-width:1300px; margin:0 auto; padding:28px 20px 60px; }
+    .main { max-width:960px; margin:0 auto; padding:36px 20px 80px; }
 
-    /* AUTH GATE */
-    #auth-gate { max-width:420px; margin:80px auto; background:white; border:1px solid #e2e8f0; border-radius:16px; padding:36px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,.06); }
+    /* AUTH */
+    #auth-gate { max-width:420px; margin:80px auto; background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:36px; text-align:center; box-shadow:0 4px 24px rgba(0,0,0,.06); }
     #auth-gate .lock-icon { font-size:40px; margin-bottom:16px; }
-    #auth-gate h2 { font-size:20px; font-weight:700; margin-bottom:6px; color:#0f172a; }
+    #auth-gate h2 { font-size:20px; font-weight:700; margin-bottom:6px; }
     #auth-gate p { font-size:13px; color:#64748b; margin-bottom:24px; line-height:1.6; }
     .auth-input { width:100%; padding:11px 14px; border:1.5px solid #e2e8f0; border-radius:10px; color:#1e293b; font-size:14px; font-family:inherit; margin-bottom:12px; background:#f8fafc; }
-    .auth-input:focus { outline:none; border-color:#3b82f6; background:white; }
-    .btn-unlock { width:100%; padding:11px; background:#3b82f6; border:none; border-radius:10px; color:white; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .auth-input:focus { outline:none; border-color:#3b82f6; background:#fff; }
+    .btn-unlock { width:100%; padding:11px; background:#3b82f6; border:none; border-radius:10px; color:#fff; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
     .btn-unlock:hover { background:#2563eb; }
     .auth-error { color:#dc2626; font-size:13px; margin-top:10px; display:none; background:#fef2f2; padding:8px 12px; border-radius:8px; }
 
     /* APP */
     #app { display:none; }
 
-    .controls { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:18px 22px; margin-bottom:20px; display:flex; align-items:flex-end; gap:20px; flex-wrap:wrap; box-shadow:0 1px 3px rgba(0,0,0,.04); }
-    .ctrl-group { display:flex; flex-direction:column; gap:5px; }
-    .ctrl-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
-    .ctrl-input { padding:9px 13px; border:1.5px solid #e2e8f0; border-radius:8px; color:#1e293b; font-size:14px; font-family:inherit; background:white; min-width:180px; }
-    .ctrl-input:focus { outline:none; border-color:#3b82f6; }
-    .btn-save { padding:10px 30px; background:#3b82f6; border:none; border-radius:8px; color:white; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
-    .btn-save:hover { background:#2563eb; }
-    .btn-save:disabled { opacity:.5; cursor:not-allowed; }
-    .spacer { flex:1; }
+    /* STEP LAYOUT */
+    .steps { display:flex; align-items:center; gap:0; margin-bottom:32px; }
+    .step { display:flex; align-items:center; gap:10px; padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600; color:#94a3b8; transition:all .2s; }
+    .step.active { background:#eff6ff; color:#1d4ed8; }
+    .step.done { color:#15803d; }
+    .step-num { width:24px; height:24px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .step.active .step-num { background:#3b82f6; color:#fff; }
+    .step.done .step-num { background:#22c55e; color:#fff; }
+    .step-sep { width:28px; height:2px; background:#e2e8f0; flex-shrink:0; }
 
-    #status-banner { padding:13px 16px; border-radius:10px; font-size:13px; font-weight:500; margin-bottom:16px; display:none; }
+    /* CARD */
+    .card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:28px; box-shadow:0 1px 4px rgba(0,0,0,.04); margin-bottom:20px; }
+    .card-title { font-size:16px; font-weight:700; color:#0f172a; margin-bottom:4px; }
+    .card-sub { font-size:13px; color:#64748b; margin-bottom:22px; line-height:1.6; }
+
+    /* DROP ZONE */
+    #drop-zone { border:2px dashed #cbd5e1; border-radius:12px; padding:48px 24px; text-align:center; cursor:pointer; transition:all .2s; background:#f8fafc; }
+    #drop-zone:hover, #drop-zone.drag-over { border-color:#3b82f6; background:#eff6ff; }
+    #drop-zone.has-file { border-color:#22c55e; background:#f0fdf4; }
+    .drop-icon { font-size:48px; margin-bottom:12px; }
+    .drop-title { font-size:16px; font-weight:700; color:#0f172a; margin-bottom:6px; }
+    .drop-sub { font-size:13px; color:#64748b; }
+    .drop-btn { margin-top:14px; padding:9px 22px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .drop-btn:hover { background:#2563eb; }
+    #file-input { display:none; }
+
+    .file-info { display:none; align-items:center; gap:12px; padding:14px 18px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; margin-top:12px; }
+    .file-info.show { display:flex; }
+    .file-name { font-size:13px; font-weight:600; color:#15803d; flex:1; }
+    .file-size { font-size:12px; color:#64748b; }
+    .btn-clear { padding:5px 12px; background:transparent; border:1px solid #e2e8f0; border-radius:6px; font-size:12px; color:#64748b; cursor:pointer; font-family:inherit; }
+    .btn-clear:hover { background:#fef2f2; border-color:#fca5a5; color:#dc2626; }
+
+    /* WEEK SELECT */
+    .ctrl-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .ctrl-group { display:flex; flex-direction:column; gap:6px; }
+    .ctrl-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
+    .ctrl-input { padding:10px 13px; border:1.5px solid #e2e8f0; border-radius:8px; color:#1e293b; font-size:14px; font-family:inherit; background:#fff; }
+    .ctrl-input:focus { outline:none; border-color:#3b82f6; }
+    .ctrl-hint { font-size:11px; color:#94a3b8; margin-top:2px; }
+
+    /* PREVIEW TABLE */
+    #preview-section { display:none; }
+    .preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px; }
+    .preview-title { font-size:15px; font-weight:700; color:#0f172a; }
+    .badge { font-size:12px; padding:4px 12px; border-radius:20px; font-weight:600; }
+    .badge-blue { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; }
+    .badge-green { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; }
+    .tbl-scroll { overflow-x:auto; border-radius:10px; border:1px solid #e2e8f0; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { padding:10px 14px; text-align:left; color:#64748b; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
+    thead th.th-rate { color:#3b82f6; }
+    tbody tr { border-bottom:1px solid #f1f5f9; }
+    tbody tr:last-child { border-bottom:none; }
+    tbody tr:hover { background:#f8fafc; }
+    td { padding:9px 14px; }
+    .td-prop { font-weight:600; color:#0f172a; }
+    .td-dates { font-size:12px; color:#64748b; }
+    .td-rate { font-size:13px; font-weight:700; color:#0f172a; }
+    .td-sold { font-size:12px; color:#ef4444; font-weight:600; }
+    .td-avg { font-size:12px; color:#64748b; }
+    .pill-na { font-size:11px; background:#f1f5f9; color:#94a3b8; padding:2px 8px; border-radius:4px; }
+
+    /* PARSE STATS */
+    .parse-stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+    .stat-chip { display:flex; align-items:center; gap:7px; padding:8px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; color:#475569; }
+    .stat-chip strong { color:#0f172a; font-size:14px; }
+
+    /* BUTTONS */
+    .action-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:24px; flex-wrap:wrap; }
+    .btn-secondary { padding:10px 22px; background:#fff; border:1.5px solid #e2e8f0; border-radius:8px; color:#64748b; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-secondary:hover { border-color:#94a3b8; color:#1e293b; }
+    .btn-primary { padding:11px 28px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:8px; }
+    .btn-primary:hover { background:#2563eb; }
+    .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* STATUS */
+    #status-banner { padding:13px 16px; border-radius:10px; font-size:13px; font-weight:500; display:none; margin-top:16px; }
     #status-banner.success { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; display:block; }
     #status-banner.error   { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; display:block; }
     #status-banner.loading { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; display:block; }
 
-    .progress-wrap { margin-bottom:20px; }
-    .progress-label { font-size:12px; color:#64748b; margin-bottom:6px; display:flex; justify-content:space-between; }
-    .progress-bar { height:4px; background:#e2e8f0; border-radius:4px; overflow:hidden; }
-    .progress-fill { height:100%; background:#3b82f6; border-radius:4px; width:0%; transition:width .3s; }
-
-    .table-wrap { background:white; border:1px solid #e2e8f0; border-radius:12px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.04); }
-    .table-header { padding:16px 22px; border-bottom:1px solid #e2e8f0; display:flex; align-items:center; justify-content:space-between; }
-    .table-title { font-size:15px; font-weight:700; color:#0f172a; }
-    .table-sub { font-size:12px; color:#64748b; margin-top:3px; }
-    .prop-pill { font-size:12px; background:#eff6ff; color:#1d4ed8; padding:3px 12px; border-radius:20px; font-weight:600; }
-
-    .tbl-scroll { overflow-x:auto; }
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    thead th { padding:10px 12px; text-align:left; color:#64748b; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
-    thead th.col-blue { color:#3b82f6; }
-    tbody tr { border-bottom:1px solid #f1f5f9; transition:background .1s; }
-    tbody tr:last-child { border-bottom:none; }
-    tbody tr:hover { background:#f8fafc; }
-    td { padding:9px 12px; vertical-align:middle; }
-    .td-id { color:#94a3b8; font-size:11px; width:30px; }
-    .td-name { font-weight:600; color:#0f172a; font-size:13px; }
-    .td-type { font-size:10px; color:#64748b; background:#f1f5f9; padding:2px 8px; border-radius:4px; display:inline-block; }
-
-    .rate-input { width:90px; padding:7px 9px; border:1.5px solid #e2e8f0; border-radius:6px; color:#1e293b; font-size:13px; font-family:inherit; text-align:right; background:white; }
-    .rate-input:focus { outline:none; border-color:#3b82f6; background:#eff6ff; }
-    .rate-input.wk4-col { border-color:#bfdbfe; }
-    .rate-input.wk4-col:focus { border-color:#3b82f6; }
-    .small-input { width:68px; padding:7px 9px; border:1.5px solid #e2e8f0; border-radius:6px; color:#1e293b; font-size:13px; font-family:inherit; text-align:right; background:white; }
-    .small-input:focus { outline:none; border-color:#3b82f6; }
-    .prev-hint { font-size:10px; color:#94a3b8; margin-top:2px; text-align:right; }
-
-    .footer-bar { padding:13px 22px; border-top:1px solid #e2e8f0; background:#f8fafc; display:flex; align-items:center; justify-content:space-between; }
-    .footer-note { font-size:12px; color:#64748b; }
-    .footer-count { font-size:13px; font-weight:700; color:#3b82f6; }
-
-    .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:white; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+    /* SPINNER */
+    .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* HELP */
+    .help-box { background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:14px 18px; font-size:13px; color:#78350f; line-height:1.7; margin-top:12px; }
+    .help-box strong { color:#92400e; }
   </style>
 </head>
 <body>
@@ -91,7 +129,7 @@
   <div class="topbar-left">
     <div class="logo">RI</div>
     <div>
-      <div class="topbar-title">Rate Shop — Data Entry</div>
+      <div class="topbar-title">Rate Shop — Upload</div>
       <div class="topbar-sub">Waterfall / Ellipse area · Internal use only</div>
     </div>
   </div>
@@ -105,70 +143,110 @@
 <div id="auth-gate">
   <div class="lock-icon">🔐</div>
   <h2>Enter your password</h2>
-  <p>This page is for your use only.<br>Enter the <strong>RATE_SHOP_PASSWORD</strong> you set in Render.</p>
+  <p>This page is for internal use only.<br>Enter your <strong>RATE_SHOP_PASSWORD</strong> from Render.</p>
   <input type="password" class="auth-input" id="pw-input" placeholder="Your Render password">
   <button class="btn-unlock" onclick="authenticate()">Unlock →</button>
   <div class="auth-error" id="auth-error">❌ Incorrect password. Try again.</div>
 </div>
 
-<!-- MAIN APP (shown after auth) -->
+<!-- MAIN APP -->
 <div id="app">
   <div class="main">
 
-    <div class="controls">
-      <div class="ctrl-group">
-        <div class="ctrl-label">Week Starting (Monday) ★</div>
-        <input type="date" class="ctrl-input" id="week-start">
+    <!-- STEPS -->
+    <div class="steps">
+      <div class="step active" id="step1-el">
+        <div class="step-num">1</div> Upload Lighthouse file
       </div>
-      <div class="spacer"></div>
-      <div style="align-self:center;font-size:13px;color:#64748b;" id="filled-label">0 of 0 filled</div>
-      <button class="btn-save" id="save-btn" onclick="saveData()">💾 Save this week</button>
+      <div class="step-sep"></div>
+      <div class="step" id="step2-el">
+        <div class="step-num">2</div> Review & pick week
+      </div>
+      <div class="step-sep"></div>
+      <div class="step" id="step3-el">
+        <div class="step-num">3</div> Save to dashboard
+      </div>
     </div>
 
-    <div id="status-banner"></div>
+    <!-- STEP 1: UPLOAD -->
+    <div id="step1" class="card">
+      <div class="card-title">Upload your Lighthouse export</div>
+      <div class="card-sub">Drop the Excel file from Lighthouse. The <strong>Rates</strong> sheet is read automatically — no formatting needed.</div>
 
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span>Properties filled</span>
-        <span id="progress-text">0 / 0</span>
+      <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+        <div class="drop-icon" id="drop-icon">📂</div>
+        <div class="drop-title" id="drop-title">Drop your Lighthouse .xlsx here</div>
+        <div class="drop-sub" id="drop-sub">or click to browse</div>
+        <button class="drop-btn" onclick="event.stopPropagation(); document.getElementById('file-input').click()">Choose file</button>
       </div>
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+
+      <div class="file-info" id="file-info">
+        <span style="font-size:20px;">📊</span>
+        <span class="file-name" id="file-name-label">—</span>
+        <span class="file-size" id="file-size-label">—</span>
+        <button class="btn-clear" onclick="clearFile()">✕ Remove</button>
+      </div>
+
+      <div class="help-box" style="margin-top:16px;">
+        <strong>📋 What this expects:</strong>
+        A Lighthouse rate-shop export with a sheet named <strong>Rates</strong>.
+        Rows = dates · Columns = competitor property names · Values = nightly rates or "Sold out".
+      </div>
     </div>
 
-    <div class="table-wrap">
-      <div class="table-header">
-        <div>
-          <div class="table-title">Weekly rate entry</div>
-          <div class="table-sub">Fill in Rate Wk4 for each property you have data for. Leave blank to skip a property.</div>
+    <!-- STEP 2: REVIEW -->
+    <div id="step2" style="display:none;">
+      <div class="card">
+        <div class="card-title">Select a week to import</div>
+        <div class="card-sub">Choose the Monday that starts the week you want to save. Rates for all 7 days in that window will be averaged per property.</div>
+        <div class="ctrl-grid">
+          <div class="ctrl-group">
+            <div class="ctrl-label">Week Starting (Monday) ★</div>
+            <input type="date" class="ctrl-input" id="week-start">
+            <div class="ctrl-hint">Averages Mon–Sun for each competitor</div>
+          </div>
+          <div class="ctrl-group">
+            <div class="ctrl-label">Available weeks in file</div>
+            <select class="ctrl-input" id="week-picker" onchange="selectWeekFromPicker()">
+              <option value="">— pick from file —</option>
+            </select>
+            <div class="ctrl-hint">Mondays detected in the Lighthouse data</div>
+          </div>
         </div>
-        <span class="prop-pill" id="prop-pill">Loading…</span>
+        <button class="drop-btn" style="margin-top:16px;" onclick="buildPreview()">🔍 Preview this week</button>
       </div>
 
-      <div class="tbl-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Property</th>
-              <th>Type</th>
-              <th>Rate Wk 1</th>
-              <th>Rate Wk 2</th>
-              <th>Rate Wk 3</th>
-              <th class="col-blue">Rate Wk 4 ★ (Current)</th>
-              <th>Sold out %</th>
-              <th>Min stay</th>
-              <th>Review /10</th>
-            </tr>
-          </thead>
-          <tbody id="table-body">
-            <tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">Loading properties…</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <!-- PREVIEW -->
+      <div id="preview-section">
+        <div class="preview-header">
+          <div class="preview-title">Rate preview</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="preview-badges"></div>
+        </div>
+        <div class="parse-stats" id="parse-stats"></div>
+        <div class="tbl-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th class="th-rate">Avg Rate (Mon–Sun)</th>
+                <th>Min</th>
+                <th>Max</th>
+                <th>Days with data</th>
+                <th>Sold out days</th>
+              </tr>
+            </thead>
+            <tbody id="preview-body"></tbody>
+          </table>
+        </div>
 
-      <div class="footer-bar">
-        <div class="footer-note">★ Rate Wk4 is this week's rate. Weeks 1–3 are optional (used for trend charts). Skip any property by leaving Wk4 blank.</div>
-        <div class="footer-count" id="footer-count">0 ready to save</div>
+        <div class="action-bar">
+          <button class="btn-secondary" onclick="backToUpload()">← Upload a different file</button>
+          <button class="btn-primary" id="save-btn" onclick="saveData()">
+            💾 Save to dashboard
+          </button>
+        </div>
+        <div id="status-banner"></div>
       </div>
     </div>
 
@@ -178,8 +256,11 @@
 <script>
   const API_BASE = 'https://backend-x5sw.onrender.com';
   let apiKey = '';
-  let properties = [];
+  let parsedData = {}; // { propertyName: { date: rate|null } }
+  let allDates = [];
+  let allProperties = [];
 
+  // ─── AUTH ───────────────────────────────────────────────────────
   document.getElementById('pw-input').addEventListener('keydown', e => {
     if (e.key === 'Enter') authenticate();
   });
@@ -195,15 +276,11 @@
         headers: { 'Content-Type': 'application/json', 'X-API-Key': pw },
         body: JSON.stringify({ week_start_date: '1999-01-01', data: [] })
       });
-      if (res.status === 401) {
-        errEl.style.display = 'block';
-        return;
-      }
+      if (res.status === 401) { errEl.style.display = 'block'; return; }
       apiKey = pw;
       document.getElementById('auth-gate').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       document.getElementById('auth-badge').style.display = 'inline';
-      loadProperties();
       setDefaultWeekStart();
     } catch {
       errEl.textContent = '❌ Cannot reach backend. Is it running?';
@@ -220,93 +297,277 @@
     document.getElementById('week-start').value = monday.toISOString().split('T')[0];
   }
 
-  async function loadProperties() {
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/properties`);
-      properties = await res.json();
-      document.getElementById('prop-pill').textContent = properties.length + ' properties';
-      renderTable();
-    } catch {
-      document.getElementById('table-body').innerHTML =
-        '<tr><td colspan="10" style="text-align:center;padding:40px;color:#dc2626;">❌ Failed to load properties. Check backend.</td></tr>';
+  // ─── DRAG & DROP ─────────────────────────────────────────────────
+  const dropZone = document.getElementById('drop-zone');
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  // ─── FILE PARSING ─────────────────────────────────────────────────
+  function handleFile(file) {
+    if (!file) return;
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['xlsx','xls'].includes(ext)) {
+      alert('Please upload an Excel file (.xlsx or .xls)');
+      return;
     }
+
+    // Show file info
+    dropZone.classList.add('has-file');
+    document.getElementById('drop-icon').textContent = '✅';
+    document.getElementById('drop-title').textContent = 'File loaded!';
+    document.getElementById('drop-sub').textContent = file.name;
+    const fi = document.getElementById('file-info');
+    fi.classList.add('show');
+    document.getElementById('file-name-label').textContent = file.name;
+    document.getElementById('file-size-label').textContent = formatBytes(file.size);
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+
+        // Find "Rates" sheet (case-insensitive)
+        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || wb.SheetNames[0];
+        const ws = wb.Sheets[sheetName];
+        const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+
+        if (raw.length < 2) { alert('The Rates sheet appears empty.'); return; }
+
+        // Row 0 = headers. Col 0 = date column, rest = properties
+        const headers = raw[0];
+        allProperties = headers.slice(1).map(h => String(h || '').trim()).filter(Boolean);
+
+        parsedData = {};
+        allDates = [];
+        allProperties.forEach(p => parsedData[p] = {});
+
+        for (let r = 1; r < raw.length; r++) {
+          const row = raw[r];
+          const rawDate = row[0];
+          if (!rawDate) continue;
+
+          // Parse date — can be JS Date (cellDates:true), serial number, or string
+          let dateStr = null;
+          if (rawDate instanceof Date) {
+            dateStr = toISO(rawDate);
+          } else if (typeof rawDate === 'number') {
+            const d = XLSX.SSF.parse_date_code(rawDate);
+            dateStr = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+          } else {
+            const parsed = new Date(rawDate);
+            if (!isNaN(parsed)) dateStr = toISO(parsed);
+          }
+          if (!dateStr) continue;
+          allDates.push(dateStr);
+
+          allProperties.forEach((prop, i) => {
+            const val = row[i + 1];
+            if (val === null || val === undefined || String(val).trim() === '') {
+              parsedData[prop][dateStr] = null;
+            } else if (typeof val === 'string' && val.toLowerCase().includes('sold')) {
+              parsedData[prop][dateStr] = 'sold_out';
+            } else {
+              const num = parseFloat(String(val).replace(/[^0-9.]/g,''));
+              parsedData[prop][dateStr] = isNaN(num) ? null : num;
+            }
+          });
+        }
+
+        allDates = [...new Set(allDates)].sort();
+        populateWeekPicker();
+        goToStep2();
+      } catch (err) {
+        alert('Error reading file: ' + err.message);
+        console.error(err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
   }
 
-  function renderTable() {
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = '';
-    properties.forEach((p, i) => {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td class="td-id">${p.id}</td>
-        <td class="td-name">${esc(p.property_name)}</td>
-        <td><span class="td-type">${esc(p.property_type || '')}</span></td>
-        <td><input type="number" class="rate-input wk1" step="10" min="0" placeholder="e.g. 1050"></td>
-        <td><input type="number" class="rate-input wk2" step="10" min="0" placeholder="e.g. 1100"></td>
-        <td><input type="number" class="rate-input wk3" step="10" min="0" placeholder="e.g. 1150"></td>
-        <td>
-          <input type="number" class="rate-input wk4-col wk4" step="10" min="0" placeholder="e.g. 1200">
-          ${p.rate_wk4 ? `<div class="prev-hint">Last: R${p.rate_wk4}</div>` : ''}
-        </td>
-        <td><input type="number" class="small-input sold-out" step="5" min="0" max="100" placeholder="%"></td>
-        <td><input type="number" class="small-input min-stay" step="1" min="1" placeholder="nights"></td>
-        <td><input type="number" class="small-input review" step="0.1" min="0" max="10" placeholder="8.5"></td>
-      `;
-      tbody.appendChild(row);
-      row.querySelector('.wk4').addEventListener('input', updateProgress);
+  function toISO(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(1) + ' MB';
+  }
+
+  function clearFile() {
+    document.getElementById('file-input').value = '';
+    document.getElementById('file-info').classList.remove('show');
+    dropZone.classList.remove('has-file');
+    document.getElementById('drop-icon').textContent = '📂';
+    document.getElementById('drop-title').textContent = 'Drop your Lighthouse .xlsx here';
+    document.getElementById('drop-sub').textContent = 'or click to browse';
+    parsedData = {}; allDates = []; allProperties = [];
+  }
+
+  // ─── WEEK PICKER ──────────────────────────────────────────────────
+  function populateWeekPicker() {
+    // Find all Mondays in the date range
+    const mondays = allDates.filter(d => {
+      const day = new Date(d + 'T00:00:00').getDay();
+      return day === 1;
     });
-    updateProgress();
+    const sel = document.getElementById('week-picker');
+    sel.innerHTML = '<option value="">— pick from file —</option>';
+    mondays.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = formatWeekLabel(m);
+      sel.appendChild(opt);
+    });
   }
 
-  function updateProgress() {
-    const wk4s = document.querySelectorAll('.wk4');
-    const filled = Array.from(wk4s).filter(i => i.value.trim() !== '').length;
-    const total = wk4s.length;
-    const pct = total > 0 ? (filled / total * 100) : 0;
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-text').textContent = filled + ' / ' + total;
-    document.getElementById('filled-label').textContent = filled + ' of ' + total + ' filled';
-    document.getElementById('footer-count').textContent = filled + ' ready to save';
+  function formatWeekLabel(mondayISO) {
+    const mon = new Date(mondayISO + 'T00:00:00');
+    const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
+    return `${fmtD(mon)} – ${fmtD(sun)}`;
+  }
+  function fmtD(d) {
+    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short' });
   }
 
+  function selectWeekFromPicker() {
+    const val = document.getElementById('week-picker').value;
+    if (val) document.getElementById('week-start').value = val;
+  }
+
+  // ─── PREVIEW ─────────────────────────────────────────────────────
+  function buildPreview() {
+    const weekStart = document.getElementById('week-start').value;
+    if (!weekStart) { alert('Please select a week start date.'); return; }
+
+    const mon = new Date(weekStart + 'T00:00:00');
+    if (mon.getDay() !== 1) { alert('Please pick a Monday as the week start.'); return; }
+
+    // Collect Mon–Sun dates
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mon); d.setDate(d.getDate() + i);
+      weekDates.push(toISO(d));
+    }
+
+    const rows = allProperties.map(prop => {
+      const rates = weekDates.map(d => parsedData[prop]?.[d]);
+      const numRates = rates.filter(r => typeof r === 'number');
+      const soldDays = rates.filter(r => r === 'sold_out').length;
+      const dataDays = numRates.length + soldDays;
+      const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0) / numRates.length) : null;
+      const min = numRates.length ? Math.min(...numRates) : null;
+      const max = numRates.length ? Math.max(...numRates) : null;
+      return { prop, avg, min, max, dataDays, soldDays };
+    });
+
+    const withData = rows.filter(r => r.dataDays > 0).length;
+    const statsEl = document.getElementById('parse-stats');
+    statsEl.innerHTML = `
+      <div class="stat-chip"><strong>${allProperties.length}</strong> properties</div>
+      <div class="stat-chip"><strong>${withData}</strong> with data this week</div>
+      <div class="stat-chip"><strong>${allDates.length}</strong> dates in file</div>
+      <div class="stat-chip">Week: <strong>${formatWeekLabel(weekStart)}</strong></div>
+    `;
+
+    const badgesEl = document.getElementById('preview-badges');
+    badgesEl.innerHTML = `
+      <span class="badge badge-blue">${allProperties.length} competitors</span>
+      <span class="badge badge-green">${withData} have rates</span>
+    `;
+
+    const tbody = document.getElementById('preview-body');
+    tbody.innerHTML = '';
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="td-prop">${esc(r.prop)}</td>
+        <td class="td-rate">${r.avg !== null ? 'R ' + r.avg.toLocaleString() : '<span class="pill-na">no data</span>'}</td>
+        <td class="td-avg">${r.min !== null ? 'R ' + r.min.toLocaleString() : '—'}</td>
+        <td class="td-avg">${r.max !== null ? 'R ' + r.max.toLocaleString() : '—'}</td>
+        <td class="td-dates">${r.dataDays > 0 ? r.dataDays + ' / 7' : '—'}</td>
+        <td>${r.soldDays > 0 ? `<span class="td-sold">${r.soldDays} days</span>` : '—'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById('preview-section').style.display = 'block';
+    document.getElementById('status-banner').style.display = 'none';
+    document.getElementById('step2-el').className = 'step active';
+  }
+
+  // ─── SAVE ─────────────────────────────────────────────────────────
   async function saveData() {
     const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
 
-    if (!weekStart) {
+    const mon = new Date(weekStart + 'T00:00:00');
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(mon); d.setDate(d.getDate() + i);
+      weekDates.push(toISO(d));
+    }
+
+    // Build payload — one entry per property that has at least some data
+    // Map property names to backend property records
+    let backendProps = [];
+    try {
+      const res = await fetch(`${API_BASE}/api/rate-shop/properties`);
+      backendProps = await res.json();
+    } catch {
       banner.className = 'error';
-      banner.textContent = '❌ Please select a week start date first.';
+      banner.textContent = '❌ Could not load property list from backend.';
+      banner.style.display = 'block';
       return;
     }
 
-    const rows = document.querySelectorAll('#table-body tr');
     const data = [];
-    rows.forEach((row, i) => {
-      const wk4 = row.querySelector('.wk4')?.value;
-      if (!wk4) return; // skip blank rows — no error, just skip
+    allProperties.forEach(prop => {
+      const rates = weekDates.map(d => parsedData[prop]?.[d]);
+      const numRates = rates.filter(r => typeof r === 'number');
+      const soldDays = rates.filter(r => r === 'sold_out').length;
+      if (numRates.length === 0 && soldDays === 0) return;
+
+      const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0)/numRates.length) : null;
+      const soldPct = Math.round((soldDays / 7) * 100);
+
+      // Try to match property name to backend (fuzzy: includes or startsWith)
+      const match = backendProps.find(bp =>
+        bp.property_name.toLowerCase() === prop.toLowerCase() ||
+        bp.property_name.toLowerCase().includes(prop.toLowerCase()) ||
+        prop.toLowerCase().includes(bp.property_name.toLowerCase())
+      );
+
+      if (!match) return; // skip unmatched
+
       data.push({
-        property_id:  properties[i].id,
-        rate_wk1:     parseFloat(row.querySelector('.wk1')?.value) || null,
-        rate_wk2:     parseFloat(row.querySelector('.wk2')?.value) || null,
-        rate_wk3:     parseFloat(row.querySelector('.wk3')?.value) || null,
-        rate_wk4:     parseFloat(wk4),
-        sold_out_pct: parseInt(row.querySelector('.sold-out')?.value) || null,
-        min_stay:     parseInt(row.querySelector('.min-stay')?.value) || null,
-        review_score: parseFloat(row.querySelector('.review')?.value) || null,
+        property_id:  match.id,
+        rate_wk4:     avg,
+        sold_out_pct: soldPct || null,
+        rate_wk1: null, rate_wk2: null, rate_wk3: null,
+        min_stay: null, review_score: null,
       });
     });
 
     if (data.length === 0) {
       banner.className = 'error';
-      banner.textContent = '❌ No rates entered. Fill in at least one Rate Wk4 value.';
+      banner.textContent = '❌ No matched properties found. Make sure property names in Lighthouse align with what is in the backend.';
+      banner.style.display = 'block';
       return;
     }
 
     const btn = document.getElementById('save-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span>Saving…';
+    btn.innerHTML = '<span class="spinner"></span> Saving…';
     banner.className = 'loading';
-    banner.textContent = '⏳ Saving to database…';
+    banner.textContent = `⏳ Saving ${data.length} properties for week of ${weekStart}…`;
     banner.style.display = 'block';
 
     try {
@@ -319,19 +580,38 @@
       if (res.ok) {
         const result = await res.json();
         banner.className = 'success';
-        banner.textContent = `✅ Saved! ${result.saved_count} properties updated for week of ${weekStart}. The client dashboard now shows this data.`;
+        banner.textContent = `✅ Saved! ${result.saved_count ?? data.length} properties updated for week of ${weekStart}. The dashboard now shows this data.`;
+        document.getElementById('step3-el').className = 'step done';
       } else {
         const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
         banner.className = 'error';
         banner.textContent = `❌ Error: ${err.detail}`;
       }
-    } catch (e) {
+    } catch (err) {
       banner.className = 'error';
-      banner.textContent = `❌ Network error: ${e.message}`;
+      banner.textContent = `❌ Network error: ${err.message}`;
     } finally {
       btn.disabled = false;
-      btn.innerHTML = '💾 Save this week';
+      btn.innerHTML = '💾 Save to dashboard';
     }
+  }
+
+  // ─── NAVIGATION ───────────────────────────────────────────────────
+  function goToStep2() {
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('step1-el').className = 'step done';
+    document.getElementById('step2-el').className = 'step active';
+    buildPreview();
+  }
+
+  function backToUpload() {
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step1-el').className = 'step active';
+    document.getElementById('step2-el').className = 'step';
+    document.getElementById('step3-el').className = 'step';
+    clearFile();
   }
 
   function esc(str) {
