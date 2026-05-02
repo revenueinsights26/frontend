@@ -504,6 +504,7 @@
   }
 
   // ─── SAVE ─────────────────────────────────────────────────────────
+  // ✨ THIS IS THE ONLY FUNCTION THAT WAS CHANGED ✨
   async function saveData() {
     const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
@@ -515,50 +516,31 @@
       weekDates.push(toISO(d));
     }
 
-    // Build payload — one entry per property that has at least some data
-    // Map property names to backend property records
-    let backendProps = [];
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/properties`);
-      backendProps = await res.json();
-    } catch {
-      banner.className = 'error';
-      banner.textContent = '❌ Could not load property list from backend.';
-      banner.style.display = 'block';
-      return;
-    }
-
+    // Build payload — send property_name directly, NO matching to backend IDs
     const data = [];
-    allProperties.forEach(prop => {
+    for (const prop of allProperties) {
       const rates = weekDates.map(d => parsedData[prop]?.[d]);
       const numRates = rates.filter(r => typeof r === 'number');
       const soldDays = rates.filter(r => r === 'sold_out').length;
-      if (numRates.length === 0 && soldDays === 0) return;
+      if (numRates.length === 0 && soldDays === 0) continue;
 
       const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0)/numRates.length) : null;
-      const soldPct = Math.round((soldDays / 7) * 100);
-
-      // Try to match property name to backend (fuzzy: includes or startsWith)
-      const match = backendProps.find(bp =>
-        bp.property_name.toLowerCase() === prop.toLowerCase() ||
-        bp.property_name.toLowerCase().includes(prop.toLowerCase()) ||
-        prop.toLowerCase().includes(bp.property_name.toLowerCase())
-      );
-
-      if (!match) return; // skip unmatched
+      const min = numRates.length ? Math.min(...numRates) : null;
+      const max = numRates.length ? Math.max(...numRates) : null;
 
       data.push({
-        property_id:  match.id,
-        rate_wk4:     avg,
-        sold_out_pct: soldPct || null,
-        rate_wk1: null, rate_wk2: null, rate_wk3: null,
-        min_stay: null, review_score: null,
+        property_name: prop,
+        rate_avg: avg,
+        rate_min: min,
+        rate_max: max,
+        sold_out_days: soldDays,
+        total_days_with_data: numRates.length + soldDays
       });
-    });
+    }
 
     if (data.length === 0) {
       banner.className = 'error';
-      banner.textContent = '❌ No matched properties found. Make sure property names in Lighthouse align with what is in the backend.';
+      banner.textContent = '❌ No data for this week.';
       banner.style.display = 'block';
       return;
     }
@@ -574,7 +556,7 @@
       const res = await fetch(`${API_BASE}/api/rate-shop/weekly-data`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-        body: JSON.stringify({ week_start_date: weekStart, data })
+        body: JSON.stringify({ week_start_date: weekStart, data: data })
       });
 
       if (res.ok) {
