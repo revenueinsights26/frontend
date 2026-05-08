@@ -32,7 +32,6 @@
     /* APP */
     #app { display:none; }
 
-    /* STEP LAYOUT */
     .steps { display:flex; align-items:center; gap:0; margin-bottom:32px; }
     .step { display:flex; align-items:center; gap:10px; padding:10px 18px; border-radius:10px; font-size:13px; font-weight:600; color:#94a3b8; transition:all .2s; }
     .step.active { background:#eff6ff; color:#1d4ed8; }
@@ -42,19 +41,17 @@
     .step.done .step-num { background:#22c55e; color:#fff; }
     .step-sep { width:28px; height:2px; background:#e2e8f0; flex-shrink:0; }
 
-    /* CARD */
     .card { background:#fff; border:1px solid #e2e8f0; border-radius:14px; padding:28px; box-shadow:0 1px 4px rgba(0,0,0,.04); margin-bottom:20px; }
     .card-title { font-size:16px; font-weight:700; color:#0f172a; margin-bottom:4px; }
     .card-sub { font-size:13px; color:#64748b; margin-bottom:22px; line-height:1.6; }
 
-    /* DROP ZONE */
     #drop-zone { border:2px dashed #cbd5e1; border-radius:12px; padding:48px 24px; text-align:center; cursor:pointer; transition:all .2s; background:#f8fafc; }
     #drop-zone:hover, #drop-zone.drag-over { border-color:#3b82f6; background:#eff6ff; }
     #drop-zone.has-file { border-color:#22c55e; background:#f0fdf4; }
     .drop-icon { font-size:48px; margin-bottom:12px; }
     .drop-title { font-size:16px; font-weight:700; color:#0f172a; margin-bottom:6px; }
     .drop-sub { font-size:13px; color:#64748b; }
-    .drop-btn { margin-top:14px; padding:9px 22px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .drop-btn { margin-top:14px; padding:9px 22px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:13px; font-weight:600; cursor:pointer; }
     .drop-btn:hover { background:#2563eb; }
     #file-input { display:none; }
 
@@ -62,10 +59,9 @@
     .file-info.show { display:flex; }
     .file-name { font-size:13px; font-weight:600; color:#15803d; flex:1; }
     .file-size { font-size:12px; color:#64748b; }
-    .btn-clear { padding:5px 12px; background:transparent; border:1px solid #e2e8f0; border-radius:6px; font-size:12px; color:#64748b; cursor:pointer; font-family:inherit; }
+    .btn-clear { padding:5px 12px; background:transparent; border:1px solid #e2e8f0; border-radius:6px; font-size:12px; color:#64748b; cursor:pointer; }
     .btn-clear:hover { background:#fef2f2; border-color:#fca5a5; color:#dc2626; }
 
-    /* WEEK SELECT */
     .ctrl-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .ctrl-group { display:flex; flex-direction:column; gap:6px; }
     .ctrl-label { font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
@@ -73,7 +69,6 @@
     .ctrl-input:focus { outline:none; border-color:#3b82f6; }
     .ctrl-hint { font-size:11px; color:#94a3b8; margin-top:2px; }
 
-    /* PREVIEW TABLE */
     #preview-section { display:none; }
     .preview-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:10px; }
     .preview-title { font-size:15px; font-weight:700; color:#0f172a; }
@@ -83,42 +78,34 @@
     .tbl-scroll { overflow-x:auto; border-radius:10px; border:1px solid #e2e8f0; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
     thead th { padding:10px 14px; text-align:left; color:#64748b; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; background:#f8fafc; border-bottom:1px solid #e2e8f0; white-space:nowrap; }
-    thead th.th-rate { color:#3b82f6; }
     tbody tr { border-bottom:1px solid #f1f5f9; }
-    tbody tr:last-child { border-bottom:none; }
     tbody tr:hover { background:#f8fafc; }
     td { padding:9px 14px; }
     .td-prop { font-weight:600; color:#0f172a; }
     .td-dates { font-size:12px; color:#64748b; }
     .td-rate { font-size:13px; font-weight:700; color:#0f172a; }
     .td-sold { font-size:12px; color:#ef4444; font-weight:600; }
-    .td-avg { font-size:12px; color:#64748b; }
     .pill-na { font-size:11px; background:#f1f5f9; color:#94a3b8; padding:2px 8px; border-radius:4px; }
 
-    /* PARSE STATS */
     .parse-stats { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
     .stat-chip { display:flex; align-items:center; gap:7px; padding:8px 14px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; font-size:12px; color:#475569; }
     .stat-chip strong { color:#0f172a; font-size:14px; }
 
-    /* BUTTONS */
     .action-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:24px; flex-wrap:wrap; }
-    .btn-secondary { padding:10px 22px; background:#fff; border:1.5px solid #e2e8f0; border-radius:8px; color:#64748b; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .btn-secondary { padding:10px 22px; background:#fff; border:1.5px solid #e2e8f0; border-radius:8px; color:#64748b; font-size:14px; font-weight:600; cursor:pointer; }
     .btn-secondary:hover { border-color:#94a3b8; color:#1e293b; }
-    .btn-primary { padding:11px 28px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:8px; }
+    .btn-primary { padding:11px 28px; background:#3b82f6; border:none; border-radius:8px; color:#fff; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:8px; }
     .btn-primary:hover { background:#2563eb; }
     .btn-primary:disabled { opacity:.5; cursor:not-allowed; }
 
-    /* STATUS */
     #status-banner { padding:13px 16px; border-radius:10px; font-size:13px; font-weight:500; display:none; margin-top:16px; }
     #status-banner.success { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; display:block; }
-    #status-banner.error   { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; display:block; }
+    #status-banner.error { background:#fef2f2; color:#dc2626; border:1px solid #fecaca; display:block; }
     #status-banner.loading { background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe; display:block; }
 
-    /* SPINNER */
     .spinner { display:inline-block; width:13px; height:13px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; }
     @keyframes spin { to { transform:rotate(360deg); } }
 
-    /* HELP */
     .help-box { background:#fffbeb; border:1px solid #fcd34d; border-radius:10px; padding:14px 18px; font-size:13px; color:#78350f; line-height:1.7; margin-top:12px; }
     .help-box strong { color:#92400e; }
   </style>
@@ -139,7 +126,6 @@
   </div>
 </div>
 
-<!-- AUTH GATE -->
 <div id="auth-gate">
   <div class="lock-icon">🔐</div>
   <h2>Enter your password</h2>
@@ -149,30 +135,20 @@
   <div class="auth-error" id="auth-error">❌ Incorrect password. Try again.</div>
 </div>
 
-<!-- MAIN APP -->
 <div id="app">
   <div class="main">
 
-    <!-- STEPS -->
     <div class="steps">
-      <div class="step active" id="step1-el">
-        <div class="step-num">1</div> Upload Lighthouse file
-      </div>
+      <div class="step active" id="step1-el"><div class="step-num">1</div> Upload Lighthouse file</div>
       <div class="step-sep"></div>
-      <div class="step" id="step2-el">
-        <div class="step-num">2</div> Review & pick week
-      </div>
+      <div class="step" id="step2-el"><div class="step-num">2</div> Review & pick week</div>
       <div class="step-sep"></div>
-      <div class="step" id="step3-el">
-        <div class="step-num">3</div> Save to dashboard
-      </div>
+      <div class="step" id="step3-el"><div class="step-num">3</div> Save to dashboard</div>
     </div>
 
-    <!-- STEP 1: UPLOAD -->
     <div id="step1" class="card">
       <div class="card-title">Upload your Lighthouse export</div>
-      <div class="card-sub">Drop the Excel file from Lighthouse. The <strong>Rates</strong> sheet is read automatically — no formatting needed.</div>
-
+      <div class="card-sub">Drop the Excel file from Lighthouse. The <strong>Rates</strong> or <strong>Sheet1</strong> sheet is read automatically.</div>
       <div id="drop-zone" onclick="document.getElementById('file-input').click()">
         <div class="drop-icon" id="drop-icon">📂</div>
         <div class="drop-title" id="drop-title">Drop your Lighthouse .xlsx here</div>
@@ -180,26 +156,22 @@
         <button class="drop-btn" onclick="event.stopPropagation(); document.getElementById('file-input').click()">Choose file</button>
       </div>
       <input type="file" id="file-input" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
-
       <div class="file-info" id="file-info">
         <span style="font-size:20px;">📊</span>
         <span class="file-name" id="file-name-label">—</span>
         <span class="file-size" id="file-size-label">—</span>
         <button class="btn-clear" onclick="clearFile()">✕ Remove</button>
       </div>
-
       <div class="help-box" style="margin-top:16px;">
-        <strong>📋 What this expects:</strong>
-        A Lighthouse rate-shop export with a sheet named <strong>Rates</strong>.
+        <strong>📋 What this expects:</strong> A Lighthouse rate-shop export with a sheet named <strong>Rates</strong> or <strong>Sheet1</strong>.<br>
         Rows = dates · Columns = competitor property names · Values = nightly rates or "Sold out".
       </div>
     </div>
 
-    <!-- STEP 2: REVIEW -->
     <div id="step2" style="display:none;">
       <div class="card">
         <div class="card-title">Select a week to import</div>
-        <div class="card-sub">Choose the Monday that starts the week you want to save. Rates for all 7 days in that window will be averaged per property.</div>
+        <div class="card-sub">Choose the Monday that starts the week you want to save.</div>
         <div class="ctrl-grid">
           <div class="ctrl-group">
             <div class="ctrl-label">Week Starting (Monday) ★</div>
@@ -217,7 +189,6 @@
         <button class="drop-btn" style="margin-top:16px;" onclick="buildPreview()">🔍 Preview this week</button>
       </div>
 
-      <!-- PREVIEW -->
       <div id="preview-section">
         <div class="preview-header">
           <div class="preview-title">Rate preview</div>
@@ -227,24 +198,14 @@
         <div class="tbl-scroll">
           <table>
             <thead>
-              <tr>
-                <th>Property</th>
-                <th class="th-rate">Avg Rate (Mon–Sun)</th>
-                <th>Min</th>
-                <th>Max</th>
-                <th>Days with data</th>
-                <th>Sold out days</th>
-              </tr>
+              <tr><th>Property</th><th>Avg Rate (Mon–Sun)</th><th>Min</th><th>Max</th><th>Days with data</th><th>Sold out days</th></tr>
             </thead>
             <tbody id="preview-body"></tbody>
           </table>
         </div>
-
         <div class="action-bar">
           <button class="btn-secondary" onclick="backToUpload()">← Upload a different file</button>
-          <button class="btn-primary" id="save-btn" onclick="saveData()">
-            💾 Save to dashboard
-          </button>
+          <button class="btn-primary" id="save-btn" onclick="saveData()">💾 Save to dashboard</button>
         </div>
         <div id="status-banner"></div>
       </div>
@@ -256,14 +217,11 @@
 <script>
   const API_BASE = 'https://backend-x5sw.onrender.com';
   let apiKey = '';
-  let parsedData = {}; // { propertyName: { date: rate|null } }
+  let parsedData = {};
   let allDates = [];
   let allProperties = [];
 
-  // ─── AUTH ───────────────────────────────────────────────────────
-  document.getElementById('pw-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') authenticate();
-  });
+  document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') authenticate(); });
 
   async function authenticate() {
     const pw = document.getElementById('pw-input').value.trim();
@@ -297,7 +255,6 @@
     document.getElementById('week-start').value = monday.toISOString().split('T')[0];
   }
 
-  // ─── DRAG & DROP ─────────────────────────────────────────────────
   const dropZone = document.getElementById('drop-zone');
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
@@ -308,7 +265,6 @@
     if (file) handleFile(file);
   });
 
-  // ─── FILE PARSING ─────────────────────────────────────────────────
   function handleFile(file) {
     if (!file) return;
     const ext = file.name.split('.').pop().toLowerCase();
@@ -317,7 +273,6 @@
       return;
     }
 
-    // Show file info
     dropZone.classList.add('has-file');
     document.getElementById('drop-icon').textContent = '✅';
     document.getElementById('drop-title').textContent = 'File loaded!';
@@ -333,16 +288,25 @@
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, { type: 'array', cellDates: true });
 
-        // Find "Rates" sheet (case-insensitive)
-        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || wb.SheetNames[0];
+        // FIX 1: Look for "Rates" OR "Sheet1" OR take first sheet
+        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || 
+                         wb.SheetNames.find(n => n.toLowerCase() === 'sheet1') || 
+                         wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
+        if (raw.length < 2) { alert('The sheet appears empty.'); return; }
 
-        if (raw.length < 2) { alert('The Rates sheet appears empty.'); return; }
-
-        // Row 0 = headers. Col 0 = date column, rest = properties
         const headers = raw[0];
-        allProperties = headers.slice(1).map(h => String(h || '').trim()).filter(Boolean);
+        
+        // FIX 2: Filter out non-property columns (Market demand, Ranking, Holidays, Events)
+        allProperties = headers.slice(1).filter(h => {
+          const lower = String(h || '').toLowerCase();
+          return !lower.includes('demand') && 
+                 !lower.includes('ranking') && 
+                 !lower.includes('holiday') &&
+                 !lower.includes('event') &&
+                 lower !== '';
+        }).map(h => String(h).trim());
 
         parsedData = {};
         allDates = [];
@@ -353,7 +317,6 @@
           const rawDate = row[0];
           if (!rawDate) continue;
 
-          // Parse date — can be JS Date (cellDates:true), serial number, or string
           let dateStr = null;
           if (rawDate instanceof Date) {
             dateStr = toISO(rawDate);
@@ -367,8 +330,8 @@
           if (!dateStr) continue;
           allDates.push(dateStr);
 
-          allProperties.forEach((prop, i) => {
-            const val = row[i + 1];
+          allProperties.forEach((prop, idx) => {
+            const val = row[idx + 1];
             if (val === null || val === undefined || String(val).trim() === '') {
               parsedData[prop][dateStr] = null;
             } else if (typeof val === 'string' && val.toLowerCase().includes('sold')) {
@@ -411,13 +374,8 @@
     parsedData = {}; allDates = []; allProperties = [];
   }
 
-  // ─── WEEK PICKER ──────────────────────────────────────────────────
   function populateWeekPicker() {
-    // Find all Mondays in the date range
-    const mondays = allDates.filter(d => {
-      const day = new Date(d + 'T00:00:00').getDay();
-      return day === 1;
-    });
+    const mondays = allDates.filter(d => new Date(d + 'T00:00:00').getDay() === 1);
     const sel = document.getElementById('week-picker');
     sel.innerHTML = '<option value="">— pick from file —</option>';
     mondays.forEach(m => {
@@ -442,15 +400,12 @@
     if (val) document.getElementById('week-start').value = val;
   }
 
-  // ─── PREVIEW ─────────────────────────────────────────────────────
   function buildPreview() {
     const weekStart = document.getElementById('week-start').value;
     if (!weekStart) { alert('Please select a week start date.'); return; }
-
     const mon = new Date(weekStart + 'T00:00:00');
     if (mon.getDay() !== 1) { alert('Please pick a Monday as the week start.'); return; }
 
-    // Collect Mon–Sun dates
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(mon); d.setDate(d.getDate() + i);
@@ -478,10 +433,7 @@
     `;
 
     const badgesEl = document.getElementById('preview-badges');
-    badgesEl.innerHTML = `
-      <span class="badge badge-blue">${allProperties.length} competitors</span>
-      <span class="badge badge-green">${withData} have rates</span>
-    `;
+    badgesEl.innerHTML = `<span class="badge badge-blue">${allProperties.length} competitors</span><span class="badge badge-green">${withData} have rates</span>`;
 
     const tbody = document.getElementById('preview-body');
     tbody.innerHTML = '';
@@ -503,7 +455,6 @@
     document.getElementById('step2-el').className = 'step active';
   }
 
-  // ─── SAVE ─────────────────────────────────────────────────────────
   async function saveData() {
     const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
@@ -522,25 +473,22 @@
       weekDates.push(toISO(d));
     }
 
-    // Build payload using property NAMES — backend auto-creates missing properties
     const data = [];
     allProperties.forEach(prop => {
-      const rates    = weekDates.map(d => parsedData[prop]?.[d]);
+      const rates = weekDates.map(d => parsedData[prop]?.[d]);
       const numRates = rates.filter(r => typeof r === 'number');
       const soldDays = rates.filter(r => r === 'sold_out').length;
       if (numRates.length === 0 && soldDays === 0) return;
 
-      const avg     = numRates.length
-        ? Math.round(numRates.reduce((a, b) => a + b, 0) / numRates.length)
-        : null;
+      const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0) / numRates.length) : null;
       const soldPct = Math.round((soldDays / 7) * 100);
 
       data.push({
         property_name: prop,
-        area:          'Ellipse',
+        area: 'Ellipse',
         property_type: 'Competitor',
-        rate_wk4:      avg,
-        sold_out_pct:  soldPct || null,
+        rate_wk4: avg,
+        sold_out_pct: soldPct || null,
       });
     });
 
@@ -587,7 +535,6 @@
     }
   }
 
-  // ─── NAVIGATION ───────────────────────────────────────────────────
   function goToStep2() {
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
