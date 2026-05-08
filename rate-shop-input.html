@@ -162,10 +162,7 @@
         <span class="file-size" id="file-size-label">—</span>
         <button class="btn-clear" onclick="clearFile()">✕ Remove</button>
       </div>
-      <div class="help-box" style="margin-top:16px;">
-        <strong>📋 What this expects:</strong> A Lighthouse rate-shop export with a sheet named <strong>Rates</strong> or <strong>Sheet1</strong>.<br>
-        Rows = dates · Columns = competitor property names · Values = nightly rates or "Sold out".
-      </div>
+      <div class="help-box" style="margin-top:16px;"><strong>📋 What this expects:</strong> A Lighthouse rate-shop export with a sheet named <strong>Rates</strong> or <strong>Sheet1</strong>.<br>Rows = dates · Columns = competitor property names · Values = nightly rates or "Sold out".</div>
     </div>
 
     <div id="step2" style="display:none;">
@@ -173,33 +170,17 @@
         <div class="card-title">Select a week to import</div>
         <div class="card-sub">Choose the Monday that starts the week you want to save.</div>
         <div class="ctrl-grid">
-          <div class="ctrl-group">
-            <div class="ctrl-label">Week Starting (Monday) ★</div>
-            <input type="date" class="ctrl-input" id="week-start">
-            <div class="ctrl-hint">Averages Mon–Sun for each competitor</div>
-          </div>
-          <div class="ctrl-group">
-            <div class="ctrl-label">Available weeks in file</div>
-            <select class="ctrl-input" id="week-picker" onchange="selectWeekFromPicker()">
-              <option value="">— pick from file —</option>
-            </select>
-            <div class="ctrl-hint">Mondays detected in the Lighthouse data</div>
-          </div>
+          <div class="ctrl-group"><div class="ctrl-label">Week Starting (Monday) ★</div><input type="date" class="ctrl-input" id="week-start"><div class="ctrl-hint">Averages Mon–Sun for each competitor</div></div>
+          <div class="ctrl-group"><div class="ctrl-label">Available weeks in file</div><select class="ctrl-input" id="week-picker" onchange="selectWeekFromPicker()"><option value="">— pick from file —</option></select><div class="ctrl-hint">Mondays detected in the Lighthouse data</div></div>
         </div>
         <button class="drop-btn" style="margin-top:16px;" onclick="buildPreview()">🔍 Preview this week</button>
       </div>
-
       <div id="preview-section">
-        <div class="preview-header">
-          <div class="preview-title">Rate preview</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;" id="preview-badges"></div>
-        </div>
+        <div class="preview-header"><div class="preview-title">Rate preview</div><div style="display:flex;gap:8px;flex-wrap:wrap;" id="preview-badges"></div></div>
         <div class="parse-stats" id="parse-stats"></div>
         <div class="tbl-scroll">
           <table>
-            <thead>
-              <tr><th>Property</th><th>Avg Rate (Mon–Sun)</th><th>Min</th><th>Max</th><th>Days with data</th><th>Sold out days</th></tr>
-            </thead>
+            <thead><tr><th>Property</th><th class="th-rate">Avg Rate (Mon–Sun)</th><th>Min</th><th>Max</th><th>Days with data</th><th>Sold out days</th></tr></thead>
             <tbody id="preview-body"></tbody>
           </table>
         </div>
@@ -210,7 +191,6 @@
         <div id="status-banner"></div>
       </div>
     </div>
-
   </div>
 </div>
 
@@ -272,7 +252,6 @@
       alert('Please upload an Excel file (.xlsx or .xls)');
       return;
     }
-
     dropZone.classList.add('has-file');
     document.getElementById('drop-icon').textContent = '✅';
     document.getElementById('drop-title').textContent = 'File loaded!';
@@ -287,25 +266,15 @@
       try {
         const data = new Uint8Array(e.target.result);
         const wb = XLSX.read(data, { type: 'array', cellDates: true });
-
-        // FIX 1: Look for "Rates" OR "Sheet1" OR take first sheet
-        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || 
-                         wb.SheetNames.find(n => n.toLowerCase() === 'sheet1') || 
-                         wb.SheetNames[0];
+        const sheetName = wb.SheetNames.find(n => n.toLowerCase() === 'rates') || wb.SheetNames.find(n => n.toLowerCase() === 'sheet1') || wb.SheetNames[0];
         const ws = wb.Sheets[sheetName];
         const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null });
         if (raw.length < 2) { alert('The sheet appears empty.'); return; }
 
         const headers = raw[0];
-        
-        // FIX 2: Filter out non-property columns (Market demand, Ranking, Holidays, Events)
         allProperties = headers.slice(1).filter(h => {
           const lower = String(h || '').toLowerCase();
-          return !lower.includes('demand') && 
-                 !lower.includes('ranking') && 
-                 !lower.includes('holiday') &&
-                 !lower.includes('event') &&
-                 lower !== '';
+          return !lower.includes('demand') && !lower.includes('ranking') && !lower.includes('holiday') && !lower.includes('event') && lower !== '';
         }).map(h => String(h).trim());
 
         parsedData = {};
@@ -316,7 +285,6 @@
           const row = raw[r];
           const rawDate = row[0];
           if (!rawDate) continue;
-
           let dateStr = null;
           if (rawDate instanceof Date) {
             dateStr = toISO(rawDate);
@@ -354,15 +322,8 @@
     reader.readAsArrayBuffer(file);
   }
 
-  function toISO(d) {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-  }
-
-  function formatBytes(b) {
-    if (b < 1024) return b + ' B';
-    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-    return (b/1048576).toFixed(1) + ' MB';
-  }
+  function toISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function formatBytes(b) { if (b < 1024) return b + ' B'; if (b < 1048576) return (b/1024).toFixed(1) + ' KB'; return (b/1048576).toFixed(1) + ' MB'; }
 
   function clearFile() {
     document.getElementById('file-input').value = '';
@@ -378,12 +339,7 @@
     const mondays = allDates.filter(d => new Date(d + 'T00:00:00').getDay() === 1);
     const sel = document.getElementById('week-picker');
     sel.innerHTML = '<option value="">— pick from file —</option>';
-    mondays.forEach(m => {
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = formatWeekLabel(m);
-      sel.appendChild(opt);
-    });
+    mondays.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = formatWeekLabel(m); sel.appendChild(opt); });
   }
 
   function formatWeekLabel(mondayISO) {
@@ -391,26 +347,16 @@
     const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
     return `${fmtD(mon)} – ${fmtD(sun)}`;
   }
-  function fmtD(d) {
-    return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short' });
-  }
-
-  function selectWeekFromPicker() {
-    const val = document.getElementById('week-picker').value;
-    if (val) document.getElementById('week-start').value = val;
-  }
+  function fmtD(d) { return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short' }); }
+  function selectWeekFromPicker() { const val = document.getElementById('week-picker').value; if (val) document.getElementById('week-start').value = val; }
 
   function buildPreview() {
     const weekStart = document.getElementById('week-start').value;
     if (!weekStart) { alert('Please select a week start date.'); return; }
     const mon = new Date(weekStart + 'T00:00:00');
     if (mon.getDay() !== 1) { alert('Please pick a Monday as the week start.'); return; }
-
     const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(mon); d.setDate(d.getDate() + i);
-      weekDates.push(toISO(d));
-    }
+    for (let i = 0; i < 7; i++) { const d = new Date(mon); d.setDate(d.getDate() + i); weekDates.push(toISO(d)); }
 
     const rows = allProperties.map(prop => {
       const rates = weekDates.map(d => parsedData[prop]?.[d]);
@@ -424,37 +370,22 @@
     });
 
     const withData = rows.filter(r => r.dataDays > 0).length;
-    const statsEl = document.getElementById('parse-stats');
-    statsEl.innerHTML = `
-      <div class="stat-chip"><strong>${allProperties.length}</strong> properties</div>
-      <div class="stat-chip"><strong>${withData}</strong> with data this week</div>
-      <div class="stat-chip"><strong>${allDates.length}</strong> dates in file</div>
-      <div class="stat-chip">Week: <strong>${formatWeekLabel(weekStart)}</strong></div>
-    `;
-
-    const badgesEl = document.getElementById('preview-badges');
-    badgesEl.innerHTML = `<span class="badge badge-blue">${allProperties.length} competitors</span><span class="badge badge-green">${withData} have rates</span>`;
+    document.getElementById('parse-stats').innerHTML = `<div class="stat-chip"><strong>${allProperties.length}</strong> properties</div><div class="stat-chip"><strong>${withData}</strong> with data this week</div><div class="stat-chip"><strong>${allDates.length}</strong> dates in file</div><div class="stat-chip">Week: <strong>${formatWeekLabel(weekStart)}</strong></div>`;
+    document.getElementById('preview-badges').innerHTML = `<span class="badge badge-blue">${allProperties.length} competitors</span><span class="badge badge-green">${withData} have rates</span>`;
 
     const tbody = document.getElementById('preview-body');
     tbody.innerHTML = '';
     rows.forEach(r => {
       const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="td-prop">${esc(r.prop)}</td>
-        <td class="td-rate">${r.avg !== null ? 'R ' + r.avg.toLocaleString() : '<span class="pill-na">no data</span>'}</td>
-        <td class="td-avg">${r.min !== null ? 'R ' + r.min.toLocaleString() : '—'}</td>
-        <td class="td-avg">${r.max !== null ? 'R ' + r.max.toLocaleString() : '—'}</td>
-        <td class="td-dates">${r.dataDays > 0 ? r.dataDays + ' / 7' : '—'}</td>
-        <td>${r.soldDays > 0 ? `<span class="td-sold">${r.soldDays} days</span>` : '—'}</td>
-      `;
+      tr.innerHTML = `<td class="td-prop">${esc(r.prop)}</td><td class="td-rate">${r.avg !== null ? 'R ' + r.avg.toLocaleString() : '<span class="pill-na">no data</span>'}</td><td class="td-avg">${r.min !== null ? 'R ' + r.min.toLocaleString() : '—'}</td><td class="td-avg">${r.max !== null ? 'R ' + r.max.toLocaleString() : '—'}</td><td class="td-dates">${r.dataDays > 0 ? r.dataDays + ' / 7' : '—'}</td><td>${r.soldDays > 0 ? `<span class="td-sold">${r.soldDays} days</span>` : '—'}</td>`;
       tbody.appendChild(tr);
     });
-
     document.getElementById('preview-section').style.display = 'block';
     document.getElementById('status-banner').style.display = 'none';
     document.getElementById('step2-el').className = 'step active';
   }
 
+  // NEW: saveData function for daily rate tracking
   async function saveData() {
     const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
@@ -469,28 +400,47 @@
     const mon = new Date(weekStart + 'T00:00:00');
     const weekDates = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date(mon); d.setDate(d.getDate() + i);
+      const d = new Date(mon);
+      d.setDate(d.getDate() + i);
       weekDates.push(toISO(d));
     }
 
+    // Build payload: store daily rates for each property
     const data = [];
-    allProperties.forEach(prop => {
-      const rates = weekDates.map(d => parsedData[prop]?.[d]);
-      const numRates = rates.filter(r => typeof r === 'number');
-      const soldDays = rates.filter(r => r === 'sold_out').length;
-      if (numRates.length === 0 && soldDays === 0) return;
-
-      const avg = numRates.length ? Math.round(numRates.reduce((a,b)=>a+b,0) / numRates.length) : null;
-      const soldPct = Math.round((soldDays / 7) * 100);
-
+    for (const prop of allProperties) {
+      // Skip if it's a metadata column
+      const lowerProp = prop.toLowerCase();
+      if (lowerProp.includes('demand') || lowerProp.includes('ranking') || lowerProp.includes('holiday') || lowerProp.includes('event')) {
+        continue;
+      }
+      
+      // Get daily rates for this property
+      const dailyRates = [];
+      let hasData = false;
+      for (const date of weekDates) {
+        const val = parsedData[prop]?.[date];
+        let rate = null;
+        let soldOut = false;
+        if (val === 'sold_out') {
+          soldOut = true;
+          hasData = true;
+        } else if (typeof val === 'number') {
+          rate = val;
+          hasData = true;
+        }
+        dailyRates.push({ date: date, rate: rate, sold_out: soldOut });
+      }
+      
+      if (!hasData) continue;
+      
       data.push({
         property_name: prop,
         area: 'Ellipse',
         property_type: 'Competitor',
-        rate_wk4: avg,
-        sold_out_pct: soldPct || null,
+        week_start_date: weekStart,
+        daily_rates: dailyRates
       });
-    });
+    }
 
     if (data.length === 0) {
       banner.className = 'error';
@@ -503,20 +453,20 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Saving…';
     banner.className = 'loading';
-    banner.textContent = `⏳ Saving ${data.length} properties for week of ${weekStart}…`;
+    banner.textContent = `⏳ Saving daily rates for ${data.length} properties for week of ${weekStart}…`;
     banner.style.display = 'block';
 
     try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/upload-by-name`, {
+      const res = await fetch(`${API_BASE}/api/rate-shop/save-daily-rates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-        body: JSON.stringify({ week_start_date: weekStart, data })
+        body: JSON.stringify({ data: data })
       });
 
       if (res.ok) {
         const result = await res.json();
         banner.className = 'success';
-        banner.textContent = `✅ Saved! ${result.saved_count} properties saved for week of ${weekStart}. Open the dashboard to see your data.`;
+        banner.textContent = `✅ Saved! ${result.saved_count} properties with daily rates for week of ${weekStart}.`;
         banner.style.display = 'block';
         document.getElementById('step3-el').className = 'step done';
       } else {
@@ -545,6 +495,7 @@
 
   function backToUpload() {
     document.getElementById('step2').style.display = 'none';
+    document.getElementById('preview-section').style.display = 'none';
     document.getElementById('step1').style.display = 'block';
     document.getElementById('step1-el').className = 'step active';
     document.getElementById('step2-el').className = 'step';
@@ -552,9 +503,7 @@
     clearFile();
   }
 
-  function esc(str) {
-    return String(str).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;');
-  }
+  function esc(str) { return String(str).replace(/[&<>]/g, m => m==='&'?'&amp;':m==='<'?'&lt;':'&gt;'); }
 </script>
 </body>
 </html>
