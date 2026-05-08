@@ -1,667 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Rate Pulse — Revenue Insights | Competitor Rate Intelligence</title>
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background:#f1f5f9; color:#1e293b; }
-
-    /* ========== PROFESSIONAL HEADER (from dashboard.html) ========== */
-    .dashboard-header {
-      background: white;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 0 28px;
-      height: 70px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    }
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .dashboard-logo {
-      width: 42px;
-      height: 42px;
-      object-fit: contain;
-    }
-    .dashboard-logo-text {
-      font-size: 20px;
-      font-weight: 800;
-      color: #0f172a;
-      letter-spacing: -0.3px;
-    }
-    .dashboard-logo-text span {
-      color: #3b82f6;
-      font-weight: 800;
-    }
-    .dashboard-tagline {
-      font-size: 11px;
-      color: #64748b;
-      margin-top: 2px;
-      letter-spacing: 0.3px;
-    }
-    .powered-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      background: #f8fafc;
-      padding: 8px 18px;
-      border-radius: 40px;
-      border: 1px solid #e2edf2;
-    }
-    .powered-badge img {
-      width: 28px;
-      height: 28px;
-    }
-    .powered-badge span {
-      font-size: 12px;
-      font-weight: 600;
-      color: #1f4e6e;
-    }
-    .live-dot {
-      width: 8px;
-      height: 8px;
-      background: #22c55e;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-      animation: pulse 2s infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-    /* WEEK PICKER BAR */
-    .week-bar {
-      background: white;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 0 28px;
-      height: 52px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-    }
-    .week-bar-label {
-      font-size: 11px;
-      font-weight: 700;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      white-space: nowrap;
-    }
-    .week-btn {
-      padding: 6px 18px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 600;
-      border: 1px solid #e2e8f0;
-      background: white;
-      color: #64748b;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all .15s;
-    }
-    .week-btn:hover { background:#f1f5f9; color:#1e293b; border-color:#cbd5e1; }
-    .week-btn.active { background:#3b82f6; border-color:#3b82f6; color:white; }
-
-    /* MAIN */
-    .main { max-width: 1400px; margin: 0 auto; padding: 28px 24px 60px; }
-
-    /* Empty state & loading */
-    #empty-state, #loading-state { text-align:center; padding:80px 20px; background:white; border-radius:20px; border:1px solid #e2e8f0; margin-top:20px; }
-    #empty-state .empty-icon { font-size:52px; margin-bottom:16px; }
-    #empty-state h2 { font-size:22px; font-weight:700; margin-bottom:8px; }
-    #empty-state p { font-size:14px; color:#64748b; max-width:450px; margin:0 auto; }
-    #loading-state { display:none; color:#64748b; }
-
-    /* Dashboard */
-    #dashboard { display:none; }
-
-    /* Header row */
-    .dash-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .dash-title-section h2 {
-      font-size: 24px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #1e2b3c, #2c4e6e);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-    }
-    .dash-sub {
-      font-size: 13px;
-      color: #64748b;
-      margin-top: 4px;
-    }
-    .heat-pill {
-      padding: 6px 18px;
-      border-radius: 30px;
-      font-size: 12px;
-      font-weight: 700;
-    }
-    .heat-warm   { background:#fef3c7; color:#92400e; border:1px solid #fcd34d; }
-    .heat-stable { background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; }
-    .heat-cool   { background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; }
-
-    /* KPI cards */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 28px;
-    }
-    @media (max-width: 800px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } }
-    .kpi {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 20px 22px;
-      box-shadow: 0 1px 2px rgba(0,0,0,.04);
-      transition: all 0.2s;
-    }
-    .kpi:hover { box-shadow: 0 8px 20px rgba(0,0,0,.05); border-color:#cbd5e1; }
-    .kpi-label {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: #64748b;
-      margin-bottom: 8px;
-    }
-    .kpi-value {
-      font-size: 32px;
-      font-weight: 800;
-      color: #0f172a;
-      line-height: 1.1;
-    }
-    .kpi-change {
-      font-size: 12px;
-      margin-top: 8px;
-      font-weight: 500;
-    }
-    .txt-up { color: #15803d; }
-    .txt-down { color: #dc2626; }
-    .txt-muted { color: #64748b; }
-
-    .section-title {
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: #64748b;
-      margin: 28px 0 14px;
-    }
-
-    /* Movers grid */
-    .movers-grid {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 14px;
-      margin-bottom: 8px;
-    }
-    @media (max-width: 900px) { .movers-grid { grid-template-columns: repeat(3,1fr); } }
-    @media (max-width: 560px) { .movers-grid { grid-template-columns: repeat(2,1fr); } }
-    .mover {
-      background: white;
-      border-radius: 14px;
-      padding: 14px 16px;
-      border-left: 3px solid;
-      border-top: 1px solid #e2e8f0;
-      border-right: 1px solid #e2e8f0;
-      border-bottom: 1px solid #e2e8f0;
-    }
-    .mover-up { border-left-color: #22c55e; }
-    .mover-down { border-left-color: #ef4444; }
-    .mover-name { font-size: 11px; color:#64748b; margin-bottom: 6px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .mover-rate { font-size: 20px; font-weight:800; color:#0f172a; }
-    .mover-chg { font-size: 12px; font-weight:600; margin-top: 4px; }
-
-    /* Trend grid */
-    .trend-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-    @media (max-width: 768px) { .trend-grid { grid-template-columns: repeat(2,1fr); } }
-    .trend-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 14px;
-      padding: 14px 16px;
-    }
-    .trend-name { font-size: 11px; color:#64748b; margin-bottom: 5px; white-space: nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .trend-rate { font-size: 18px; font-weight:700; color:#0f172a; }
-    .trend-from { font-size: 11px; color:#94a3b8; margin-top: 2px; }
-    .trend-pct { font-size: 12px; font-weight:600; margin-top: 6px; }
-    .trend-bar-bg { height: 3px; background:#f1f5f9; border-radius: 3px; margin-top: 10px; }
-    .trend-bar-fill { height: 100%; border-radius: 3px; }
-
-    /* Main table */
-    .table-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      overflow: hidden;
-    }
-    .tbl-scroll { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      padding: 12px 16px;
-      text-align: left;
-      color: #64748b;
-      font-weight: 700;
-      font-size: 11px;
-      text-transform: uppercase;
-      background: #f8fafc;
-      border-bottom: 1px solid #e2e8f0;
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-    }
-    thead th:hover { color: #0f172a; }
-    thead th.sort-asc::after { content: ' ↑'; color: #3b82f6; }
-    thead th.sort-desc::after { content: ' ↓'; color: #3b82f6; }
-    tbody tr { border-bottom: 1px solid #f1f5f9; }
-    tbody tr:hover { background: #f8fafc; }
-    td { padding: 12px 16px; vertical-align: middle; white-space: nowrap; }
-    .td-prop { font-weight: 700; color: #0f172a; white-space: normal; }
-    .td-type-tag { font-size: 10px; color:#64748b; background:#f1f5f9; padding: 2px 8px; border-radius: 6px; display: inline-block; margin-top: 3px; }
-    .badge {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 12px;
-      border-radius: 30px;
-    }
-    .badge-up { background:#dcfce7; color:#15803d; }
-    .badge-down { background:#fee2e2; color:#dc2626; }
-    .badge-stable { background:#f1f5f9; color:#475569; }
-
-    /* Insights */
-    .insights-card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 20px 24px;
-    }
-    .insight-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 13px;
-      color: #1e293b;
-    }
-    .insight-row:last-child { border-bottom: none; }
-    .insight-dot { width: 7px; height: 7px; background: #3b82f6; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-    .no-comparison { font-size: 12px; color:#94a3b8; padding: 16px 0; text-align: center; }
-    .updated-note { font-size: 11px; color:#94a3b8; text-align: right; margin-top: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Daily Rate Shop — Day-by-Day Competitor Comparison</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #0f172a; padding: 24px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        
+        /* Header */
+        .header { margin-bottom: 24px; }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header .sub { color: #64748b; font-size: 14px; }
+        
+        /* Week Bar */
+        .week-bar { background: white; border-radius: 16px; padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; border: 1px solid #e2e8f0; }
+        .week-bar label { font-weight: 600; font-size: 14px; color: #1e293b; }
+        .week-picker { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; background: white; min-width: 220px; }
+        .week-select { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; background: white; min-width: 200px; }
+        .refresh-btn { background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 10px; font-weight: 500; cursor: pointer; }
+        .refresh-btn:hover { background: #2563eb; }
+        
+        /* KPI Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 28px; }
+        @media (max-width: 900px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        .kpi-card { background: white; border-radius: 20px; padding: 20px 24px; border: 1px solid #e2e8f0; box-shadow: 0 1px 2px rgba(0,0,0,0.03); transition: all 0.2s; }
+        .kpi-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+        .kpi-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 8px; }
+        .kpi-value { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1.2; margin-bottom: 6px; }
+        .kpi-change { font-size: 12px; font-weight: 500; color: #64748b; }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        
+        /* Insights Card */
+        .insights-card { background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid #e2e8f0; }
+        .insights-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin-bottom: 12px; }
+        .insight-item { display: flex; align-items: flex-start; gap: 12px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; color: #1e293b; }
+        .insight-item:last-child { border-bottom: none; }
+        .insight-dot { width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+        
+        /* Table Styles */
+        .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; margin: 24px 0 16px 0; }
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 16px; border: 1px solid #e2e8f0; }
+        .daily-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
+        .daily-table th, .daily-table td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; vertical-align: middle; }
+        .daily-table th:first-child, .daily-table td:first-child { position: sticky; left: 0; background: white; font-weight: 600; text-align: left; z-index: 1; min-width: 200px; }
+        .daily-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .day-group { background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
+        .rate-up { color: #10b981; font-weight: 600; }
+        .rate-down { color: #ef4444; font-weight: 600; }
+        .sold-out { background: #fef2f2; color: #dc2626; font-weight: 600; display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
+        .no-data { color: #94a3b8; }
+        
+        .loading, .error { text-align: center; padding: 60px; background: white; border-radius: 16px; }
+        .sub-note { margin-top: 16px; font-size: 12px; color: #64748b; text-align: right; }
+        
+        .heat-pill { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .heat-hot { background: #fef3c7; color: #d97706; }
+        .heat-stable { background: #f1f5f9; color: #475569; }
+        .heat-cool { background: #e0f2fe; color: #0369a1; }
+    </style>
 </head>
 <body>
-
-<!-- PROFESSIONAL HEADER with Revenue Insights Logo -->
-<div class="dashboard-header">
-  <div class="logo-area">
-    <!-- Revenue Insights icon from GitHub repo -->
-    <img src="https://raw.githubusercontent.com/revenueinsights26/frontend/main/images/revenue-insights-icon.svg" 
-         alt="Revenue Insights" 
-         class="dashboard-logo"
-         onerror="this.src='https://placehold.co/42x42/3b82f6/white?text=RI'">
-    <div>
-      <div class="dashboard-logo-text">Rate <span>Pulse</span></div>
-      <div class="dashboard-tagline">Real-time competitor intelligence · Waterfall & Ellipse</div>
+<div class="container">
+    <div class="header">
+        <h1>📅 Daily Rate Shop — Day-by-Day Competitor Comparison</h1>
+        <div class="sub">Tracks daily rates for each property. Compare Monday vs Monday, Tuesday vs Tuesday, etc.</div>
     </div>
-  </div>
-  <div class="powered-badge">
-    <img src="https://raw.githubusercontent.com/revenueinsights26/frontend/main/images/revenue-insights-icon.svg"
-         alt="Revenue Insights"
-         onerror="this.src='https://placehold.co/28x28/3b82f6/white?text=RI'">
-    <span>Powered by Revenue Insights</span>
-  </div>
-</div>
-
-<!-- WEEK PICKER BAR -->
-<div class="week-bar">
-  <span class="week-bar-label"><i class="fas fa-calendar-week"></i> View week:</span>
-  <div id="week-buttons" style="display:flex; gap:10px; align-items:center;">
-    <span style="font-size:12px; color:#94a3b8;">Loading weeks...</span>
-  </div>
-  <span style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
-    <span class="live-dot"></span>
-    <span style="font-size:11px; color:#64748b;">Live data</span>
-  </span>
-</div>
-
-<!-- MAIN -->
-<div class="main">
-  <div id="loading-state">⏳ Loading market intelligence...</div>
-
-  <div id="empty-state" style="display:none;">
-    <div class="empty-icon">📡</div>
-    <h2>Rate Pulse — Ready</h2>
-    <p>No competitor rate data has been uploaded yet. Use the Rate Shop Upload tool to enter weekly rates, then return here for instant market intelligence.</p>
-  </div>
-
-  <div id="dashboard">
-    <div class="dash-header">
-      <div class="dash-title-section">
-        <h2>Market Overview</h2>
-        <div class="dash-sub" id="dash-sub">—</div>
-      </div>
-      <div><span id="heat-pill" class="heat-pill heat-stable">📊 Stable</span></div>
+    
+    <div class="week-bar">
+        <label>📅 Select Week (Monday):</label>
+        <input type="date" id="weekPicker" class="week-picker">
+        <label style="margin-left: auto;">Or select from saved weeks:</label>
+        <select id="weekSelect" class="week-select">
+            <option value="">— Load available weeks —</option>
+        </select>
+        <button class="refresh-btn" onclick="loadComparison()">Load Comparison</button>
     </div>
-
-    <!-- KPI CARDS -->
-    <div class="kpi-grid">
-      <div class="kpi">
-        <div class="kpi-label">Avg Market Rate</div>
-        <div class="kpi-value" id="kpi-avg">—</div>
-        <div class="kpi-change" id="kpi-avg-change">—</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Median Rate</div>
-        <div class="kpi-value" id="kpi-median">—</div>
-        <div class="kpi-change txt-muted">Mid-market benchmark</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">High Demand</div>
-        <div class="kpi-value" id="kpi-demand">—</div>
-        <div class="kpi-change txt-muted">Properties ≥70% sold out</div>
-      </div>
-      <div class="kpi">
-        <div class="kpi-label">Biggest Mover</div>
-        <div class="kpi-value" id="kpi-mover-val">—</div>
-        <div class="kpi-change" id="kpi-mover-name">—</div>
-      </div>
-    </div>
-
-    <!-- FAST MOVERS -->
-    <div class="section-title"><i class="fas fa-rocket"></i> Fast movers this week</div>
-    <div class="movers-grid" id="movers-grid">
-      <div class="no-comparison">Enter a second week of data to see week-over-week movers.</div>
-    </div>
-
-    <!-- 4-WEEK TREND -->
-    <div class="section-title"><i class="fas fa-chart-line"></i> 4-week price trend (Wk1 → Wk4)</div>
-    <div class="trend-grid" id="trend-grid">
-      <div class="no-comparison" style="grid-column:1/-1;">Enter Wk1–Wk4 rates to see 4-week trends.</div>
-    </div>
-
-    <!-- MAIN TABLE -->
-    <div class="section-title"><i class="fas fa-table-list"></i> Weekly rate movement <span style="font-size:11px; font-weight:400;">(click headers to sort)</span></div>
-    <div class="table-card">
-      <div class="tbl-scroll">
-        <table id="main-table">
-          <thead>
-            <tr>
-              <th onclick="sortTable('property')">Property</th>
-              <th onclick="sortTable('last_week')">Last Week</th>
-              <th onclick="sortTable('this_week')">This Week</th>
-              <th onclick="sortTable('change_rand')">Change (R)</th>
-              <th onclick="sortTable('change_pct')">Change %</th>
-              <th onclick="sortTable('sold_out')">Sold Out %</th>
-              <th onclick="sortTable('status')">Status</th>
-            </tr>
-          </thead>
-          <tbody id="main-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- INSIGHTS -->
-    <div class="section-title"><i class="fas fa-lightbulb"></i> Market intelligence</div>
-    <div class="insights-card" id="insights-card"></div>
-
-    <div class="updated-note" id="updated-note"></div>
-  </div>
+    
+    <div id="content" class="loading">Loading dashboard...</div>
 </div>
 
 <script>
-  const API_BASE = 'https://backend-x5sw.onrender.com';
-  let currentData = null;
-  let allWeeks = [];
-  let selectedWeek = null;
-  let sortKey = 'change_rand';
-  let sortDir = 'desc';
-
-  const fmtR = n => n ? 'R ' + Math.round(n).toLocaleString('en-ZA') : '—';
-  const fmtPct = n => (n >= 0 ? '+' : '') + Number(n).toFixed(1) + '%';
-  const fmtDate = d => {
-    if (!d) return '—';
-    const clean = String(d).split(':')[0].split('%')[0];
-    const dt = new Date(clean + 'T00:00:00');
-    return dt.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
-  };
-  const cleanDate = d => String(d || '').split(':')[0].split('%')[0];
-
-  async function init() {
-    showElement('loading-state');
-    hideElement('dashboard');
-    hideElement('empty-state');
-    await loadWeeks();
-    if (allWeeks.length === 0) {
-      hideElement('loading-state');
-      showElement('empty-state');
-    } else {
-      selectedWeek = allWeeks[0];
-      renderWeekButtons();
-      await loadDashboard(selectedWeek);
+    const API_BASE = 'https://backend-x5sw.onrender.com';
+    let currentData = null;
+    
+    async function loadAvailableWeeks() {
+        try {
+            const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
+            const weeks = await res.json();
+            const select = document.getElementById('weekSelect');
+            select.innerHTML = '<option value="">— Load available weeks —</option>';
+            weeks.forEach(week => {
+                const cleanWeek = String(week).split(':')[0].split('%')[0];
+                const option = document.createElement('option');
+                option.value = cleanWeek;
+                option.textContent = new Date(cleanWeek).toLocaleDateString('en-ZA', { year: 'numeric', month: 'short', day: 'numeric' });
+                select.appendChild(option);
+            });
+        } catch (err) {
+            console.error('Failed to load weeks:', err);
+        }
     }
-  }
-
-  async function loadWeeks() {
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
-      let weeks = await res.json();
-      allWeeks = weeks.map(w => cleanDate(w)).filter(w => w);
-    } catch {
-      allWeeks = [];
-    }
-  }
-
-  function renderWeekButtons() {
-    const container = document.getElementById('week-buttons');
-    if (allWeeks.length === 0) {
-      container.innerHTML = '<span style="font-size:12px;color:#94a3b8;">No data available</span>';
-      return;
-    }
-    container.innerHTML = allWeeks.map(w => `
-      <button class="week-btn ${w === selectedWeek ? 'active' : ''}" onclick="selectWeek('${w}')">
-        Week of ${fmtDate(w)}
-      </button>
-    `).join('');
-  }
-
-  async function selectWeek(week) {
-    const clean = cleanDate(week);
-    if (clean === selectedWeek) return;
-    selectedWeek = clean;
-    renderWeekButtons();
-    showElement('loading-state');
-    hideElement('dashboard');
-    hideElement('empty-state');
-    await loadDashboard(clean);
-  }
-
-  async function loadDashboard(week) {
-    const cleanWeek = cleanDate(week);
-    try {
-      const url = `${API_BASE}/api/rate-shop/dashboard-data?week_start_date=${cleanWeek}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      hideElement('loading-state');
-      if (!json.current_week) {
-        showElement('empty-state');
-        return;
-      }
-      currentData = json.current_week;
-      renderDashboard(currentData);
-      showElement('dashboard');
-    } catch (e) {
-      hideElement('loading-state');
-      document.getElementById('loading-state').innerHTML = `<div style="color:#dc2626;">❌ Failed to load: ${e.message}</div>`;
-      showElement('loading-state');
-    }
-  }
-
-  function renderDashboard(d) {
-    const prevText = d.prev_week_date ? ` · vs week of ${fmtDate(d.prev_week_date)}` : '';
-    document.getElementById('dash-sub').textContent = `${d.total_properties} properties tracked${prevText}`;
-
-    const pill = document.getElementById('heat-pill');
-    if (d.market_heat === 'Warming up') {
-      pill.className = 'heat-pill heat-warm';
-      pill.innerHTML = '🔥 Market warming up';
-    } else if (d.market_heat === 'Cooling down') {
-      pill.className = 'heat-pill heat-cool';
-      pill.innerHTML = '❄️ Cooling down';
-    } else {
-      pill.className = 'heat-pill heat-stable';
-      pill.innerHTML = '📊 Market stable';
-    }
-
-    document.getElementById('kpi-avg').textContent = fmtR(d.avg_rate);
-    const chgEl = document.getElementById('kpi-avg-change');
-    if (d.prev_week_date) {
-      chgEl.textContent = fmtPct(d.avg_rate_change_pct) + ' vs last week';
-      chgEl.className = 'kpi-change ' + (d.avg_rate_change_pct >= 0 ? 'txt-up' : 'txt-down');
-    } else {
-      chgEl.textContent = 'First week — enter another week to compare';
-      chgEl.className = 'kpi-change txt-muted';
-    }
-    document.getElementById('kpi-median').textContent = fmtR(d.median_rate);
-    document.getElementById('kpi-demand').textContent = `${d.high_demand_count} / ${d.total_properties}`;
-
-    if (d.fast_movers && d.fast_movers.length > 0) {
-      const top = d.fast_movers[0];
-      const sign = top.change >= 0 ? '+' : '';
-      document.getElementById('kpi-mover-val').textContent = sign + fmtR(Math.abs(top.change));
-      document.getElementById('kpi-mover-name').innerHTML = `<span class="${top.change >= 0 ? 'txt-up' : 'txt-down'}">${escapeHtml(top.name)}</span>`;
-    } else {
-      document.getElementById('kpi-mover-val').textContent = '—';
-      document.getElementById('kpi-mover-name').textContent = 'Enter a 2nd week to compare';
-      document.getElementById('kpi-mover-name').className = 'kpi-change txt-muted';
-    }
-
-    const moversEl = document.getElementById('movers-grid');
-    if (d.fast_movers && d.fast_movers.length > 0) {
-      moversEl.innerHTML = d.fast_movers.map(m => `
-        <div class="mover ${m.change >= 0 ? 'mover-up' : 'mover-down'}">
-          <div class="mover-name">${escapeHtml(m.name)}</div>
-          <div class="mover-rate">${fmtR(m.rate)}</div>
-          <div class="mover-chg ${m.change >= 0 ? 'txt-up' : 'txt-down'}">
-            ${m.change >= 0 ? '+' : ''}${fmtR(Math.abs(m.change))} (${fmtPct(m.change_pct)})
-          </div>
-        </div>
-      `).join('');
-    } else {
-      moversEl.innerHTML = '<div class="no-comparison" style="grid-column:1/-1;">Enter a second week of data to see week-over-week movers.</div>';
-    }
-
-    const trendEl = document.getElementById('trend-grid');
-    if (d.four_week_trends && d.four_week_trends.length > 0) {
-      trendEl.innerHTML = d.four_week_trends.map(t => {
-        const pctAbs = Math.min(Math.abs(t.change_pct), 30);
-        const barW = (pctAbs / 30 * 100).toFixed(0);
-        const barColor = t.change_pct > 0 ? '#22c55e' : (t.change_pct < 0 ? '#ef4444' : '#94a3b8');
-        const cls = t.change_pct > 0 ? 'txt-up' : (t.change_pct < 0 ? 'txt-down' : 'txt-muted');
-        return `
-          <div class="trend-card">
-            <div class="trend-name">${escapeHtml(t.name)}</div>
-            <div class="trend-rate">${fmtR(t.rate)}</div>
-            <div class="trend-from">From ${fmtR(t.wk1)} (wk 1)</div>
-            <div class="trend-pct ${cls}">${fmtPct(t.change_pct)} over 4 weeks</div>
-            <div class="trend-bar-bg"><div class="trend-bar-fill" style="width:${barW}%;background:${barColor};"></div></div>
-          </div>
-        `;
-      }).join('');
-    } else {
-      trendEl.innerHTML = '<div class="no-comparison" style="grid-column:1/-1;">Enter Wk1–Wk4 rates to see 4-week trends.</div>';
-    }
-
-    renderTable(d.main_table);
-
-    const insEl = document.getElementById('insights-card');
-    if (d.insights && d.insights.length > 0) {
-      insEl.innerHTML = d.insights.map(i => `
-        <div class="insight-row">
-          <div class="insight-dot"></div>
-          <div>${escapeHtml(i)}</div>
-        </div>
-      `).join('');
-    } else {
-      insEl.innerHTML = '<div class="insight-row"><div class="insight-dot"></div><div>Market rates are stable. Enter more weeks of data to unlock detailed insights.</div></div>';
-    }
-
-    document.getElementById('updated-note').textContent = `Week of ${fmtDate(d.week_start_date)} · ${d.total_properties} properties tracked`;
-  }
-
-  function renderTable(rows) {
-    if (!rows) return;
-    const sorted = [...rows].sort((a, b) => {
-      let av = a[sortKey], bv = b[sortKey];
-      if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
-      return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+    
+    document.getElementById('weekSelect').addEventListener('change', function(e) {
+        if (e.target.value) {
+            document.getElementById('weekPicker').value = e.target.value;
+            loadComparison();
+        }
     });
-    document.getElementById('main-tbody').innerHTML = sorted.map(r => {
-      const hasPrev = r.last_week > 0;
-      const badge = r.status === 'Up fast' ? '<span class="badge badge-up">Up fast</span>'
-        : r.status === 'Down fast' ? '<span class="badge badge-down">Down fast</span>'
-        : '<span class="badge badge-stable">Stable</span>';
-      const sold = r.sold_out > 0 ? `<span style="color:${r.sold_out >= 70 ? '#15803d' : r.sold_out >= 50 ? '#92400e' : '#64748b'}; font-weight:600;">${r.sold_out}%</span>` : '<span style="color:#94a3b8;">—</span>';
-      const chgCls = r.change_rand > 0 ? 'txt-up' : (r.change_rand < 0 ? 'txt-down' : '');
-      return `
-        <tr>
-          <td class="td-prop">
-            ${escapeHtml(r.property)}
-            <div class="td-type-tag">${escapeHtml(r.property_type || '')}</div>
-          </td>
-          <td>${hasPrev ? fmtR(r.last_week) : '<span style="color:#94a3b8;">—</span>'}</td>
-          <td style="font-weight:700;">${fmtR(r.this_week)}</td>
-          <td class="${chgCls}">${hasPrev ? (r.change_rand >= 0 ? '+' : '') + fmtR(Math.abs(r.change_rand)) : '—'}</td>
-          <td class="${chgCls}">${hasPrev ? fmtPct(r.change_pct) : '—'}</td>
-          <td>${sold}</td>
-          <td>${badge}</td>
-        </tr>
-      `;
-    }).join('');
-  }
-
-  function sortTable(key) {
-    sortDir = (sortKey === key && sortDir === 'desc') ? 'asc' : 'desc';
-    sortKey = key;
-    const cols = ['property', 'last_week', 'this_week', 'change_rand', 'change_pct', 'sold_out', 'status'];
-    const idx = cols.indexOf(key);
-    if (idx >= 0) {
-      document.querySelectorAll('#main-table thead th').forEach((th, i) => {
-        th.classList.remove('sort-asc', 'sort-desc');
-        if (i === idx) th.classList.add(sortDir === 'asc' ? 'sort-asc' : 'sort-desc');
-      });
+    
+    async function loadComparison() {
+        let weekStart = document.getElementById('weekPicker').value;
+        if (!weekStart) {
+            const today = new Date();
+            const day = today.getDay();
+            const diff = day === 0 ? 6 : day - 1;
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - diff);
+            weekStart = monday.toISOString().split('T')[0];
+            document.getElementById('weekPicker').value = weekStart;
+        }
+        
+        const container = document.getElementById('content');
+        container.innerHTML = '<div class="loading">⏳ Loading daily comparison...</div>';
+        
+        try {
+            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
+            const data = await res.json();
+            currentData = data;
+            renderDashboard(data);
+        } catch (err) {
+            container.innerHTML = `<div class="error">❌ Failed to load: ${err.message}</div>`;
+        }
     }
-    if (currentData && currentData.main_table) renderTable(currentData.main_table);
-  }
-
-  function showElement(id) { document.getElementById(id).style.display = 'block'; }
-  function hideElement(id) { document.getElementById(id).style.display = 'none'; }
-  function escapeHtml(str) { return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'); }
-
-  init();
+    
+    function calculateKPIs(data) {
+        const days = data.days;
+        const properties = data.properties;
+        
+        let totalRates = 0;
+        let rateCount = 0;
+        let totalChanges = 0;
+        let changeCount = 0;
+        let priceUpCount = 0;
+        let priceDownCount = 0;
+        let soldOutCount = 0;
+        
+        for (const prop of properties) {
+            for (const day of days) {
+                const current = prop[`${day}_current`];
+                const previous = prop[`${day}_previous`];
+                const change = prop[`${day}_change`];
+                const soldOut = prop[`${day}_sold_out`];
+                
+                if (current) {
+                    totalRates += current;
+                    rateCount++;
+                }
+                if (soldOut) soldOutCount++;
+                if (change !== null && change !== undefined && change !== 0) {
+                    totalChanges += Math.abs(change);
+                    changeCount++;
+                    if (change > 0) priceUpCount++;
+                    if (change < 0) priceDownCount++;
+                }
+            }
+        }
+        
+        const avgRate = rateCount > 0 ? totalRates / rateCount : 0;
+        const avgMovement = changeCount > 0 ? totalChanges / changeCount : 0;
+        const totalComparisons = properties.length * days.length;
+        const totalDaysWithData = rateCount + soldOutCount;
+        
+        return {
+            avgRate,
+            avgMovement,
+            priceUpCount,
+            priceDownCount,
+            totalComparisons,
+            totalDaysWithData,
+            soldOutCount,
+            propertiesCount: properties.length
+        };
+    }
+    
+    function generateInsights(data, kpis) {
+        const days = data.days;
+        const properties = data.properties;
+        const insights = [];
+        
+        // Calculate day-by-day price movement trends
+        const dayMovements = {};
+        for (const day of days) {
+            let up = 0, down = 0, total = 0;
+            for (const prop of properties) {
+                const change = prop[`${day}_change`];
+                if (change !== null && change !== undefined && change !== 0) {
+                    total++;
+                    if (change > 0) up++;
+                    if (change < 0) down++;
+                }
+            }
+            dayMovements[day] = { up, down, total };
+        }
+        
+        // Find most volatile day
+        let mostVolatileDay = '';
+        let highestMovement = 0;
+        for (const [day, stats] of Object.entries(dayMovements)) {
+            if (stats.total > highestMovement) {
+                highestMovement = stats.total;
+                mostVolatileDay = day;
+            }
+        }
+        
+        // Find biggest mover property
+        let biggestMover = '';
+        let biggestChange = 0;
+        for (const prop of properties) {
+            let maxChange = 0;
+            for (const day of days) {
+                const change = prop[`${day}_change`];
+                if (change && Math.abs(change) > maxChange) {
+                    maxChange = Math.abs(change);
+                }
+            }
+            if (maxChange > biggestChange) {
+                biggestChange = maxChange;
+                biggestMover = prop.property;
+            }
+        }
+        
+        // Market heat assessment
+        let marketHeat = '';
+        let marketHeatClass = '';
+        if (kpis.priceUpCount > kpis.priceDownCount * 1.5) {
+            marketHeat = '🔥 Market is heating up — more properties raising rates than cutting';
+            marketHeatClass = 'heat-hot';
+        } else if (kpis.priceDownCount > kpis.priceUpCount * 1.5) {
+            marketHeat = '❄️ Market cooling — widespread rate cuts detected';
+            marketHeatClass = 'heat-cool';
+        } else {
+            marketHeat = '📊 Market stable — balanced price movements';
+            marketHeatClass = 'heat-stable';
+        }
+        
+        // Build insights HTML
+        insights.push(`<div class="insight-item"><div class="insight-dot"></div><div><strong>${marketHeat}</strong></div></div>`);
+        insights.push(`<div class="insight-item"><div class="insight-dot"></div><div>📈 ${kpis.priceUpCount} price increases vs 📉 ${kpis.priceDownCount} decreases this week</div></div>`);
+        insights.push(`<div class="insight-item"><div class="insight-dot"></div><div>💰 Average price movement: <strong>R ${Math.round(kpis.avgMovement).toLocaleString()}</strong> per change</div></div>`);
+        
+        if (mostVolatileDay) {
+            insights.push(`<div class="insight-item"><div class="insight-dot"></div><div>📅 Most volatile day: <strong>${mostVolatileDay}</strong> (${highestMovement} properties changed rates)</div></div>`);
+        }
+        
+        if (biggestMover && biggestChange > 0) {
+            insights.push(`<div class="insight-item"><div class="insight-dot"></div><div>🏨 Biggest mover: <strong>${escapeHtml(biggestMover)}</strong> (R ${Math.round(biggestChange).toLocaleString()} change)</div></div>`);
+        }
+        
+        if (kpis.soldOutCount > 0) {
+            insights.push(`<div class="insight-item"><div class="insight-dot"></div><div>⚠️ ${kpis.soldOutCount} sold-out instances detected — high demand period</div></div>`);
+        }
+        
+        return insights;
+    }
+    
+    function renderDashboard(data) {
+        const days = data.days;
+        const properties = data.properties;
+        const kpis = calculateKPIs(data);
+        const insights = generateInsights(data, kpis);
+        
+        if (!properties || properties.length === 0) {
+            document.getElementById('content').innerHTML = '<div class="error">No data found for this week. Upload daily rates first.</div>';
+            return;
+        }
+        
+        const marketHeatClass = kpis.priceUpCount > kpis.priceDownCount * 1.5 ? 'heat-hot' : (kpis.priceDownCount > kpis.priceUpCount * 1.5 ? 'heat-cool' : 'heat-stable');
+        const marketHeatText = kpis.priceUpCount > kpis.priceDownCount * 1.5 ? 'Warming up' : (kpis.priceDownCount > kpis.priceUpCount * 1.5 ? 'Cooling down' : 'Stable');
+        
+        let html = `
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-label">Avg Daily Rate</div>
+                    <div class="kpi-value">R ${Math.round(kpis.avgRate).toLocaleString()}</div>
+                    <div class="kpi-change">Across all properties</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Properties Tracked</div>
+                    <div class="kpi-value">${kpis.propertiesCount}</div>
+                    <div class="kpi-change">Competitors monitored</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">High Demand Days</div>
+                    <div class="kpi-value">${kpis.soldOutCount}</div>
+                    <div class="kpi-change">Sold-out instances</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Market Heat</div>
+                    <div class="kpi-value"><span class="heat-pill ${marketHeatClass}">${marketHeatText}</span></div>
+                    <div class="kpi-change">${kpis.priceUpCount} ↑ / ${kpis.priceDownCount} ↓</div>
+                </div>
+            </div>
+            
+            <div class="insights-card">
+                <div class="insights-title">🔍 Market Intelligence & Insights</div>
+                ${insights.join('')}
+            </div>
+            
+            <div class="section-title">📊 Daily Rate Movement — Day by Day Comparison</div>
+            <div class="table-wrapper">
+                <table class="daily-table">
+                    <thead>
+                        <tr class="day-group">
+                            <th rowspan="2">Property</th>
+                            ${days.map(day => `<th colspan="3">${day}</th>`).join('')}
+                        </tr>
+                        <tr>
+                            ${days.map(() => `<th>This Week</th><th>Last Week</th><th>Change</th>`).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        for (const prop of properties) {
+            html += `<tr>`;
+            html += `<td style="font-weight:700;text-align:left;">${escapeHtml(prop.property)}</td>`;
+            
+            for (const day of days) {
+                const current = prop[`${day}_current`];
+                const previous = prop[`${day}_previous`];
+                const change = prop[`${day}_change`];
+                const changePct = prop[`${day}_change_pct`];
+                const soldOut = prop[`${day}_sold_out`];
+                
+                let currentHtml = '';
+                if (soldOut) {
+                    currentHtml = '<span class="sold-out">Sold out</span>';
+                } else if (current !== null && current !== undefined) {
+                    currentHtml = `R ${Math.round(current).toLocaleString()}`;
+                } else {
+                    currentHtml = '<span class="no-data">—</span>';
+                }
+                
+                let previousHtml = '';
+                if (previous !== null && previous !== undefined) {
+                    previousHtml = `R ${Math.round(previous).toLocaleString()}`;
+                } else {
+                    previousHtml = '<span class="no-data">—</span>';
+                }
+                
+                let changeHtml = '';
+                if (change !== null && change !== undefined && change !== 0) {
+                    const changeClass = change > 0 ? 'rate-up' : 'rate-down';
+                    const sign = change > 0 ? '+' : '';
+                    changeHtml = `<span class="${changeClass}">${sign}R ${Math.abs(Math.round(change))}<br><small>(${sign}${Math.abs(Math.round(changePct))}%)</small></span>`;
+                } else if (change === 0) {
+                    changeHtml = '<span class="no-data">0</span>';
+                } else {
+                    changeHtml = '<span class="no-data">—</span>';
+                }
+                
+                html += `
+                    <td style="vertical-align:middle;">${currentHtml}</td>
+                    <td style="vertical-align:middle;">${previousHtml}</td>
+                    <td style="vertical-align:middle;">${changeHtml}</td>
+                `;
+            }
+            html += `</tr>`;
+        }
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+            <div class="sub-note">📌 Showing comparison between week starting ${data.week_start_date} and ${data.prev_week_start_date}</div>
+        `;
+        
+        document.getElementById('content').innerHTML = html;
+    }
+    
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+    
+    // Initialize
+    loadAvailableWeeks();
+    loadComparison();
 </script>
 </body>
 </html>
