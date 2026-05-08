@@ -3,166 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Daily Rate Shop — Day-by-Day Competitor Comparison</title>
+    <title>Daily Rate Intelligence Dashboard</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, sans-serif; background: #f1f5f9; color: #0f172a; padding: 24px; }
-        .container { max-width: 1600px; margin: 0 auto; }
-        .header { margin-bottom: 24px; }
-        .header h1 { font-size: 24px; margin-bottom: 8px; }
-        .header .sub { color: #64748b; margin-bottom: 24px; }
-        .week-bar { background: white; border-radius: 16px; padding: 16px 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; border: 1px solid #e2e8f0; }
-        .week-picker { padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 14px; background: white; min-width: 200px; }
-        .refresh-btn { background: #3b82f6; color: white; border: none; padding: 8px 20px; border-radius: 10px; font-weight: 500; cursor: pointer; }
-        .refresh-btn:hover { background: #2563eb; }
-        
-        /* Table styles - proper alignment */
-        .table-wrapper { overflow-x: auto; background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-top: 20px; }
-        .daily-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1200px; }
-        .daily-table th, .daily-table td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; vertical-align: middle; }
-        .daily-table th:first-child, .daily-table td:first-child { position: sticky; left: 0; background: white; font-weight: 600; text-align: left; z-index: 1; min-width: 180px; }
-        .daily-table th { background: #f8fafc; font-weight: 600; color: #475569; }
-        .day-group { background: #f1f5f9; border-bottom: 2px solid #e2e8f0; }
-        .rate-up { color: #10b981; font-weight: 600; }
-        .rate-down { color: #ef4444; font-weight: 600; }
-        .sold-out { background: #fef2f2; color: #dc2626; font-weight: 600; display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
-        .no-data { color: #94a3b8; }
-        .loading, .error { text-align: center; padding: 60px; background: white; border-radius: 16px; }
-        
-        .sub-note { margin-top: 16px; font-size: 12px; color: #64748b; text-align: right; }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: system-ui, -apple-system, sans-serif; background:#f8fafc; color:#1e293b; }
+
+        .topbar { background:white; border-bottom:1px solid #e2e8f0; padding:0 28px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:100; box-shadow:0 1px 3px rgba(0,0,0,.06); }
+        .logo { width:32px; height:32px; background:#3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:700; color:white; }
+
+        .main { max-width:1450px; margin:0 auto; padding:20px; }
+
+        .controls { background:white; padding:16px 24px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+        .control-group { display:flex; flex-direction:column; gap:4px; }
+        .control-group label { font-size:12px; font-weight:600; color:#64748b; }
+
+        .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:24px; }
+        .kpi { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:18px; }
+        .kpi-label { font-size:11px; font-weight:700; text-transform:uppercase; color:#64748b; }
+        .kpi-value { font-size:28px; font-weight:800; margin:8px 0 4px; }
+
+        .section-title { font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#64748b; margin:28px 0 12px; }
+
+        .table-wrapper { background:white; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th, td { padding:11px 8px; text-align:center; border-bottom:1px solid #f1f5f9; }
+        th { background:#f8fafc; font-weight:600; color:#475569; position:sticky; top:0; z-index:10; }
+        td:first-child { text-align:left; font-weight:600; background:#f8fafc; position:sticky; left:0; z-index:9; min-width:190px; }
+
+        .rate-up { color:#15803d; font-weight:600; }
+        .rate-down { color:#dc2626; font-weight:600; }
+        .sold-out { background:#fef2f2; color:#dc2626; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:700; }
+        .no-data { color:#94a3b8; }
+
+        .insights { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:20px; line-height:1.6; }
+        .insight { margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #f1f5f9; }
+        .insight:last-child { border-bottom:none; margin-bottom:0; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>📅 Daily Rate Shop — Day-by-Day Competitor Comparison</h1>
-        <div class="sub">Tracks daily rates for each property. Compare Monday vs Monday, Tuesday vs Tuesday, etc.</div>
+
+<div class="topbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <div class="logo">RI</div>
+        <div>
+            <strong>Daily Rate Intelligence</strong><br>
+            <span style="font-size:12px;color:#64748b;">Day-by-Day • Week-over-Week Analysis</span>
+        </div>
     </div>
-    
-    <div class="week-bar">
-        <label>📅 Select Week (Monday):</label>
-        <input type="date" id="weekPicker" class="week-picker">
-        <button class="refresh-btn" onclick="loadComparison()">Load Comparison</button>
+</div>
+
+<div class="main">
+    <div class="controls">
+        <div class="control-group">
+            <label>Week Starting</label>
+            <input type="date" id="weekPicker">
+        </div>
+        <div class="control-group">
+            <label>Search Property</label>
+            <input type="text" id="searchInput" placeholder="Filter properties..." style="padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px; width:220px;">
+        </div>
+        <button onclick="loadComparison()" style="padding:10px 24px; background:#3b82f6; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:600;">
+            Load Dashboard
+        </button>
     </div>
-    
-    <div id="content" class="loading">Loading...</div>
+
+    <div id="content">Select a week to load data.</div>
 </div>
 
 <script>
     const API_BASE = 'https://backend-x5sw.onrender.com';
-    
+    let allData = null;
+
     async function loadComparison() {
-        let weekStart = document.getElementById('weekPicker').value;
-        if (!weekStart) {
+        let week = document.getElementById('weekPicker').value;
+        if (!week) {
             const today = new Date();
-            const day = today.getDay();
-            const diff = day === 0 ? 6 : day - 1;
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - diff);
-            weekStart = monday.toISOString().split('T')[0];
-            document.getElementById('weekPicker').value = weekStart;
+            const diff = today.getDay() === 0 ? 6 : today.getDay() - 1;
+            const monday = new Date(today.getTime() - diff * 86400000);
+            week = monday.toISOString().split('T')[0];
+            document.getElementById('weekPicker').value = week;
         }
-        
-        const container = document.getElementById('content');
-        container.innerHTML = '<div class="loading">⏳ Loading daily comparison...</div>';
-        
+
+        const content = document.getElementById('content');
+        content.innerHTML = `<div style="text-align:center;padding:100px;">Loading daily intelligence...</div>`;
+
         try {
-            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
+            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${week}`);
             const data = await res.json();
-            renderDashboard(data);
-        } catch (err) {
-            container.innerHTML = `<div class="error">❌ Failed to load: ${err.message}</div>`;
+            allData = data;
+            renderFullDashboard(data);
+        } catch (e) {
+            content.innerHTML = `<div style="color:red;text-align:center;padding:60px;">Failed to load data. Make sure backend is running.</div>`;
         }
     }
-    
-    function renderDashboard(data) {
-        const days = data.days;
-        const properties = data.properties;
-        
-        if (!properties || properties.length === 0) {
-            document.getElementById('content').innerHTML = '<div class="error">No data found for this week. Upload daily rates first.</div>';
+
+    function renderFullDashboard(data) {
+        if (!data.properties || data.properties.length === 0) {
+            document.getElementById('content').innerHTML = `<div style="text-align:center;padding:80px;background:white;border-radius:16px;">No data found for this week.</div>`;
             return;
         }
+
+        let html = `
+            <div class="kpi-grid">
+                <div class="kpi"><div class="kpi-label">Properties</div><div class="kpi-value">${data.properties.length}</div></div>
+                <div class="kpi"><div class="kpi-label">Week</div><div class="kpi-value">${data.week_start_date}</div></div>
+                <div class="kpi"><div class="kpi-label">Avg Daily Change</div><div class="kpi-value" id="avg-change">—</div></div>
+                <div class="kpi"><div class="kpi-label">Most Volatile Day</div><div class="kpi-value" id="volatile-day">—</div></div>
+            </div>
+
+            <div class="section-title">📊 Daily Week-over-Week Comparison</div>
+            <div class="table-wrapper">
+                <table id="daily-table">
+                    <thead><tr><th>Property</th>`;
         
-        let html = `<div class="table-wrapper"><table class="daily-table"><thead>`;
-        
-        // Header row 1: Day groups spanning 3 columns each
-        html += `<tr class="day-group">`;
-        html += `<th rowspan="2">Property</th>`;
-        for (const day of days) {
-            html += `<th colspan="3">${day}</th>`;
-        }
-        html += `</tr>`;
-        
-        // Header row 2: This Week, Last Week, Change
-        html += `<tr>`;
-        for (let i = 0; i < days.length; i++) {
-            html += `<th>This Week</th><th>Last Week</th><th>Change</th>`;
-        }
-        html += `</tr></thead><tbody>`;
-        
-        for (const prop of properties) {
-            html += `<tr>`;
-            html += `<td style="font-weight:700;text-align:left;">${escapeHtml(prop.property)}</td>`;
-            
-            for (const day of days) {
-                const current = prop[`${day}_current`];
-                const previous = prop[`${day}_previous`];
-                const change = prop[`${day}_change`];
-                const changePct = prop[`${day}_change_pct`];
-                const soldOut = prop[`${day}_sold_out`];
-                
-                // This Week cell
-                let currentHtml = '';
-                if (soldOut) {
-                    currentHtml = '<span class="sold-out">Sold out</span>';
-                } else if (current !== null && current !== undefined) {
-                    currentHtml = `R ${Math.round(current).toLocaleString()}`;
-                } else {
-                    currentHtml = '<span class="no-data">—</span>';
-                }
-                
-                // Last Week cell
-                let previousHtml = '';
-                if (previous !== null && previous !== undefined) {
-                    previousHtml = `R ${Math.round(previous).toLocaleString()}`;
-                } else {
-                    previousHtml = '<span class="no-data">—</span>';
-                }
-                
-                // Change cell
-                let changeHtml = '';
-                if (change !== null && change !== undefined && change !== 0) {
-                    const changeClass = change > 0 ? 'rate-up' : 'rate-down';
-                    const sign = change > 0 ? '+' : '';
-                    changeHtml = `<span class="${changeClass}">${sign}R ${Math.abs(Math.round(change))}<br><small>(${sign}${Math.abs(Math.round(changePct))}%)</small></span>`;
-                } else if (change === 0) {
-                    changeHtml = '<span class="no-data">0</span>';
-                } else {
-                    changeHtml = '<span class="no-data">—</span>';
-                }
-                
-                html += `
-                    <td style="vertical-align:middle;">${currentHtml}</td>
-                    <td style="vertical-align:middle;">${previousHtml}</td>
-                    <td style="vertical-align:middle;">${changeHtml}</td>
-                `;
-            }
-            html += `</tr>`;
-        }
-        
-        html += `</tbody></table></div>`;
-        html += `<div class="sub-note">📌 Showing comparison between week starting ${data.week_start_date} and ${data.prev_week_start_date}</div>`;
-        
+        const days = data.days || ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+        days.forEach(day => html += `<th colspan="3">${day}</th>`);
+        html += `</tr><tr>`;
+        days.forEach(() => html += `<th>This Week</th><th>Last Week</th><th>Change</th>`);
+        html += `</tr></thead><tbody id="table-body"></tbody></table></div>`;
+
+        html += `<div class="section-title">🔍 AI Market Commentary & Patterns</div><div class="insights" id="insights"></div>`;
+
         document.getElementById('content').innerHTML = html;
+        renderTable(data.properties, days);
+        generateCommentary(data, days);
     }
-    
-    function escapeHtml(str) {
-        return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+
+    function renderTable(properties, days) {
+        const tbody = document.getElementById('table-body');
+        const search = document.getElementById('searchInput').value.toLowerCase();
+
+        let rows = '';
+        properties.forEach(prop => {
+            if (search && !prop.property.toLowerCase().includes(search)) return;
+
+            let row = `<tr><td>${escapeHtml(prop.property)}</td>`;
+            days.forEach(day => {
+                const curr = prop[`${day}_current`];
+                const prev = prop[`${day}_previous`];
+                const chg = prop[`${day}_change`];
+                const chgPct = prop[`${day}_change_pct`];
+                const sold = prop[`${day}_sold_out`];
+
+                const currHTML = sold ? `<span class="sold-out">SOLD OUT</span>` : (curr != null ? `R${Math.round(curr)}` : '—');
+                let changeHTML = '—';
+                if (chg != null) {
+                    const cls = chg > 0 ? 'rate-up' : 'rate-down';
+                    changeHTML = `<span class="${cls}">${chg > 0 ? '+' : ''}R${Math.abs(Math.round(chg))}<br><small>(${chg > 0 ? '+' : ''}${Math.round(chgPct)}%)</small></span>`;
+                }
+                row += `<td>${currHTML}</td><td>${prev != null ? 'R'+Math.round(prev) : '—'}</td><td>${changeHTML}</td>`;
+            });
+            row += `</tr>`;
+            rows += row;
+        });
+        tbody.innerHTML = rows;
     }
-    
-    // Load on page load
-    loadComparison();
+
+    function generateCommentary(data, days) {
+        const insightsDiv = document.getElementById('insights');
+        let commentary = `<p><strong>Week of ${data.week_start_date}</strong></p>`;
+
+        let totalPositiveChanges = 0, totalNegativeChanges = 0;
+        let biggestIncreaseDay = {day: '', value: -Infinity};
+        let biggestDropDay = {day: '', value: Infinity};
+
+        data.properties.forEach(prop => {
+            days.forEach(day => {
+                const change = prop[`${day}_change`] || 0;
+                if (change > 0) totalPositiveChanges++;
+                if (change < 0) totalNegativeChanges++;
+
+                if (change > biggestIncreaseDay.value) biggestIncreaseDay = {day, value: change};
+                if (change < biggestDropDay.value) biggestDropDay = {day, value: change};
+            });
+        });
+
+        commentary += `<div class="insight">• ${totalPositiveChanges} daily rate increases vs ${totalNegativeChanges} decreases this week.</div>`;
+
+        if (biggestIncreaseDay.value > 0) {
+            commentary += `<div class="insight">• <strong>${biggestIncreaseDay.day}</strong> saw the biggest average rate increase (+R${Math.round(biggestIncreaseDay.value)}).</div>`;
+        }
+        if (biggestDropDay.value < 0) {
+            commentary += `<div class="insight">• <strong>${biggestDropDay.day}</strong> had the largest rate drop.</div>`;
+        }
+
+        commentary += `<div class="insight">• Upload more weeks to enable deeper trend analysis and stronger recommendations.</div>`;
+        
+        insightsDiv.innerHTML = commentary;
+    }
+
+    // Live filtering
+    document.getElementById('searchInput').addEventListener('input', () => {
+        if (allData) renderTable(allData.properties, allData.days);
+    });
+
+    // Auto load
+    window.onload = loadComparison;
 </script>
 </body>
 </html>
