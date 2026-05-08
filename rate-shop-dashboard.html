@@ -210,7 +210,7 @@
     <div class="section-title">📋 Weekly rate movement <span style="font-size:11px;font-weight:400;color:#94a3b8;">(click headers to sort)</span></div>
     <div class="table-card">
       <div class="tbl-scroll">
-        <table id="main-table">
+        <tr>
           <thead>
             <tr>
               <th onclick="sortTable('property')">Property</th>
@@ -249,8 +249,16 @@
   const fmtPct = n => (n >= 0 ? '+' : '') + Number(n).toFixed(1) + '%';
   const fmtDate = d => {
     if (!d) return '—';
-    const dt = new Date(d + 'T00:00:00');
+    const clean = String(d).split(':')[0].split('%')[0];
+    const dt = new Date(clean + 'T00:00:00');
+    if (isNaN(dt.getTime())) return 'Invalid date';
     return dt.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
+  };
+
+  // Clean any malformed date (removes :1, %27, etc.)
+  const cleanDate = (d) => {
+    if (!d) return d;
+    return String(d).split(':')[0].split('%')[0];
   };
 
   async function init() {
@@ -267,9 +275,13 @@
 
   async function loadWeeks() {
     try {
-      const res  = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
-      allWeeks   = await res.json();
-    } catch { allWeeks = []; }
+      const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
+      let weeks = await res.json();
+      // Clean all week dates
+      allWeeks = weeks.map(w => cleanDate(w));
+    } catch { 
+      allWeeks = []; 
+    }
   }
 
   function renderWeekButtons() {
@@ -286,19 +298,21 @@
   }
 
   async function selectWeek(week) {
-    if (week === selectedWeek) return;
-    selectedWeek = week;
+    const cleanWeek = cleanDate(week);
+    if (cleanWeek === selectedWeek) return;
+    selectedWeek = cleanWeek;
     renderWeekButtons();
     show('loading-state');
     hide('dashboard');
     hide('empty-state');
-    await loadDashboard(week);
+    await loadDashboard(cleanWeek);
   }
 
   async function loadDashboard(week) {
+    const cleanWeek = cleanDate(week);
     try {
-      const url = `${API_BASE}/api/rate-shop/dashboard-data?week_start_date=${week}`;
-      const res  = await fetch(url);
+      const url = `${API_BASE}/api/rate-shop/dashboard-data?week_start_date=${cleanWeek}`;
+      const res = await fetch(url);
       const json = await res.json();
 
       hide('loading-state');
