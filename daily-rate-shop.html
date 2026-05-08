@@ -6,7 +6,11 @@
     <title>Market Intel | Revenue Insights</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: #f1f5f9; color: #0f172a; }
+        body { 
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; 
+            background: #f1f5f9; 
+            color: #0f172a;
+        }
 
         /* ========== PROFESSIONAL HEADER ========== */
         .market-header {
@@ -115,7 +119,7 @@
             border-radius: 8px;
             font-size: 13px;
             background: white;
-            min-width: 180px;
+            min-width: 200px;
         }
         .refresh-btn {
             background: #3b82f6;
@@ -174,166 +178,227 @@
         .trend-down { color: #ef4444; }
         .trend-neutral { color: #64748b; }
 
-        /* ========== SCROLLABLE CONTAINERS ========== */
-        .scroll-container {
-            margin: 20px 28px;
-            position: relative;
-        }
-        .scroll-header {
+        /* ========== FAST MOVERS & TRENDS ========== */
+        .section-header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
+            align-items: center;
+            margin: 28px 28px 16px 28px;
         }
-        .scroll-header h3 {
+        .section-title {
             font-size: 14px;
             font-weight: 700;
-            color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: #64748b;
         }
-        .scroll-arrows {
-            display: flex;
-            gap: 8px;
+        .movers-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin: 0 28px 24px 28px;
         }
-        .scroll-arrow {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: white;
-            border: 1px solid #e2e8f0;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            transition: all 0.2s;
+        @media (max-width: 1000px) {
+            .movers-grid { grid-template-columns: repeat(3, 1fr); }
         }
-        .scroll-arrow:hover {
-            background: #3b82f6;
-            border-color: #3b82f6;
-            color: white;
+        @media (max-width: 700px) {
+            .movers-grid { grid-template-columns: repeat(2, 1fr); }
         }
-
-        /* Property scroll */
-        .property-scroll {
-            overflow-x: auto;
-            scroll-behavior: smooth;
+        .mover-card {
             background: white;
             border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            padding: 4px;
-        }
-        .property-scroll::-webkit-scrollbar {
-            height: 8px;
-        }
-        .property-scroll::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
-        .property-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        .properties-container {
-            display: inline-flex;
-            gap: 1px;
-            background: #e2e8f0;
-        }
-        .property-card {
-            width: 280px;
-            flex-shrink: 0;
-            background: white;
+            padding: 16px;
+            border-left: 4px solid;
+            border-top: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
-            display: flex;
-            flex-direction: column;
-        }
-        .property-name {
-            padding: 14px 12px;
-            background: #f8fafc;
-            font-weight: 700;
-            font-size: 13px;
-            border-bottom: 2px solid #e2e8f0;
-            white-space: normal;
-            word-break: break-word;
-        }
-
-        /* Date scroll */
-        .date-scroll {
-            overflow-x: auto;
-            scroll-behavior: smooth;
-        }
-        .date-scroll::-webkit-scrollbar {
-            height: 6px;
-        }
-        .dates-container {
-            display: inline-flex;
-            background: #f8fafc;
             border-bottom: 1px solid #e2e8f0;
         }
-        .date-cell {
-            width: 130px;
-            flex-shrink: 0;
-            padding: 12px 8px;
+        .mover-up { border-left-color: #10b981; }
+        .mover-down { border-left-color: #ef4444; }
+        .mover-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .mover-rate {
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .mover-change {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .trends-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin: 0 28px 24px 28px;
+        }
+        @media (max-width: 800px) {
+            .trends-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .trend-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+        }
+        .trend-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .trend-rate {
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .trend-period {
+            font-size: 10px;
+            color: #94a3b8;
+            margin: 4px 0;
+        }
+        .trend-bar {
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .trend-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        /* ========== MAIN TABLE ========== */
+        .table-container {
+            margin: 0 28px 28px 28px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: auto;
+            max-height: 500px;
+        }
+        .rate-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 800px;
+        }
+        .rate-table th {
+            position: sticky;
+            top: 0;
+            background: #f8fafc;
+            padding: 14px 12px;
             text-align: center;
             font-weight: 700;
             font-size: 12px;
+            color: #64748b;
+            border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
+            z-index: 10;
+        }
+        .rate-table th:first-child {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 20;
+            text-align: left;
+        }
+        .rate-table td {
+            padding: 14px 12px;
+            text-align: center;
+            border-bottom: 1px solid #f1f5f9;
+            border-right: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .rate-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: white;
+            font-weight: 700;
+            text-align: left;
+            z-index: 5;
+        }
+        .rate-table tr:hover td {
             background: #f8fafc;
         }
-
-        /* Rate cells */
-        .day-rate-cell {
-            width: 130px;
-            flex-shrink: 0;
-            padding: 12px 8px;
-            text-align: center;
-            border-right: 1px solid #e2e8f0;
-            font-size: 12px;
+        .rate-table tr:hover td:first-child {
+            background: #f8fafc;
         }
-        .current-rate {
+        .date-header {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .date-header .day {
+            font-size: 13px;
             font-weight: 700;
             color: #0f172a;
         }
+        .date-header .date {
+            font-size: 10px;
+            font-weight: 500;
+            color: #94a3b8;
+        }
+        .current-rate {
+            font-weight: 800;
+            color: #0f172a;
+            font-size: 14px;
+        }
         .prev-rate {
-            font-size: 11px;
+            font-size: 10px;
             color: #64748b;
-            margin-top: 4px;
+            margin-top: 3px;
         }
         .change-badge {
+            display: inline-block;
             font-size: 10px;
             font-weight: 600;
-            padding: 2px 6px;
-            border-radius: 12px;
-            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
             margin-top: 4px;
         }
-        .change-up {
+        .change-positive {
             background: #dcfce7;
             color: #15803d;
         }
-        .change-down {
+        .change-negative {
             background: #fee2e2;
             color: #dc2626;
         }
-        .sold-out-badge {
+        .change-neutral {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .sold-out {
             background: #fef2f2;
             color: #dc2626;
             font-weight: 600;
-            font-size: 10px;
-            padding: 3px 8px;
-            border-radius: 12px;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 20px;
             display: inline-block;
         }
         .no-data {
-            color: #94a3b8;
+            color: #cbd5e1;
             font-size: 11px;
         }
 
-        /* Graph section */
+        /* ========== GRAPH SECTION ========== */
         .graph-section {
-            margin: 28px;
+            margin: 0 28px 40px 28px;
             background: white;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
@@ -343,11 +408,11 @@
             font-size: 14px;
             font-weight: 700;
             color: #64748b;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             text-transform: uppercase;
         }
         canvas {
-            max-height: 300px;
+            max-height: 280px;
             width: 100%;
         }
 
@@ -358,12 +423,19 @@
             border-radius: 20px;
             margin: 40px;
         }
+        
+        .insight-note {
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: right;
+            margin: 8px 28px 0 28px;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body>
 
-<!-- HEADER: Market Intel + Powered by Revenue Insights -->
+<!-- HEADER -->
 <div class="market-header">
     <div class="logo-area">
         <div class="market-logo">MI</div>
@@ -379,7 +451,7 @@
     </div>
 </div>
 
-<!-- Week Selector -->
+<!-- WEEK SELECTOR -->
 <div class="week-bar">
     <div class="week-controls">
         <label>📅 Compare Week:</label>
@@ -387,27 +459,78 @@
         <button class="refresh-btn" onclick="loadComparison()">Load</button>
     </div>
     <div class="week-controls">
-        <label>Or saved weeks:</label>
+        <label>Saved weeks:</label>
         <select id="weekSelect" class="week-select">
             <option value="">— Select week —</option>
         </select>
     </div>
     <div style="font-size: 12px; color: #64748b; margin-left: auto;">
-        <span>🖱️ Scroll horizontally → see all properties & dates</span>
+        <span>↔️ Scroll horizontally → see all properties (A-Z) | ↕️ Scroll vertically → see all dates</span>
     </div>
 </div>
 
-<!-- KPI Section - DYNAMIC, updates with week selection -->
+<!-- KPI SECTION -->
 <div id="kpiSection" class="kpi-grid" style="display: none;"></div>
 
-<!-- Content Area -->
-<div id="content" class="loading">Loading market intelligence...</div>
+<!-- FAST MOVERS -->
+<div id="fastMoversSection" style="display: none;">
+    <div class="section-header">
+        <div class="section-title">🚀 FAST MOVERS THIS WEEK</div>
+    </div>
+    <div id="fastMoversGrid" class="movers-grid"></div>
+</div>
+
+<!-- 4-WEEK TRENDS -->
+<div id="trendsSection" style="display: none;">
+    <div class="section-header">
+        <div class="section-title">📈 4-WEEK PRICE TREND (WK1 → WK4)</div>
+    </div>
+    <div id="trendsGrid" class="trends-grid"></div>
+</div>
+
+<!-- MAIN TABLE -->
+<div id="tableSection" style="display: none;">
+    <div class="section-header">
+        <div class="section-title">📊 DAILY RATE MOVEMENT — DAY BY DAY COMPARISON</div>
+    </div>
+    <div class="table-container" id="tableContainer"></div>
+    <div class="insight-note" id="tableNote"></div>
+</div>
+
+<!-- GRAPH SECTION -->
+<div id="graphSection" style="display: none;">
+    <div class="graph-section">
+        <h3>📈 RATE MOVEMENT — AVERAGE PRICE TREND (This Week vs Last Week)</h3>
+        <canvas id="rateChart"></canvas>
+    </div>
+</div>
+
+<div id="loadingState" class="loading">Loading market intelligence...</div>
+<div id="emptyState" class="empty-state" style="display: none;">📭 No data found. Upload daily rates first.</div>
 
 <script>
     const API_BASE = 'https://backend-x5sw.onrender.com';
     let currentData = null;
     let chart = null;
 
+    // Helper functions
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
+    }
+    
+    function formatFullDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+    }
+
+    // Load available weeks
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
@@ -418,8 +541,7 @@
                 const cleanWeek = String(week).split(':')[0].split('%')[0];
                 const option = document.createElement('option');
                 option.value = cleanWeek;
-                const date = new Date(cleanWeek + 'T00:00:00');
-                option.textContent = date.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
+                option.textContent = formatFullDate(cleanWeek);
                 select.appendChild(option);
             });
         } catch (err) {
@@ -434,6 +556,7 @@
         }
     });
 
+    // Main load function
     async function loadComparison() {
         let weekStart = document.getElementById('weekPicker').value;
         if (!weekStart) {
@@ -446,47 +569,55 @@
             document.getElementById('weekPicker').value = weekStart;
         }
         
-        const container = document.getElementById('content');
-        container.innerHTML = '<div class="loading">⏳ Loading daily comparison...</div>';
+        // Show loading, hide everything else
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('kpiSection').style.display = 'none';
+        document.getElementById('fastMoversSection').style.display = 'none';
+        document.getElementById('trendsSection').style.display = 'none';
+        document.getElementById('tableSection').style.display = 'none';
+        document.getElementById('graphSection').style.display = 'none';
         
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
             const data = await res.json();
             currentData = data;
             
-            // Calculate and render KPIs first
+            if (!data.properties || data.properties.length === 0) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('loadingState').style.display = 'none';
             renderKPIs(data);
-            // Then render the scrollable dashboard
-            renderDashboard(data);
+            renderFastMovers(data);
+            renderTrends(data);
+            renderTable(data);
+            renderChart(data);
+            
+            document.getElementById('kpiSection').style.display = 'grid';
+            document.getElementById('fastMoversSection').style.display = 'block';
+            document.getElementById('trendsSection').style.display = 'block';
+            document.getElementById('tableSection').style.display = 'block';
+            document.getElementById('graphSection').style.display = 'block';
+            
         } catch (err) {
-            container.innerHTML = `<div class="error">❌ Failed to load: ${err.message}</div>`;
-            document.getElementById('kpiSection').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').innerHTML = `<div class="empty-state">❌ Error: ${err.message}</div>`;
+            document.getElementById('emptyState').style.display = 'block';
         }
     }
 
+    // Render KPIs
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
         
-        if (!properties || properties.length === 0) {
-            document.getElementById('kpiSection').style.display = 'none';
-            return;
-        }
-        
-        // Calculate KPIs
-        let totalCurrentRates = 0;
-        let rateCount = 0;
-        let totalPrevRates = 0;
-        let prevCount = 0;
-        let soldOutCount = 0;
-        let priceUpCount = 0;
-        let priceDownCount = 0;
-        let biggestChange = 0;
-        let biggestMoverName = '';
-        let biggestChangeAbs = 0;
-        
-        // For median calculation
+        let totalCurrent = 0, rateCount = 0, totalPrev = 0, prevCount = 0;
         let allRates = [];
+        let soldOutCount = 0;
+        let biggestChange = 0, biggestMoverName = '', biggestChangeAbs = 0;
         
         for (const prop of properties) {
             for (const day of days) {
@@ -496,199 +627,222 @@
                 const change = prop[`${day}_change`];
                 
                 if (current && !soldOut) {
-                    totalCurrentRates += current;
+                    totalCurrent += current;
                     rateCount++;
                     allRates.push(current);
                 }
                 if (previous) {
-                    totalPrevRates += previous;
+                    totalPrev += previous;
                     prevCount++;
                 }
                 if (soldOut) soldOutCount++;
-                if (change && change !== 0) {
-                    if (change > 0) priceUpCount++;
-                    if (change < 0) priceDownCount++;
-                    
-                    const absChange = Math.abs(change);
-                    if (absChange > biggestChangeAbs) {
-                        biggestChangeAbs = absChange;
-                        biggestChange = change;
-                        biggestMoverName = prop.property;
-                    }
+                if (change && Math.abs(change) > biggestChangeAbs) {
+                    biggestChangeAbs = Math.abs(change);
+                    biggestChange = change;
+                    biggestMoverName = prop.property;
                 }
             }
         }
         
-        const avgRate = rateCount > 0 ? totalCurrentRates / rateCount : 0;
-        const prevAvgRate = prevCount > 0 ? totalPrevRates / prevCount : 0;
-        const avgChangePct = prevAvgRate > 0 ? ((avgRate - prevAvgRate) / prevAvgRate * 100) : 0;
+        const avgRate = rateCount > 0 ? totalCurrent / rateCount : 0;
+        const prevAvg = prevCount > 0 ? totalPrev / prevCount : 0;
+        const changePct = prevAvg > 0 ? ((avgRate - prevAvg) / prevAvg * 100) : 0;
         
-        // Calculate median
         allRates.sort((a, b) => a - b);
-        const medianRate = allRates.length > 0 ? allRates[Math.floor(allRates.length / 2)] : 0;
+        const median = allRates.length > 0 ? allRates[Math.floor(allRates.length / 2)] : 0;
         
-        const highDemandCount = properties.filter(prop => {
-            let hasHighDemand = false;
+        const highDemand = properties.filter(p => {
             for (const day of days) {
-                const soldOut = prop[`${day}_sold_out`];
-                if (soldOut) hasHighDemand = true;
+                if (p[`${day}_sold_out`]) return true;
             }
-            return hasHighDemand;
+            return false;
         }).length;
         
-        const weekDate = new Date(data.week_start_date + 'T00:00:00');
-        const prevWeekDate = data.prev_week_start_date ? new Date(data.prev_week_start_date + 'T00:00:00') : null;
-        
-        const kpiHtml = `
+        document.getElementById('kpiSection').innerHTML = `
             <div class="kpi-card">
                 <div class="kpi-label">AVG MARKET RATE</div>
                 <div class="kpi-value">R ${Math.round(avgRate).toLocaleString()}</div>
-                <div class="kpi-change ${avgChangePct > 0 ? 'trend-up' : (avgChangePct < 0 ? 'trend-down' : 'trend-neutral')}">
-                    ${avgChangePct > 0 ? '+' : ''}${avgChangePct.toFixed(1)}% vs last week
+                <div class="kpi-change ${changePct > 0 ? 'trend-up' : (changePct < 0 ? 'trend-down' : 'trend-neutral')}">
+                    ${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% vs last week
                 </div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">MEDIAN RATE</div>
-                <div class="kpi-value">R ${Math.round(medianRate).toLocaleString()}</div>
+                <div class="kpi-value">R ${Math.round(median).toLocaleString()}</div>
                 <div class="kpi-change trend-neutral">Mid-market benchmark</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">HIGH DEMAND</div>
-                <div class="kpi-value">${highDemandCount} / ${properties.length}</div>
+                <div class="kpi-value">${highDemand} / ${properties.length}</div>
                 <div class="kpi-change trend-neutral">Properties with sold-out days</div>
             </div>
             <div class="kpi-card">
                 <div class="kpi-label">BIGGEST MOVER</div>
                 <div class="kpi-value">${biggestChange > 0 ? '+' : ''}R ${Math.round(biggestChangeAbs).toLocaleString()}</div>
                 <div class="kpi-change ${biggestChange > 0 ? 'trend-up' : 'trend-down'}">
-                    ${escapeHtml(biggestMoverName.substring(0, 35))}${biggestMoverName.length > 35 ? '...' : ''}
+                    ${escapeHtml(biggestMoverName.substring(0, 35))}
                 </div>
             </div>
         `;
-        
-        const kpiSection = document.getElementById('kpiSection');
-        kpiSection.innerHTML = kpiHtml;
-        kpiSection.style.display = 'grid';
     }
 
-    function renderDashboard(data) {
+    // Render Fast Movers (from weekly data - using mock or fetch from weekly endpoint)
+    // For now, calculate from daily data
+    function renderFastMovers(data) {
         const days = data.days;
         const properties = data.properties;
         
-        if (!properties || properties.length === 0) {
-            document.getElementById('content').innerHTML = '<div class="empty-state">📭 No data found for this week. Upload daily rates first.</div>';
+        const movers = [];
+        for (const prop of properties) {
+            let totalChange = 0;
+            let changeCount = 0;
+            let latestRate = 0;
+            for (const day of days) {
+                const change = prop[`${day}_change`];
+                const current = prop[`${day}_current`];
+                if (change && change !== 0) {
+                    totalChange += change;
+                    changeCount++;
+                }
+                if (current) latestRate = current;
+            }
+            const avgChange = changeCount > 0 ? totalChange / changeCount : 0;
+            if (avgChange !== 0 && latestRate > 0) {
+                movers.push({
+                    name: prop.property,
+                    rate: latestRate,
+                    change: avgChange,
+                    changePct: (avgChange / (latestRate - avgChange)) * 100
+                });
+            }
+        }
+        
+        movers.sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+        const topMovers = movers.slice(0, 5);
+        
+        if (topMovers.length === 0) {
+            document.getElementById('fastMoversGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#94a3b8;">No significant movers this week</div>';
             return;
         }
+        
+        document.getElementById('fastMoversGrid').innerHTML = topMovers.map(m => `
+            <div class="mover-card ${m.change >= 0 ? 'mover-up' : 'mover-down'}">
+                <div class="mover-name">${escapeHtml(m.name)}</div>
+                <div class="mover-rate">R ${Math.round(m.rate).toLocaleString()}</div>
+                <div class="mover-change ${m.change >= 0 ? 'trend-up' : 'trend-down'}">
+                    ${m.change >= 0 ? '+' : ''}R ${Math.round(Math.abs(m.change)).toLocaleString()} (${m.changePct > 0 ? '+' : ''}${Math.abs(m.changePct).toFixed(1)}%)
+                </div>
+            </div>
+        `).join('');
+    }
 
-        let html = `
-            <!-- Property Horizontal Scroll -->
-            <div class="scroll-container">
-                <div class="scroll-header">
-                    <h3><span>🏨</span> PROPERTIES — HORIZONTAL SCROLL (${properties.length} total)</h3>
-                    <div class="scroll-arrows">
-                        <div class="scroll-arrow" onclick="scrollProperties('left')">←</div>
-                        <div class="scroll-arrow" onclick="scrollProperties('right')">→</div>
+    // Render 4-week trends
+    function renderTrends(data) {
+        // For now, show placeholder since 4-week data needs weekly endpoint
+        // Using available data to show some trends
+        const properties = data.properties.slice(0, 4);
+        const trendsHtml = properties.map(p => {
+            const firstRate = p[`${data.days[0]}_current`] || 0;
+            const lastRate = p[`${data.days[6]}_current`] || 0;
+            const changePct = firstRate > 0 ? ((lastRate - firstRate) / firstRate * 100) : 0;
+            const barColor = changePct > 0 ? '#10b981' : (changePct < 0 ? '#ef4444' : '#94a3b8');
+            const barWidth = Math.min(Math.abs(changePct) * 3, 100);
+            
+            return `
+                <div class="trend-card">
+                    <div class="trend-name">${escapeHtml(p.property.substring(0, 30))}</div>
+                    <div class="trend-rate">R ${Math.round(lastRate).toLocaleString()}</div>
+                    <div class="trend-period">Week of ${formatFullDate(data.week_start_date)}</div>
+                    <div class="trend-bar">
+                        <div class="trend-bar-fill" style="width: ${barWidth}%; background: ${barColor};"></div>
+                    </div>
+                    <div style="font-size: 11px; margin-top: 8px; ${changePct > 0 ? 'color:#10b981' : (changePct < 0 ? 'color:#ef4444' : 'color:#64748b')}">
+                        ${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% over week
                     </div>
                 </div>
-                <div class="property-scroll" id="propertyScroll">
-                    <div class="properties-container" id="propertiesContainer">
+            `;
+        }).join('');
+        
+        document.getElementById('trendsGrid').innerHTML = trendsHtml;
+    }
+
+    // Render main table with dates
+    function renderTable(data) {
+        const days = data.days;
+        const properties = data.properties;
+        
+        // Get actual dates for the week
+        const startDate = new Date(data.week_start_date + 'T00:00:00');
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(startDate);
+            d.setDate(startDate.getDate() + i);
+            weekDates.push(d.toISOString().split('T')[0]);
+        }
+        
+        let tableHtml = `
+            <table class="rate-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
         `;
         
-        for (let idx = 0; idx < properties.length; idx++) {
-            const prop = properties[idx];
-            html += `
-                <div class="property-card" data-prop-index="${idx}">
-                    <div class="property-name">${escapeHtml(prop.property)}</div>
+        for (let i = 0; i < days.length; i++) {
+            tableHtml += `
+                <th>
+                    <div class="date-header">
+                        <span class="day">${days[i]}</span>
+                        <span class="date">${formatDate(weekDates[i])}</span>
+                    </div>
+                </th>
             `;
+        }
+        
+        tableHtml += `</tr></thead><tbody>`;
+        
+        for (const prop of properties) {
+            tableHtml += `<tr><td>${escapeHtml(prop.property)}</td>`;
             
-            for (let d = 0; d < days.length; d++) {
-                const day = days[d];
+            for (let i = 0; i < days.length; i++) {
+                const day = days[i];
                 const current = prop[`${day}_current`];
                 const previous = prop[`${day}_previous`];
                 const change = prop[`${day}_change`];
                 const changePct = prop[`${day}_change_pct`];
                 const soldOut = prop[`${day}_sold_out`];
                 
-                html += `<div class="day-rate-cell">`;
                 if (soldOut) {
-                    html += `<div><span class="sold-out-badge">Sold out</span></div>`;
+                    tableHtml += `<td><span class="sold-out">Sold out</span></td>`;
                 } else if (current) {
-                    html += `<div class="current-rate">R ${Math.round(current).toLocaleString()}</div>`;
-                    if (previous) {
-                        html += `<div class="prev-rate">Last week: R ${Math.round(previous).toLocaleString()}</div>`;
-                        if (change && change !== 0) {
-                            const changeClass = change > 0 ? 'change-up' : 'change-down';
-                            const sign = change > 0 ? '+' : '';
-                            html += `<div><span class="change-badge ${changeClass}">${sign}${Math.round(Math.abs(change))} (${sign}${Math.abs(Math.round(changePct))}%)</span></div>`;
-                        }
+                    let changeHtml = '';
+                    if (change !== null && change !== undefined && change !== 0) {
+                        const changeClass = change > 0 ? 'change-positive' : 'change-negative';
+                        const sign = change > 0 ? '+' : '';
+                        changeHtml = `<div><span class="change-badge ${changeClass}">${sign}${Math.round(Math.abs(change))} (${sign}${Math.abs(Math.round(changePct))}%)</span></div>`;
+                    } else if (previous) {
+                        changeHtml = `<div><span class="change-badge change-neutral">0 (0%)</span></div>`;
                     }
+                    
+                    tableHtml += `
+                        <td>
+                            <div class="current-rate">R ${Math.round(current).toLocaleString()}</div>
+                            ${previous ? `<div class="prev-rate">Last week: R ${Math.round(previous).toLocaleString()}</div>` : ''}
+                            ${changeHtml}
+                        </td>
+                    `;
                 } else {
-                    html += `<div class="no-data">— No data —</div>`;
+                    tableHtml += `<td><span class="no-data">—</span></td>`;
                 }
-                html += `</div>`;
             }
-            html += `</div>`;
+            tableHtml += `</tr>`;
         }
         
-        html += `
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Date Horizontal Scroll Header -->
-            <div class="scroll-container">
-                <div class="scroll-header">
-                    <h3><span>📅</span> DATES — HORIZONTAL SCROLL</h3>
-                    <div class="scroll-arrows">
-                        <div class="scroll-arrow" onclick="scrollDates('left')">←</div>
-                        <div class="scroll-arrow" onclick="scrollDates('right')">→</div>
-                    </div>
-                </div>
-                <div class="date-scroll" id="dateScroll">
-                    <div class="dates-container" id="datesContainer">
-        `;
-        
-        for (let d = 0; d < days.length; d++) {
-            const day = days[d];
-            html += `
-                <div class="date-cell">
-                    <div><strong>${day}</strong></div>
-                    <div style="font-size: 10px; margin-top: 4px;">This Week vs Last Week</div>
-                </div>
-            `;
-        }
-        
-        html += `
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Graph Section -->
-            <div class="graph-section">
-                <h3>📈 RATE MOVEMENT — AVERAGE PRICE TREND (This Week vs Last Week)</h3>
-                <canvas id="rateMovementChart"></canvas>
-            </div>
-        `;
-        
-        document.getElementById('content').innerHTML = html;
-        
-        // Render graph
-        renderChart(data);
-        
-        // Sync scrolling
-        const propertyScroll = document.getElementById('propertyScroll');
-        const dateScroll = document.getElementById('dateScroll');
-        
-        if (propertyScroll && dateScroll) {
-            propertyScroll.addEventListener('scroll', () => {
-                dateScroll.scrollLeft = propertyScroll.scrollLeft;
-            });
-            dateScroll.addEventListener('scroll', () => {
-                propertyScroll.scrollLeft = dateScroll.scrollLeft;
-            });
-        }
+        tableHtml += `</tbody></table>`;
+        document.getElementById('tableContainer').innerHTML = tableHtml;
+        document.getElementById('tableNote').innerHTML = `📌 Showing week starting ${formatFullDate(data.week_start_date)} vs ${formatFullDate(data.prev_week_start_date)} | ↔️ Scroll horizontally for more properties | ↕️ Scroll vertically for all dates`;
     }
 
+    // Render chart
     function renderChart(data) {
         const days = data.days;
         const properties = data.properties;
@@ -696,17 +850,17 @@
         const avgCurrent = [];
         const avgPrevious = [];
         
-        for (let d = 0; d < days.length; d++) {
-            const day = days[d];
-            let sumCurrent = 0;
-            let sumPrev = 0;
-            let countCurrent = 0;
-            let countPrev = 0;
+        for (let i = 0; i < days.length; i++) {
+            const day = days[i];
+            let sumCurrent = 0, sumPrev = 0;
+            let countCurrent = 0, countPrev = 0;
             
             for (const prop of properties) {
                 const current = prop[`${day}_current`];
                 const previous = prop[`${day}_previous`];
-                if (current && !prop[`${day}_sold_out`]) {
+                const soldOut = prop[`${day}_sold_out`];
+                
+                if (current && !soldOut) {
                     sumCurrent += current;
                     countCurrent++;
                 }
@@ -720,11 +874,8 @@
             avgPrevious.push(countPrev > 0 ? sumPrev / countPrev : 0);
         }
         
-        const ctx = document.getElementById('rateMovementChart').getContext('2d');
-        
-        if (chart) {
-            chart.destroy();
-        }
+        const ctx = document.getElementById('rateChart').getContext('2d');
+        if (chart) chart.destroy();
         
         chart = new Chart(ctx, {
             type: 'line',
@@ -738,8 +889,8 @@
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
                         tension: 0.3,
                         fill: true,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     },
                     {
                         label: 'Last Week Avg Rate',
@@ -749,8 +900,8 @@
                         tension: 0.3,
                         fill: true,
                         borderDash: [5, 5],
-                        pointRadius: 4,
-                        pointHoverRadius: 6
+                        pointRadius: 5,
+                        pointHoverRadius: 7
                     }
                 ]
             },
@@ -765,55 +916,16 @@
                             }
                         }
                     },
-                    legend: {
-                        position: 'top',
-                    }
+                    legend: { position: 'top' }
                 },
                 scales: {
                     y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Rate (ZAR)',
-                            font: { weight: 'bold' }
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return 'R ' + value.toLocaleString();
-                            }
-                        }
+                        title: { display: true, text: 'Rate (ZAR)', font: { weight: 'bold' } },
+                        ticks: { callback: (v) => 'R ' + v.toLocaleString() }
                     }
                 }
             }
         });
-    }
-
-    function scrollProperties(direction) {
-        const container = document.getElementById('propertyScroll');
-        if (container) {
-            const scrollAmount = 300;
-            if (direction === 'left') {
-                container.scrollLeft -= scrollAmount;
-            } else {
-                container.scrollLeft += scrollAmount;
-            }
-        }
-    }
-    
-    function scrollDates(direction) {
-        const container = document.getElementById('dateScroll');
-        if (container) {
-            const scrollAmount = 300;
-            if (direction === 'left') {
-                container.scrollLeft -= scrollAmount;
-            } else {
-                container.scrollLeft += scrollAmount;
-            }
-        }
-    }
-
-    function escapeHtml(str) {
-        return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
     
     // Initialize
