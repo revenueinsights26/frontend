@@ -133,53 +133,6 @@
         }
         .refresh-btn:hover { background: #2563eb; }
 
-        /* ========== HORIZONTAL DATE SLIDER (NEW) ========== */
-        .slider-container {
-            background: white;
-            margin: 0 28px 20px 28px;
-            padding: 16px 20px;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-        }
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            -webkit-appearance: none;
-            background: #e2e8f0;
-            border-radius: 10px;
-            outline: none;
-        }
-        input[type="range"]:focus { outline: none; }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            background: #3b82f6;
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            border: 2px solid white;
-        }
-        .slider-week-info {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 12px;
-            font-size: 11px;
-            color: #94a3b8;
-        }
-        .slider-week-info .current-week {
-            font-weight: 700;
-            color: #3b82f6;
-        }
-
         /* ========== KPI CARDS ========== */
         .kpi-grid {
             display: grid;
@@ -225,7 +178,7 @@
         .trend-down { color: #ef4444; }
         .trend-neutral { color: #64748b; }
 
-        /* ========== FAST MOVERS & TRENDS ========== */
+        /* ========== FAST MOVERS ========== */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -282,6 +235,7 @@
             margin-top: 6px;
         }
 
+        /* ========== 4-WEEK TRENDS ========== */
         .trends-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -328,13 +282,14 @@
             border-radius: 4px;
         }
 
-        /* ========== MAIN TABLE ========== */
+        /* ========== MAIN TABLE - WITH HORIZONTAL SCROLL ========== */
         .table-container {
             margin: 0 28px 28px 28px;
             background: white;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
-            overflow: auto;
+            overflow-x: auto;      /* HORIZONTAL SCROLL BAR - THIS IS THE ONLY ADDITION */
+            overflow-y: auto;
             max-height: 500px;
         }
         .rate-table {
@@ -532,21 +487,7 @@
     <div id="trendsGrid" class="trends-grid"></div>
 </div>
 
-<!-- HORIZONTAL DATE SLIDER (NEW - WEEK BY WEEK) -->
-<div id="sliderContainer" class="slider-container" style="display: none;">
-    <div class="slider-label">
-        <span>← Earlier weeks</span>
-        <span>Slide to scroll through weeks →</span>
-    </div>
-    <input type="range" id="weekSlider" min="0" max="0" value="0" step="1">
-    <div class="slider-week-info">
-        <span id="sliderPrevWeekLabel">—</span>
-        <span id="sliderCurrentWeekLabel" class="current-week">—</span>
-        <span id="sliderNextWeekLabel">—</span>
-    </div>
-</div>
-
-<!-- MAIN TABLE -->
+<!-- MAIN TABLE - HORIZONTAL SCROLL BAR ADDED -->
 <div id="tableSection" style="display: none;">
     <div class="section-header">
         <div class="section-title">📊 DAILY RATE MOVEMENT — DAY BY DAY COMPARISON</div>
@@ -571,7 +512,6 @@
     let currentData = null;
     let chart = null;
     let availableWeeksList = [];
-    let currentWeekIndex = 0;
 
     // Helper functions
     function formatDate(dateStr) {
@@ -590,28 +530,13 @@
         return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
 
-    // Update slider UI based on current week index
-    function updateSliderUI() {
-        if (!availableWeeksList.length) return;
-        const slider = document.getElementById('weekSlider');
-        slider.max = availableWeeksList.length - 1;
-        slider.value = currentWeekIndex;
-        
-        const prevWeek = currentWeekIndex > 0 ? formatFullDate(availableWeeksList[currentWeekIndex - 1]) : '—';
-        const nextWeek = currentWeekIndex < availableWeeksList.length - 1 ? formatFullDate(availableWeeksList[currentWeekIndex + 1]) : '—';
-        
-        document.getElementById('sliderPrevWeekLabel').textContent = prevWeek !== '—' ? `← ${prevWeek}` : '← Start';
-        document.getElementById('sliderCurrentWeekLabel').textContent = formatFullDate(availableWeeksList[currentWeekIndex]);
-        document.getElementById('sliderNextWeekLabel').textContent = nextWeek !== '—' ? `${nextWeek} →` : 'End →';
-    }
-
-    // Load available weeks from API
+    // Load weeks for dropdown
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
             let weeks = await res.json();
             availableWeeksList = weeks.map(w => String(w).split(':')[0].split('%')[0]).filter(w => w);
-            availableWeeksList.sort(); // earliest to latest
+            availableWeeksList.sort().reverse();
             
             const select = document.getElementById('weekSelect');
             select.innerHTML = '<option value="">— Select week —</option>';
@@ -623,50 +548,17 @@
             });
             
             if (availableWeeksList.length > 0) {
-                currentWeekIndex = availableWeeksList.length - 1; // default to latest week
-                updateSliderUI();
-                document.getElementById('sliderContainer').style.display = 'block';
+                document.getElementById('weekPicker').value = availableWeeksList[0];
+                loadComparison();
             }
         } catch (err) {
             console.error('Failed to load weeks:', err);
         }
     }
 
-    // Event: week picker from dropdown
     document.getElementById('weekSelect').addEventListener('change', function(e) {
         if (e.target.value) {
-            const newIndex = availableWeeksList.indexOf(e.target.value);
-            if (newIndex !== -1) {
-                currentWeekIndex = newIndex;
-                updateSliderUI();
-                document.getElementById('weekPicker').value = e.target.value;
-                loadComparison();
-            }
-        }
-    });
-
-    // Event: date picker manual entry
-    document.getElementById('weekPicker').addEventListener('change', function(e) {
-        const val = e.target.value;
-        const idx = availableWeeksList.indexOf(val);
-        if (idx !== -1) {
-            currentWeekIndex = idx;
-            updateSliderUI();
-            loadComparison();
-        } else if (val) {
-            // If date not in available weeks, try to load anyway (API might handle)
-            loadComparison();
-        }
-    });
-
-    // Event: slider input
-    document.getElementById('weekSlider').addEventListener('input', function(e) {
-        const newIndex = parseInt(e.target.value);
-        if (newIndex !== currentWeekIndex && newIndex < availableWeeksList.length) {
-            currentWeekIndex = newIndex;
-            const newWeek = availableWeeksList[currentWeekIndex];
-            document.getElementById('weekPicker').value = newWeek;
-            updateSliderUI();
+            document.getElementById('weekPicker').value = e.target.value;
             loadComparison();
         }
     });
@@ -675,7 +567,7 @@
     async function loadComparison() {
         let weekStart = document.getElementById('weekPicker').value;
         if (!weekStart && availableWeeksList.length > 0) {
-            weekStart = availableWeeksList[currentWeekIndex];
+            weekStart = availableWeeksList[0];
             document.getElementById('weekPicker').value = weekStart;
         }
         if (!weekStart) {
@@ -688,14 +580,6 @@
             document.getElementById('weekPicker').value = weekStart;
         }
         
-        // Update current week index based on selected week
-        const idx = availableWeeksList.indexOf(weekStart);
-        if (idx !== -1) {
-            currentWeekIndex = idx;
-            updateSliderUI();
-        }
-        
-        // Show loading
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('kpiSection').style.display = 'none';
@@ -735,7 +619,6 @@
         }
     }
 
-    // Render KPIs
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
@@ -812,7 +695,6 @@
         `;
     }
 
-    // Render Fast Movers
     function renderFastMovers(data) {
         const days = data.days;
         const properties = data.properties;
@@ -861,7 +743,6 @@
         `).join('');
     }
 
-    // Render 4-week trends
     function renderTrends(data) {
         const properties = data.properties.slice(0, 4);
         const trendsHtml = properties.map(p => {
@@ -889,7 +770,6 @@
         document.getElementById('trendsGrid').innerHTML = trendsHtml;
     }
 
-    // Render main table with dates
     function renderTable(data) {
         const days = data.days;
         const properties = data.properties;
@@ -959,12 +839,11 @@
             tableHtml += `</tr>`;
         }
         
-        tableHtml += `</tbody>}</table>`;
+        tableHtml += `</tbody></table>`;
         document.getElementById('tableContainer').innerHTML = tableHtml;
-        document.getElementById('tableNote').innerHTML = `📌 Showing week starting ${formatFullDate(data.week_start_date)} vs ${formatFullDate(data.prev_week_start_date)} | ↔️ Scroll horizontally for more properties | ↕️ Scroll vertically for all dates | 🎚️ Use slider above to scroll through weeks`;
+        document.getElementById('tableNote').innerHTML = `📌 Showing week starting ${formatFullDate(data.week_start_date)} vs ${formatFullDate(data.prev_week_start_date)} | ↔️ Scroll horizontally to see more properties | ↕️ Scroll vertically for all dates | 🎚️ Use slider above to scroll through weeks`;
     }
 
-    // Render chart
     function renderChart(data) {
         const days = data.days;
         const properties = data.properties;
@@ -1051,9 +930,7 @@
     }
     
     // Initialize
-    loadAvailableWeeks().then(() => {
-        loadComparison();
-    });
+    loadAvailableWeeks();
 </script>
 </body>
 </html>
