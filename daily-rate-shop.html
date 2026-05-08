@@ -62,10 +62,6 @@
             border-radius: 40px;
             border: 1px solid #e2edf2;
         }
-        .powered-badge img {
-            width: 28px;
-            height: 28px;
-        }
         .powered-badge span {
             font-size: 12px;
             font-weight: 600;
@@ -133,6 +129,51 @@
         }
         .refresh-btn:hover { background: #2563eb; }
 
+        /* ========== KPI CARDS ========== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 24px 28px;
+        }
+        @media (max-width: 900px) {
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .kpi-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 24px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+            transition: all 0.2s;
+        }
+        .kpi-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+        }
+        .kpi-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #64748b;
+            margin-bottom: 8px;
+        }
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+            margin-bottom: 6px;
+        }
+        .kpi-change {
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .trend-up { color: #10b981; }
+        .trend-down { color: #ef4444; }
+        .trend-neutral { color: #64748b; }
+
         /* ========== SCROLLABLE CONTAINERS ========== */
         .scroll-container {
             margin: 20px 28px;
@@ -173,21 +214,11 @@
             border-color: #3b82f6;
             color: white;
         }
-        .scroll-arrow.disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-        .scroll-arrow.disabled:hover {
-            background: white;
-            border-color: #e2e8f0;
-            color: inherit;
-        }
 
-        /* Property scroll (vertical/horizontal hybrid) */
+        /* Property scroll */
         .property-scroll {
             overflow-x: auto;
             scroll-behavior: smooth;
-            white-space: nowrap;
             background: white;
             border-radius: 16px;
             border: 1px solid #e2e8f0;
@@ -205,7 +236,6 @@
             border-radius: 10px;
         }
 
-        /* Property cards container */
         .properties-container {
             display: inline-flex;
             gap: 1px;
@@ -225,17 +255,14 @@
             font-weight: 700;
             font-size: 13px;
             border-bottom: 2px solid #e2e8f0;
-            position: sticky;
-            left: 0;
             white-space: normal;
             word-break: break-word;
         }
 
-        /* Date scroll (horizontal for days) */
+        /* Date scroll */
         .date-scroll {
             overflow-x: auto;
             scroll-behavior: smooth;
-            white-space: nowrap;
         }
         .date-scroll::-webkit-scrollbar {
             height: 6px;
@@ -255,23 +282,8 @@
             border-right: 1px solid #e2e8f0;
             background: #f8fafc;
         }
-        .date-cell.week-compare {
-            background: #eff6ff;
-            color: #1d4ed8;
-        }
 
-        /* Rate table grid */
-        .rates-grid {
-            display: flex;
-            flex-direction: column;
-        }
-        .property-row {
-            display: flex;
-            border-bottom: 1px solid #f1f5f9;
-        }
-        .property-row:hover {
-            background: #f8fafc;
-        }
+        /* Rate cells */
         .day-rate-cell {
             width: 130px;
             flex-shrink: 0;
@@ -305,10 +317,6 @@
             background: #fee2e2;
             color: #dc2626;
         }
-        .change-neutral {
-            background: #f1f5f9;
-            color: #64748b;
-        }
         .sold-out-badge {
             background: #fef2f2;
             color: #dc2626;
@@ -317,6 +325,10 @@
             padding: 3px 8px;
             border-radius: 12px;
             display: inline-block;
+        }
+        .no-data {
+            color: #94a3b8;
+            font-size: 11px;
         }
 
         /* Graph section */
@@ -385,6 +397,9 @@
     </div>
 </div>
 
+<!-- KPI Section - DYNAMIC, updates with week selection -->
+<div id="kpiSection" class="kpi-grid" style="display: none;"></div>
+
 <!-- Content Area -->
 <div id="content" class="loading">Loading market intelligence...</div>
 
@@ -438,10 +453,122 @@
             const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
             const data = await res.json();
             currentData = data;
+            
+            // Calculate and render KPIs first
+            renderKPIs(data);
+            // Then render the scrollable dashboard
             renderDashboard(data);
         } catch (err) {
             container.innerHTML = `<div class="error">❌ Failed to load: ${err.message}</div>`;
+            document.getElementById('kpiSection').style.display = 'none';
         }
+    }
+
+    function renderKPIs(data) {
+        const days = data.days;
+        const properties = data.properties;
+        
+        if (!properties || properties.length === 0) {
+            document.getElementById('kpiSection').style.display = 'none';
+            return;
+        }
+        
+        // Calculate KPIs
+        let totalCurrentRates = 0;
+        let rateCount = 0;
+        let totalPrevRates = 0;
+        let prevCount = 0;
+        let soldOutCount = 0;
+        let priceUpCount = 0;
+        let priceDownCount = 0;
+        let biggestChange = 0;
+        let biggestMoverName = '';
+        let biggestChangeAbs = 0;
+        
+        // For median calculation
+        let allRates = [];
+        
+        for (const prop of properties) {
+            for (const day of days) {
+                const current = prop[`${day}_current`];
+                const previous = prop[`${day}_previous`];
+                const soldOut = prop[`${day}_sold_out`];
+                const change = prop[`${day}_change`];
+                
+                if (current && !soldOut) {
+                    totalCurrentRates += current;
+                    rateCount++;
+                    allRates.push(current);
+                }
+                if (previous) {
+                    totalPrevRates += previous;
+                    prevCount++;
+                }
+                if (soldOut) soldOutCount++;
+                if (change && change !== 0) {
+                    if (change > 0) priceUpCount++;
+                    if (change < 0) priceDownCount++;
+                    
+                    const absChange = Math.abs(change);
+                    if (absChange > biggestChangeAbs) {
+                        biggestChangeAbs = absChange;
+                        biggestChange = change;
+                        biggestMoverName = prop.property;
+                    }
+                }
+            }
+        }
+        
+        const avgRate = rateCount > 0 ? totalCurrentRates / rateCount : 0;
+        const prevAvgRate = prevCount > 0 ? totalPrevRates / prevCount : 0;
+        const avgChangePct = prevAvgRate > 0 ? ((avgRate - prevAvgRate) / prevAvgRate * 100) : 0;
+        
+        // Calculate median
+        allRates.sort((a, b) => a - b);
+        const medianRate = allRates.length > 0 ? allRates[Math.floor(allRates.length / 2)] : 0;
+        
+        const highDemandCount = properties.filter(prop => {
+            let hasHighDemand = false;
+            for (const day of days) {
+                const soldOut = prop[`${day}_sold_out`];
+                if (soldOut) hasHighDemand = true;
+            }
+            return hasHighDemand;
+        }).length;
+        
+        const weekDate = new Date(data.week_start_date + 'T00:00:00');
+        const prevWeekDate = data.prev_week_start_date ? new Date(data.prev_week_start_date + 'T00:00:00') : null;
+        
+        const kpiHtml = `
+            <div class="kpi-card">
+                <div class="kpi-label">AVG MARKET RATE</div>
+                <div class="kpi-value">R ${Math.round(avgRate).toLocaleString()}</div>
+                <div class="kpi-change ${avgChangePct > 0 ? 'trend-up' : (avgChangePct < 0 ? 'trend-down' : 'trend-neutral')}">
+                    ${avgChangePct > 0 ? '+' : ''}${avgChangePct.toFixed(1)}% vs last week
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">MEDIAN RATE</div>
+                <div class="kpi-value">R ${Math.round(medianRate).toLocaleString()}</div>
+                <div class="kpi-change trend-neutral">Mid-market benchmark</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">HIGH DEMAND</div>
+                <div class="kpi-value">${highDemandCount} / ${properties.length}</div>
+                <div class="kpi-change trend-neutral">Properties with sold-out days</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">BIGGEST MOVER</div>
+                <div class="kpi-value">${biggestChange > 0 ? '+' : ''}R ${Math.round(biggestChangeAbs).toLocaleString()}</div>
+                <div class="kpi-change ${biggestChange > 0 ? 'trend-up' : 'trend-down'}">
+                    ${escapeHtml(biggestMoverName.substring(0, 35))}${biggestMoverName.length > 35 ? '...' : ''}
+                </div>
+            </div>
+        `;
+        
+        const kpiSection = document.getElementById('kpiSection');
+        kpiSection.innerHTML = kpiHtml;
+        kpiSection.style.display = 'grid';
     }
 
     function renderDashboard(data) {
@@ -467,7 +594,6 @@
                     <div class="properties-container" id="propertiesContainer">
         `;
         
-        // Generate property cards
         for (let idx = 0; idx < properties.length; idx++) {
             const prop = properties[idx];
             html += `
@@ -475,7 +601,6 @@
                     <div class="property-name">${escapeHtml(prop.property)}</div>
             `;
             
-            // For each day, show rates
             for (let d = 0; d < days.length; d++) {
                 const day = days[d];
                 const current = prop[`${day}_current`];
@@ -484,7 +609,7 @@
                 const changePct = prop[`${day}_change_pct`];
                 const soldOut = prop[`${day}_sold_out`];
                 
-                html += `<div class="day-rate-cell" data-day="${day}" data-prop="${idx}">`;
+                html += `<div class="day-rate-cell">`;
                 if (soldOut) {
                     html += `<div><span class="sold-out-badge">Sold out</span></div>`;
                 } else if (current) {
@@ -523,11 +648,10 @@
                     <div class="dates-container" id="datesContainer">
         `;
         
-        // Date headers with comparison
         for (let d = 0; d < days.length; d++) {
             const day = days[d];
             html += `
-                <div class="date-cell ${d === 0 ? 'week-compare' : ''}">
+                <div class="date-cell">
                     <div><strong>${day}</strong></div>
                     <div style="font-size: 10px; margin-top: 4px;">This Week vs Last Week</div>
                 </div>
@@ -551,7 +675,7 @@
         // Render graph
         renderChart(data);
         
-        // Sync scrolling between property container and date header
+        // Sync scrolling
         const propertyScroll = document.getElementById('propertyScroll');
         const dateScroll = document.getElementById('dateScroll');
         
@@ -569,7 +693,6 @@
         const days = data.days;
         const properties = data.properties;
         
-        // Calculate average rates per day (this week vs last week)
         const avgCurrent = [];
         const avgPrevious = [];
         
@@ -665,7 +788,6 @@
         });
     }
 
-    // Scroll functions
     function scrollProperties(direction) {
         const container = document.getElementById('propertyScroll');
         if (container) {
