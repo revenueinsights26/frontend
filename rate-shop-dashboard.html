@@ -210,7 +210,7 @@
     <div class="section-title">📋 Weekly rate movement <span style="font-size:11px;font-weight:400;color:#94a3b8;">(click headers to sort)</span></div>
     <div class="table-card">
       <div class="tbl-scroll">
-        <tr>
+        <table id="main-table">
           <thead>
             <tr>
               <th onclick="sortTable('property')">Property</th>
@@ -249,13 +249,13 @@
   const fmtPct = n => (n >= 0 ? '+' : '') + Number(n).toFixed(1) + '%';
   const fmtDate = d => {
     if (!d) return '—';
+    // CLEAN DATE: remove :1, %27, etc.
     const clean = String(d).split(':')[0].split('%')[0];
     const dt = new Date(clean + 'T00:00:00');
-    if (isNaN(dt.getTime())) return 'Invalid date';
     return dt.toLocaleDateString('en-ZA', { day:'numeric', month:'short', year:'numeric' });
   };
 
-  // Clean any malformed date (removes :1, %27, etc.)
+  // NEW: Helper function to clean malformed dates
   const cleanDate = (d) => {
     if (!d) return d;
     return String(d).split(':')[0].split('%')[0];
@@ -275,9 +275,9 @@
 
   async function loadWeeks() {
     try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
+      const res  = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
       let weeks = await res.json();
-      // Clean all week dates
+      // CLEAN: Remove any trailing :1, :2, %27, etc. from dates
       allWeeks = weeks.map(w => cleanDate(w));
     } catch { 
       allWeeks = []; 
@@ -298,6 +298,7 @@
   }
 
   async function selectWeek(week) {
+    // CLEAN: Clean the week before using it
     const cleanWeek = cleanDate(week);
     if (cleanWeek === selectedWeek) return;
     selectedWeek = cleanWeek;
@@ -309,10 +310,11 @@
   }
 
   async function loadDashboard(week) {
+    // CLEAN: Clean the week parameter
     const cleanWeek = cleanDate(week);
     try {
       const url = `${API_BASE}/api/rate-shop/dashboard-data?week_start_date=${cleanWeek}`;
-      const res = await fetch(url);
+      const res  = await fetch(url);
       const json = await res.json();
 
       hide('loading-state');
@@ -454,8 +456,7 @@
           <div class="td-type-tag">${esc(r.property_type || '')}</div>
         </td>
         <td style="font-variant-numeric:tabular-nums;">${hasPrev ? fmtR(r.last_week) : '<span style="color:#94a3b8;">—</span>'}</td>
-        <td style="font-weight:700;font-variant-numeric:tabular-nums;">${fmtR(r.this_week)}</td>
-        <td class="${chgCls}" style="font-variant-numeric:tabular-nums;">${hasPrev ? (r.change_rand >= 0 ? '+' : '') + fmtR(Math.abs(r.change_rand)) : '<span style="color:#94a3b8;">—</span>'}</td>
+        <td style="font-weight:700;font-variant-numeric:tabular-nums;">${fmtR(r.this_week)}</td class="${chgCls}" style="font-variant-numeric:tabular-nums;">${hasPrev ? (r.change_rand >= 0 ? '+' : '') + fmtR(Math.abs(r.change_rand)) : '<span style="color:#94a3b8;">—</span>'}</td>
         <td class="${chgCls}">${hasPrev ? fmtPct(r.change_pct) : '<span style="color:#94a3b8;">—</span>'}</td>
         <td>${sold}</td>
         <td>${badge}</td>
