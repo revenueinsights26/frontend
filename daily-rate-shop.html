@@ -133,6 +133,95 @@
         }
         .refresh-btn:hover { background: #2563eb; }
 
+        /* ========== DATE NAVIGATION (like the image) ========== */
+        .date-nav-bar {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 10px 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .date-nav-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .date-nav-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+        .date-nav-btn:disabled { opacity: 0.35; cursor: default; }
+        .date-nav-date-pill {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e293b;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .date-nav-date-pill:hover { background: #f8fafc; }
+        .date-nav-date-pill input[type="date"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+        }
+        .view-today-btn {
+            border: 1px solid #cbd5e1;
+            background: white;
+            border-radius: 6px;
+            padding: 5px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .view-today-btn:hover { background: #f1f5f9; }
+        .date-nav-info {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            cursor: default;
+        }
+        .date-nav-range-label {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        #dateRangeDisplay {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e40af;
+            background: #eff6ff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-left: 6px;
+        }
+
         /* ========== KPI CARDS ========== */
         .kpi-grid {
             display: grid;
@@ -430,6 +519,172 @@
             text-align: right;
             margin: 8px 28px 0 28px;
         }
+
+        /* ========== AI COMMENTARY SECTION ========== */
+        .ai-commentary-section {
+            margin: 0 28px 40px 28px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 24px 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-commentary-section::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4);
+        }
+        .ai-commentary-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .ai-badge {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            padding: 5px 14px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .ai-commentary-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .ai-commentary-subtitle {
+            font-size: 12px;
+            color: #64748b;
+            margin-left: auto;
+        }
+        .ai-commentary-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 800px) {
+            .ai-commentary-body { grid-template-columns: 1fr; }
+        }
+        .ai-insight-block {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+        .ai-insight-block.highlight {
+            background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+            border-color: #bfdbfe;
+        }
+        .ai-insight-icon {
+            font-size: 22px;
+            margin-bottom: 8px;
+        }
+        .ai-insight-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #6366f1;
+            margin-bottom: 8px;
+        }
+        .ai-insight-text {
+            font-size: 13px;
+            line-height: 1.65;
+            color: #334155;
+        }
+        .ai-insight-text strong {
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .ai-loading-commentary {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .ai-loading-dots::after {
+            content: '...';
+            animation: dots 1.5s steps(3, end) infinite;
+        }
+        @keyframes dots {
+            0% { content: '.'; }
+            33% { content: '..'; }
+            66% { content: '...'; }
+        }
+        .ai-regen-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+            background: none;
+            border: 1px solid #e2e8f0;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .ai-regen-btn:hover { background: #f1f5f9; color: #374151; }
+        .ai-full-commentary {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #fafafa, #f8fafc);
+            border-radius: 14px;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .ai-full-commentary p {
+            font-size: 13.5px;
+            line-height: 1.75;
+            color: #334155;
+            margin-bottom: 12px;
+        }
+        .ai-full-commentary p:last-child { margin-bottom: 0; }
+        .ai-suggestions {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid #bbf7d0;
+        }
+        .ai-suggestion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .ai-suggestion-item:last-child { margin-bottom: 0; }
+        .ai-suggestion-bullet {
+            width: 22px;
+            height: 22px;
+            background: #22c55e;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .ai-suggestion-text {
+            font-size: 13px;
+            color: #166534;
+            line-height: 1.55;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -451,8 +706,8 @@
     </div>
 </div>
 
-<!-- WEEK SELECTOR -->
-<div class="week-bar">
+<!-- WEEK SELECTOR (legacy, hidden but kept for data loading) -->
+<div class="week-bar" style="display:none;">
     <div class="week-controls">
         <label>📅 Compare Week:</label>
         <input type="date" id="weekPicker" class="week-picker">
@@ -464,9 +719,21 @@
             <option value="">— Select week —</option>
         </select>
     </div>
-    <div style="font-size: 12px; color: #64748b; margin-left: auto;">
-        <span>↔️ Scroll horizontally → see all properties (A-Z) | ↕️ Scroll vertically → see all dates</span>
+</div>
+
+<!-- DATE NAVIGATION BAR (like the image) -->
+<div class="date-nav-bar">
+    <button class="date-nav-btn" id="navFirstBtn" onclick="navigateDates('first')" title="Jump to beginning">«</button>
+    <button class="date-nav-btn" id="navPrevBtn" onclick="navigateDates('prev')" title="Previous 7 days">‹</button>
+    <div class="date-nav-date-pill" onclick="document.getElementById('hiddenDatePicker').showPicker ? document.getElementById('hiddenDatePicker').showPicker() : document.getElementById('hiddenDatePicker').click()">
+        📅 <span id="currentDateLabel">Loading...</span>
+        <input type="date" id="hiddenDatePicker" style="position:absolute;opacity:0;pointer-events:none;width:0;" onchange="jumpToDate(this.value)">
     </div>
+    <button class="date-nav-btn" id="navNextBtn" onclick="navigateDates('next')" title="Next 7 days">›</button>
+    <button class="date-nav-btn" id="navLastBtn" onclick="navigateDates('last')" title="Jump to latest">»</button>
+    <button class="view-today-btn" onclick="navigateDates('today')">View today</button>
+    <div class="date-nav-info" title="Shows 7 days per view. Navigate with arrows.">ℹ</div>
+    <span id="dateRangeDisplay"></span>
 </div>
 
 <!-- KPI SECTION -->
@@ -505,6 +772,30 @@
     </div>
 </div>
 
+<!-- AI COMMENTARY SECTION -->
+<div id="aiCommentarySection" style="display: none;">
+    <div class="section-header">
+        <div class="section-title">🤖 AI RATE INTELLIGENCE</div>
+    </div>
+    <div class="ai-commentary-section">
+        <div class="ai-commentary-header">
+            <div class="ai-badge">✦ AI Analysis</div>
+            <div class="ai-commentary-title">Smart Rate Commentary</div>
+            <span class="ai-commentary-subtitle" id="aiCommentaryDateLabel"></span>
+            <button class="ai-regen-btn" onclick="generateAICommentary()" id="aiRegenBtn">
+                ↻ Refresh Analysis
+            </button>
+        </div>
+        <div id="aiCommentaryBody">
+            <div class="ai-loading-commentary">
+                <div style="font-size: 32px; margin-bottom: 12px;">🤖</div>
+                <div>Generating AI commentary<span class="ai-loading-dots"></span></div>
+                <div style="font-size: 11px; margin-top: 8px;">Analysing rate movements, demand signals & pricing gaps</div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="loadingState" class="loading">Loading market intelligence...</div>
 <div id="emptyState" class="empty-state" style="display: none;">📭 No data found. Upload daily rates first.</div>
 
@@ -512,6 +803,14 @@
     const API_BASE = 'https://backend-x5sw.onrender.com';
     let currentData = null;
     let chart = null;
+
+    // ---- DATE WINDOW STATE ----
+    // allAvailableDates: sorted array of all dates from the API (strings YYYY-MM-DD)
+    // currentWindowStart: index into allAvailableDates for the first visible column
+    const WINDOW_SIZE = 7;
+    let allAvailableDates = [];
+    let currentWindowStart = 0; // index
+    let allPropertiesData = {}; // cache: date -> property rates
 
     // Helper functions
     function formatDate(dateStr) {
@@ -525,12 +824,139 @@
         const d = new Date(dateStr + 'T00:00:00');
         return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
     }
+
+    function formatDayName(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr + 'T00:00:00');
+        return d.toLocaleDateString('en-ZA', { weekday: 'short' });
+    }
     
     function escapeHtml(str) {
         return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
 
-    // Load available weeks
+    function todayStr() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+    // ---- NAVIGATION ----
+    function navigateDates(direction) {
+        if (allAvailableDates.length === 0) return;
+        const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
+        if (direction === 'prev') {
+            currentWindowStart = Math.max(0, currentWindowStart - WINDOW_SIZE);
+        } else if (direction === 'next') {
+            currentWindowStart = Math.min(maxStart, currentWindowStart + WINDOW_SIZE);
+        } else if (direction === 'first') {
+            currentWindowStart = 0;
+        } else if (direction === 'last') {
+            currentWindowStart = maxStart;
+        } else if (direction === 'today') {
+            const today = todayStr();
+            let idx = allAvailableDates.indexOf(today);
+            if (idx === -1) {
+                // find nearest
+                idx = allAvailableDates.findIndex(d => d >= today);
+                if (idx === -1) idx = allAvailableDates.length - 1;
+            }
+            currentWindowStart = Math.min(maxStart, Math.max(0, idx));
+        }
+        updateNavUI();
+        renderCurrentWindow();
+    }
+
+    function jumpToDate(dateStr) {
+        if (!dateStr || allAvailableDates.length === 0) return;
+        let idx = allAvailableDates.indexOf(dateStr);
+        if (idx === -1) {
+            idx = allAvailableDates.findIndex(d => d >= dateStr);
+            if (idx === -1) idx = allAvailableDates.length - 1;
+        }
+        const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
+        currentWindowStart = Math.min(maxStart, Math.max(0, idx));
+        updateNavUI();
+        renderCurrentWindow();
+    }
+
+    function updateNavUI() {
+        const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
+        document.getElementById('navFirstBtn').disabled = currentWindowStart === 0;
+        document.getElementById('navPrevBtn').disabled = currentWindowStart === 0;
+        document.getElementById('navNextBtn').disabled = currentWindowStart >= maxStart;
+        document.getElementById('navLastBtn').disabled = currentWindowStart >= maxStart;
+
+        const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
+        if (windowDates.length > 0) {
+            const first = windowDates[0];
+            const last = windowDates[windowDates.length - 1];
+            document.getElementById('currentDateLabel').textContent = formatDate(first);
+            document.getElementById('dateRangeDisplay').textContent =
+                `${formatDate(first)} — ${formatDate(last)}`;
+        }
+    }
+
+    // Render the current 7-day window using already-loaded data
+    function renderCurrentWindow() {
+        if (!currentData) return;
+        const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
+        
+        // Build a synthetic data object shaped like original API response
+        const syntheticDays = windowDates.map(d => formatDayName(d));
+        const syntheticData = {
+            days: syntheticDays,
+            week_start_date: windowDates[0] || currentData.week_start_date,
+            prev_week_start_date: currentData.prev_week_start_date,
+            properties: currentData.properties.map(prop => {
+                const newProp = { property: prop.property };
+                windowDates.forEach((date, i) => {
+                    const dayKey = syntheticDays[i];
+                    // Try to find matching data from original
+                    // We map by original day keys from stored allDatesData
+                    const cached = allPropertiesData[date] && allPropertiesData[date][prop.property];
+                    if (cached) {
+                        newProp[`${dayKey}_current`] = cached.current;
+                        newProp[`${dayKey}_previous`] = cached.previous;
+                        newProp[`${dayKey}_change`] = cached.change;
+                        newProp[`${dayKey}_change_pct`] = cached.changePct;
+                        newProp[`${dayKey}_sold_out`] = cached.soldOut;
+                    } else {
+                        // Fall back to original data matching by date position
+                        const origIdx = currentData.days ? getOrigDateIdx(date) : -1;
+                        if (origIdx !== -1) {
+                            const origDay = currentData.days[origIdx];
+                            newProp[`${dayKey}_current`] = prop[`${origDay}_current`];
+                            newProp[`${dayKey}_previous`] = prop[`${origDay}_previous`];
+                            newProp[`${dayKey}_change`] = prop[`${origDay}_change`];
+                            newProp[`${dayKey}_change_pct`] = prop[`${origDay}_change_pct`];
+                            newProp[`${dayKey}_sold_out`] = prop[`${origDay}_sold_out`];
+                        } else {
+                            newProp[`${dayKey}_current`] = null;
+                        }
+                    }
+                });
+                return newProp;
+            }),
+            // store the actual dates for rendering
+            _windowDates: windowDates
+        };
+        
+        renderTable(syntheticData, windowDates);
+        renderChart(syntheticData, windowDates);
+        generateAICommentary(syntheticData, windowDates);
+    }
+
+    function getOrigDateIdx(targetDate) {
+        if (!currentData || !currentData.week_start_date) return -1;
+        const startDate = new Date(currentData.week_start_date + 'T00:00:00');
+        for (let i = 0; i < currentData.days.length; i++) {
+            const d = new Date(startDate);
+            d.setDate(startDate.getDate() + i);
+            if (d.toISOString().split('T')[0] === targetDate) return i;
+        }
+        return -1;
+    }
+
+    // ---- LOAD AVAILABLE WEEKS ----
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
@@ -556,7 +982,7 @@
         }
     });
 
-    // Main load function
+    // ---- MAIN LOAD ----
     async function loadComparison() {
         let weekStart = document.getElementById('weekPicker').value;
         if (!weekStart) {
@@ -569,7 +995,6 @@
             document.getElementById('weekPicker').value = weekStart;
         }
         
-        // Show loading, hide everything else
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('kpiSection').style.display = 'none';
@@ -577,6 +1002,7 @@
         document.getElementById('trendsSection').style.display = 'none';
         document.getElementById('tableSection').style.display = 'none';
         document.getElementById('graphSection').style.display = 'none';
+        document.getElementById('aiCommentarySection').style.display = 'none';
         
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
@@ -588,19 +1014,52 @@
                 document.getElementById('emptyState').style.display = 'block';
                 return;
             }
+
+            // Build allAvailableDates from the loaded week
+            const startDate = new Date(data.week_start_date + 'T00:00:00');
+            allAvailableDates = [];
+            for (let i = 0; i < data.days.length; i++) {
+                const d = new Date(startDate);
+                d.setDate(startDate.getDate() + i);
+                allAvailableDates.push(d.toISOString().split('T')[0]);
+            }
+
+            // Cache per-date property data
+            allPropertiesData = {};
+            allAvailableDates.forEach((date, i) => {
+                const dayKey = data.days[i];
+                allPropertiesData[date] = {};
+                data.properties.forEach(prop => {
+                    allPropertiesData[date][prop.property] = {
+                        current: prop[`${dayKey}_current`],
+                        previous: prop[`${dayKey}_previous`],
+                        change: prop[`${dayKey}_change`],
+                        changePct: prop[`${dayKey}_change_pct`],
+                        soldOut: prop[`${dayKey}_sold_out`]
+                    };
+                });
+            });
+
+            // Start window at today or first date
+            const today = todayStr();
+            let todayIdx = allAvailableDates.indexOf(today);
+            if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
+            if (todayIdx === -1) todayIdx = 0;
+            currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
             
             document.getElementById('loadingState').style.display = 'none';
             renderKPIs(data);
             renderFastMovers(data);
             renderTrends(data);
-            renderTable(data);
-            renderChart(data);
+            updateNavUI();
+            renderCurrentWindow();
             
             document.getElementById('kpiSection').style.display = 'grid';
             document.getElementById('fastMoversSection').style.display = 'block';
             document.getElementById('trendsSection').style.display = 'block';
             document.getElementById('tableSection').style.display = 'block';
             document.getElementById('graphSection').style.display = 'block';
+            document.getElementById('aiCommentarySection').style.display = 'block';
             
         } catch (err) {
             document.getElementById('loadingState').style.display = 'none';
@@ -609,7 +1068,7 @@
         }
     }
 
-    // Render KPIs
+    // ---- RENDER KPIs ----
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
@@ -686,8 +1145,7 @@
         `;
     }
 
-    // Render Fast Movers (from weekly data - using mock or fetch from weekly endpoint)
-    // For now, calculate from daily data
+    // ---- RENDER FAST MOVERS ----
     function renderFastMovers(data) {
         const days = data.days;
         const properties = data.properties;
@@ -736,14 +1194,12 @@
         `).join('');
     }
 
-    // Render 4-week trends
+    // ---- RENDER TRENDS ----
     function renderTrends(data) {
-        // For now, show placeholder since 4-week data needs weekly endpoint
-        // Using available data to show some trends
         const properties = data.properties.slice(0, 4);
         const trendsHtml = properties.map(p => {
             const firstRate = p[`${data.days[0]}_current`] || 0;
-            const lastRate = p[`${data.days[6]}_current`] || 0;
+            const lastRate = p[`${data.days[data.days.length - 1]}_current`] || 0;
             const changePct = firstRate > 0 ? ((lastRate - firstRate) / firstRate * 100) : 0;
             const barColor = changePct > 0 ? '#10b981' : (changePct < 0 ? '#ef4444' : '#94a3b8');
             const barWidth = Math.min(Math.abs(changePct) * 3, 100);
@@ -766,19 +1222,12 @@
         document.getElementById('trendsGrid').innerHTML = trendsHtml;
     }
 
-    // Render main table with dates
-    function renderTable(data) {
+    // ---- RENDER TABLE (with windowDates for proper column headers) ----
+    function renderTable(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
-        
-        // Get actual dates for the week
-        const startDate = new Date(data.week_start_date + 'T00:00:00');
-        const weekDates = [];
-        for (let i = 0; i < 7; i++) {
-            const d = new Date(startDate);
-            d.setDate(startDate.getDate() + i);
-            weekDates.push(d.toISOString().split('T')[0]);
-        }
+        const dates = windowDates || [];
+        const today = todayStr();
         
         let tableHtml = `
             <table class="rate-table">
@@ -788,11 +1237,15 @@
         `;
         
         for (let i = 0; i < days.length; i++) {
+            const dateStr = dates[i] || '';
+            const isToday = dateStr === today;
+            const isWeekend = dateStr ? [0, 6].includes(new Date(dateStr + 'T00:00:00').getDay()) : false;
+            const bgStyle = isToday ? 'background:#dbeafe;' : (isWeekend ? 'background:#fff7ed;' : '');
             tableHtml += `
-                <th>
+                <th style="${bgStyle}">
                     <div class="date-header">
-                        <span class="day">${days[i]}</span>
-                        <span class="date">${formatDate(weekDates[i])}</span>
+                        <span class="day" style="${isToday ? 'color:#1d4ed8;' : ''}">${days[i]}${isToday ? ' ★' : ''}</span>
+                        <span class="date">${dateStr ? formatDate(dateStr) : ''}</span>
                     </div>
                 </th>
             `;
@@ -805,6 +1258,10 @@
             
             for (let i = 0; i < days.length; i++) {
                 const day = days[i];
+                const dateStr = dates[i] || '';
+                const isToday = dateStr === today;
+                const isWeekend = dateStr ? [0, 6].includes(new Date(dateStr + 'T00:00:00').getDay()) : false;
+                const cellBg = isToday ? 'background:#eff6ff;' : (isWeekend ? 'background:#fffbf5;' : '');
                 const current = prop[`${day}_current`];
                 const previous = prop[`${day}_previous`];
                 const change = prop[`${day}_change`];
@@ -812,7 +1269,7 @@
                 const soldOut = prop[`${day}_sold_out`];
                 
                 if (soldOut) {
-                    tableHtml += `<td><span class="sold-out">Sold out</span></td>`;
+                    tableHtml += `<td style="${cellBg}"><span class="sold-out">Sold out</span></td>`;
                 } else if (current) {
                     let changeHtml = '';
                     if (change !== null && change !== undefined && change !== 0) {
@@ -824,14 +1281,14 @@
                     }
                     
                     tableHtml += `
-                        <td>
+                        <td style="${cellBg}">
                             <div class="current-rate">R ${Math.round(current).toLocaleString()}</div>
                             ${previous ? `<div class="prev-rate">Last week: R ${Math.round(previous).toLocaleString()}</div>` : ''}
                             ${changeHtml}
                         </td>
                     `;
                 } else {
-                    tableHtml += `<td><span class="no-data">—</span></td>`;
+                    tableHtml += `<td style="${cellBg}"><span class="no-data">—</span></td>`;
                 }
             }
             tableHtml += `</tr>`;
@@ -839,13 +1296,17 @@
         
         tableHtml += `</tbody></table>`;
         document.getElementById('tableContainer').innerHTML = tableHtml;
-        document.getElementById('tableNote').innerHTML = `📌 Showing week starting ${formatFullDate(data.week_start_date)} vs ${formatFullDate(data.prev_week_start_date)} | ↔️ Scroll horizontally for more properties | ↕️ Scroll vertically for all dates`;
+        
+        if (dates.length >= 2) {
+            document.getElementById('tableNote').innerHTML = `📌 Showing ${formatFullDate(dates[0])} — ${formatFullDate(dates[dates.length-1])} vs previous week | Use ‹ › arrows to navigate dates`;
+        }
     }
 
-    // Render chart
-    function renderChart(data) {
+    // ---- RENDER CHART (updates with navigation) ----
+    function renderChart(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
+        const dates = windowDates || [];
         
         const avgCurrent = [];
         const avgPrevious = [];
@@ -874,16 +1335,22 @@
             avgPrevious.push(countPrev > 0 ? sumPrev / countPrev : 0);
         }
         
+        // Build labels: "Mon 12 May" style
+        const labels = days.map((day, i) => {
+            const dateStr = dates[i];
+            return dateStr ? `${day} ${formatDate(dateStr)}` : day;
+        });
+
         const ctx = document.getElementById('rateChart').getContext('2d');
         if (chart) chart.destroy();
         
         chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: days,
+                labels: labels,
                 datasets: [
                     {
-                        label: 'This Week Avg Rate',
+                        label: 'Current Period Avg Rate',
                         data: avgCurrent,
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -893,7 +1360,7 @@
                         pointHoverRadius: 7
                     },
                     {
-                        label: 'Last Week Avg Rate',
+                        label: 'Previous Period Avg Rate',
                         data: avgPrevious,
                         borderColor: '#94a3b8',
                         backgroundColor: 'rgba(148, 163, 184, 0.1)',
@@ -926,6 +1393,194 @@
                 }
             }
         });
+    }
+
+    // ---- AI COMMENTARY ----
+    async function generateAICommentary(data, windowDates) {
+        // Allow calling without args (manual refresh button)
+        if (!data) {
+            if (!currentData) return;
+            const dates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
+            renderCurrentWindow();
+            return;
+        }
+
+        const bodyEl = document.getElementById('aiCommentaryBody');
+        const dateLabel = document.getElementById('aiCommentaryDateLabel');
+        const dates = windowDates || [];
+
+        if (dates.length) {
+            dateLabel.textContent = `${formatFullDate(dates[0])} — ${formatFullDate(dates[dates.length-1])}`;
+        }
+
+        bodyEl.innerHTML = `<div class="ai-loading-commentary">
+            <div style="font-size:32px;margin-bottom:12px;">🤖</div>
+            <div>Generating AI commentary<span class="ai-loading-dots"></span></div>
+            <div style="font-size:11px;margin-top:8px;color:#94a3b8;">Analysing rate movements, demand signals & pricing gaps</div>
+        </div>`;
+
+        // Build a summary of the data to send to Claude
+        const days = data.days;
+        const properties = data.properties;
+
+        // Compute stats per property
+        const propStats = properties.map(prop => {
+            let rates = [], changes = [], soldOuts = 0;
+            days.forEach(day => {
+                const c = prop[`${day}_current`];
+                const ch = prop[`${day}_change`];
+                const so = prop[`${day}_sold_out`];
+                if (c && !so) rates.push(c);
+                if (ch) changes.push(ch);
+                if (so) soldOuts++;
+            });
+            const avg = rates.length ? rates.reduce((a,b)=>a+b,0)/rates.length : 0;
+            const totalChange = changes.reduce((a,b)=>a+b,0);
+            return { name: prop.property, avgRate: Math.round(avg), totalChange: Math.round(totalChange), soldOuts };
+        });
+
+        // Market-wide stats
+        let allCurrentRates = [];
+        let totalUp = 0, totalDown = 0, totalFlat = 0;
+        properties.forEach(prop => {
+            days.forEach(day => {
+                const c = prop[`${day}_current`];
+                const ch = prop[`${day}_change`];
+                if (c && !prop[`${day}_sold_out`]) allCurrentRates.push(c);
+                if (ch > 0) totalUp++;
+                else if (ch < 0) totalDown++;
+                else totalFlat++;
+            });
+        });
+        const mktAvg = allCurrentRates.length ? Math.round(allCurrentRates.reduce((a,b)=>a+b,0)/allCurrentRates.length) : 0;
+        const mktMin = allCurrentRates.length ? Math.round(Math.min(...allCurrentRates)) : 0;
+        const mktMax = allCurrentRates.length ? Math.round(Math.max(...allCurrentRates)) : 0;
+        const dateRange = dates.length ? `${formatFullDate(dates[0])} to ${formatFullDate(dates[dates.length-1])}` : 'current period';
+
+        const prompt = `You are a professional hotel revenue manager and market intelligence analyst. Analyse the following daily rate shop data and provide smart, actionable commentary.
+
+DATE RANGE: ${dateRange}
+MARKET STATS:
+- Average market rate: R ${mktAvg.toLocaleString()}
+- Rate range: R ${mktMin.toLocaleString()} – R ${mktMax.toLocaleString()}
+- Rate movements: ${totalUp} increases, ${totalDown} decreases, ${totalFlat} unchanged
+
+PROPERTY RATES:
+${propStats.map(p => `- ${p.name}: avg R ${p.avgRate.toLocaleString()}, net change R ${p.totalChange > 0 ? '+' : ''}${p.totalChange.toLocaleString()}, sold-out days: ${p.soldOuts}`).join('\n')}
+
+Respond ONLY with a valid JSON object (no markdown, no backticks) with this structure:
+{
+  "marketOverview": "2-3 sentence overview of market conditions and overall pricing trends",
+  "pricingGaps": "1-2 sentences about spread between highest and lowest rates and what it signals",
+  "demandSignals": "1-2 sentences about sold-out properties, high/low demand indicators",
+  "rateMovements": "1-2 sentences about which direction rates are moving and velocity",
+  "suggestions": ["actionable suggestion 1", "actionable suggestion 2", "actionable suggestion 3"]
+}`;
+
+        try {
+            const response = await fetch("https://api.anthropic.com/v1/messages", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "claude-sonnet-4-20250514",
+                    max_tokens: 1000,
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
+
+            const apiData = await response.json();
+            const rawText = apiData.content?.map(b => b.text || '').join('') || '';
+            const clean = rawText.replace(/```json|```/g, '').trim();
+            const commentary = JSON.parse(clean);
+
+            bodyEl.innerHTML = `
+                <div class="ai-commentary-body">
+                    <div class="ai-insight-block highlight">
+                        <div class="ai-insight-icon">🌍</div>
+                        <div class="ai-insight-label">Market Overview</div>
+                        <div class="ai-insight-text">${escapeHtml(commentary.marketOverview)}</div>
+                    </div>
+                    <div class="ai-insight-block">
+                        <div class="ai-insight-icon">📊</div>
+                        <div class="ai-insight-label">Pricing Gaps & Spread</div>
+                        <div class="ai-insight-text">${escapeHtml(commentary.pricingGaps)}</div>
+                    </div>
+                    <div class="ai-insight-block">
+                        <div class="ai-insight-icon">🔥</div>
+                        <div class="ai-insight-label">Demand Signals</div>
+                        <div class="ai-insight-text">${escapeHtml(commentary.demandSignals)}</div>
+                    </div>
+                    <div class="ai-insight-block">
+                        <div class="ai-insight-icon">📈</div>
+                        <div class="ai-insight-label">Rate Movement Velocity</div>
+                        <div class="ai-insight-text">${escapeHtml(commentary.rateMovements)}</div>
+                    </div>
+                    <div class="ai-suggestions">
+                        <div class="ai-insight-label" style="margin-bottom:14px;">✅ REVENUE MANAGER SUGGESTIONS</div>
+                        ${commentary.suggestions.map((s, i) => `
+                            <div class="ai-suggestion-item">
+                                <div class="ai-suggestion-bullet">${i+1}</div>
+                                <div class="ai-suggestion-text">${escapeHtml(s)}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } catch (err) {
+            // Fallback: generate rule-based commentary if API fails
+            const fallbackCommentary = generateFallbackCommentary(propStats, mktAvg, mktMin, mktMax, totalUp, totalDown, dateRange);
+            bodyEl.innerHTML = fallbackCommentary;
+            console.warn('AI API unavailable, using rule-based commentary:', err.message);
+        }
+    }
+
+    function generateFallbackCommentary(propStats, mktAvg, mktMin, mktMax, totalUp, totalDown, dateRange) {
+        const spread = mktMax - mktMin;
+        const spreadPct = mktMin > 0 ? Math.round((spread / mktMin) * 100) : 0;
+        const topProp = propStats.reduce((a, b) => b.avgRate > a.avgRate ? b : a, propStats[0] || {});
+        const bottomProp = propStats.reduce((a, b) => b.avgRate < a.avgRate ? b : a, propStats[0] || {});
+        const soldOutProps = propStats.filter(p => p.soldOuts > 0);
+        const risingProps = propStats.filter(p => p.totalChange > 0);
+        const fallingProps = propStats.filter(p => p.totalChange < 0);
+        const sentiment = totalUp > totalDown ? 'bullish' : (totalDown > totalUp ? 'softening' : 'stable');
+
+        return `<div class="ai-commentary-body">
+            <div class="ai-insight-block highlight">
+                <div class="ai-insight-icon">🌍</div>
+                <div class="ai-insight-label">Market Overview</div>
+                <div class="ai-insight-text">The market for <strong>${dateRange}</strong> shows a <strong>${sentiment}</strong> pricing environment with an average rate of <strong>R ${mktAvg.toLocaleString()}</strong>. ${risingProps.length} properties are trending upward while ${fallingProps.length} have reduced rates, suggesting ${sentiment === 'bullish' ? 'strong demand confidence' : (sentiment === 'softening' ? 'competitive pressure or occupancy concerns' : 'a balanced supply-demand position')}.</div>
+            </div>
+            <div class="ai-insight-block">
+                <div class="ai-insight-icon">📊</div>
+                <div class="ai-insight-label">Pricing Gaps & Spread</div>
+                <div class="ai-insight-text">The market spread is <strong>R ${spread.toLocaleString()} (${spreadPct}%)</strong>, ranging from <strong>R ${mktMin.toLocaleString()}</strong> to <strong>R ${mktMax.toLocaleString()}</strong>. ${topProp.name ? `<strong>${escapeHtml(topProp.name)}</strong> leads at R ${topProp.avgRate.toLocaleString()} while <strong>${escapeHtml(bottomProp.name)}</strong> anchors the low end at R ${bottomProp.avgRate.toLocaleString()}.` : ''} A ${spreadPct > 50 ? 'wide' : 'moderate'} spread like this indicates ${spreadPct > 50 ? 'significant segmentation; premium properties hold strong positioning' : 'a fairly competitive, clustered market'}.</div>
+            </div>
+            <div class="ai-insight-block">
+                <div class="ai-insight-icon">🔥</div>
+                <div class="ai-insight-label">Demand Signals</div>
+                <div class="ai-insight-text">${soldOutProps.length > 0 ? `<strong>${soldOutProps.length} ${soldOutProps.length === 1 ? 'property has' : 'properties have'}</strong> sold-out dates (${soldOutProps.map(p => escapeHtml(p.name)).join(', ')}), signalling strong underlying demand that may be driving rate confidence across the set.` : 'No sold-out properties detected in this window, suggesting available capacity across the market.'} ${sentiment === 'bullish' ? 'The upward rate movement supports a demand-led environment.' : 'Monitor lead times closely for early demand signals.'}</div>
+            </div>
+            <div class="ai-insight-block">
+                <div class="ai-insight-icon">📈</div>
+                <div class="ai-insight-label">Rate Movement Velocity</div>
+                <div class="ai-insight-text"><strong>${totalUp} rate increases</strong> vs <strong>${totalDown} decreases</strong> across the data set. ${totalUp > totalDown ? `The positive momentum (${Math.round((totalUp/(totalUp+totalDown+0.001))*100)}% of moves are upward) suggests properties are gaining pricing power — a good signal to consider similar upward adjustments if your occupancy supports it.` : (totalDown > totalUp ? `Declining rates dominate (${Math.round((totalDown/(totalUp+totalDown+0.001))*100)}% of moves are decreases), which may indicate softening demand or aggressive competition — avoid racing to the bottom on price alone.` : 'Rate movements are balanced, indicating a stable, competitive equilibrium in the current window.')}</div>
+            </div>
+            <div class="ai-suggestions">
+                <div class="ai-insight-label" style="margin-bottom:14px;">✅ REVENUE MANAGER SUGGESTIONS</div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-suggestion-bullet">1</div>
+                    <div class="ai-suggestion-text">${sentiment === 'bullish' ? `Market is trending upward — review your rate positioning against the average of R ${mktAvg.toLocaleString()} and consider closing gaps if you\'re below the median.` : `With a ${sentiment} market, focus on value-add packages (breakfast included, flexible cancellation) rather than pure rate cuts to maintain RevPAR.`}</div>
+                </div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-suggestion-bullet">2</div>
+                    <div class="ai-suggestion-text">${soldOutProps.length > 0 ? `${soldOutProps.length} competitor${soldOutProps.length > 1 ? 's are' : ' is'} sold out — this is a prime opportunity to capture displaced demand. Ensure your OTA availability and rates are optimised for last-minute bookers.` : `No competitors are sold out yet. Ensure your rates remain competitive but resist heavy discounting; instead use promotions to improve conversion without diluting your rate floor.`}</div>
+                </div>
+                <div class="ai-suggestion-item">
+                    <div class="ai-suggestion-bullet">3</div>
+                    <div class="ai-suggestion-text">The market spread of R ${spread.toLocaleString()} gives pricing room. ${spread > 1500 ? 'Consider a tiered rate strategy — maintain high rates for premium room types while offering entry-level rates to compete at the lower end of the market.' : 'With a tight spread, differentiate on experience and inclusions rather than rate alone to justify premium positioning.'}</div>
+                </div>
+            </div>
+        </div>`;
     }
     
     // Initialize
