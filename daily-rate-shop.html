@@ -178,7 +178,7 @@
         .trend-down { color: #ef4444; }
         .trend-neutral { color: #64748b; }
 
-        /* ========== FAST MOVERS ========== */
+        /* ========== FAST MOVERS & TRENDS ========== */
         .section-header {
             display: flex;
             justify-content: space-between;
@@ -235,7 +235,6 @@
             margin-top: 6px;
         }
 
-        /* ========== 4-WEEK TRENDS ========== */
         .trends-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -282,32 +281,24 @@
             border-radius: 4px;
         }
 
-        /* ========== MAIN TABLE - SHOWS ALL DATES WITH HORIZONTAL SCROLL ========== */
+        /* ========== MAIN TABLE ========== */
         .table-container {
             margin: 0 28px 28px 28px;
             background: white;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
-            overflow-x: auto;      /* HORIZONTAL SCROLL BAR FOR FUTURE DATES */
-            overflow-y: auto;
+            overflow: auto;
             max-height: 500px;
         }
         .rate-table {
+            width: 100%;
             border-collapse: collapse;
             font-size: 13px;
-        }
-        /* Property name stays fixed when scrolling horizontally */
-        .rate-table th:first-child,
-        .rate-table td:first-child {
-            position: sticky;
-            left: 0;
-            background: white;
-            z-index: 10;
-            font-weight: 700;
-            text-align: left;
-            min-width: 220px;
+            min-width: 800px;
         }
         .rate-table th {
+            position: sticky;
+            top: 0;
             background: #f8fafc;
             padding: 14px 12px;
             text-align: center;
@@ -316,14 +307,29 @@
             color: #64748b;
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
-            white-space: nowrap;
+            z-index: 10;
+        }
+        .rate-table th:first-child {
+            position: sticky;
+            left: 0;
+            background: #f8fafc;
+            z-index: 20;
+            text-align: left;
         }
         .rate-table td {
             padding: 14px 12px;
             text-align: center;
             border-bottom: 1px solid #f1f5f9;
             border-right: 1px solid #f1f5f9;
-            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .rate-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: white;
+            font-weight: 700;
+            text-align: left;
+            z-index: 5;
         }
         .rate-table tr:hover td {
             background: #f8fafc;
@@ -337,7 +343,7 @@
             gap: 4px;
         }
         .date-header .day {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: #0f172a;
         }
@@ -346,16 +352,41 @@
             font-weight: 500;
             color: #94a3b8;
         }
-        .rate-number {
+        .current-rate {
             font-weight: 800;
             color: #0f172a;
-            font-size: 13px;
+            font-size: 14px;
         }
-        .sold-out-badge {
+        .prev-rate {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 3px;
+        }
+        .change-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-top: 4px;
+        }
+        .change-positive {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .change-negative {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .change-neutral {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+        .sold-out {
             background: #fef2f2;
             color: #dc2626;
             font-weight: 600;
-            font-size: 10px;
+            font-size: 11px;
             padding: 4px 10px;
             border-radius: 20px;
             display: inline-block;
@@ -423,15 +454,18 @@
 <!-- WEEK SELECTOR -->
 <div class="week-bar">
     <div class="week-controls">
-        <label>📅 Select Week (for summary stats):</label>
+        <label>📅 Compare Week:</label>
         <input type="date" id="weekPicker" class="week-picker">
-        <button class="refresh-btn" onclick="loadComparison()">Load Summary</button>
+        <button class="refresh-btn" onclick="loadComparison()">Load</button>
     </div>
     <div class="week-controls">
         <label>Saved weeks:</label>
         <select id="weekSelect" class="week-select">
             <option value="">— Select week —</option>
         </select>
+    </div>
+    <div style="font-size: 12px; color: #64748b; margin-left: auto;">
+        <span>↔️ Scroll horizontally → see all properties (A-Z) | ↕️ Scroll vertically → see all dates</span>
     </div>
 </div>
 
@@ -454,10 +488,10 @@
     <div id="trendsGrid" class="trends-grid"></div>
 </div>
 
-<!-- MAIN TABLE - SHOWS ALL DATES FROM DATABASE -->
+<!-- MAIN TABLE -->
 <div id="tableSection" style="display: none;">
     <div class="section-header">
-        <div class="section-title">📊 DAILY RATE MOVEMENT — ALL DATES (HORIZONTAL SCROLL TO SEE FUTURE)</div>
+        <div class="section-title">📊 DAILY RATE MOVEMENT — DAY BY DAY COMPARISON</div>
     </div>
     <div class="table-container" id="tableContainer"></div>
     <div class="insight-note" id="tableNote"></div>
@@ -466,7 +500,7 @@
 <!-- GRAPH SECTION -->
 <div id="graphSection" style="display: none;">
     <div class="graph-section">
-        <h3>📈 RATE MOVEMENT — AVERAGE PRICE TREND (Selected Week vs Last Week)</h3>
+        <h3>📈 RATE MOVEMENT — AVERAGE PRICE TREND (This Week vs Last Week)</h3>
         <canvas id="rateChart"></canvas>
     </div>
 </div>
@@ -478,7 +512,6 @@
     const API_BASE = 'https://backend-x5sw.onrender.com';
     let currentData = null;
     let chart = null;
-    let availableWeeksList = [];
 
     // Helper functions
     function formatDate(dateStr) {
@@ -493,36 +526,24 @@
         return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
     }
     
-    function getDayName(dateStr) {
-        const d = new Date(dateStr + 'T00:00:00');
-        return d.toLocaleDateString('en-US', { weekday: 'short' });
-    }
-    
     function escapeHtml(str) {
         return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
 
-    // Load weeks for dropdown
+    // Load available weeks
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
-            let weeks = await res.json();
-            availableWeeksList = weeks.map(w => String(w).split(':')[0].split('%')[0]).filter(w => w);
-            availableWeeksList.sort().reverse();
-            
+            const weeks = await res.json();
             const select = document.getElementById('weekSelect');
             select.innerHTML = '<option value="">— Select week —</option>';
-            availableWeeksList.forEach(week => {
+            weeks.forEach(week => {
+                const cleanWeek = String(week).split(':')[0].split('%')[0];
                 const option = document.createElement('option');
-                option.value = week;
-                option.textContent = formatFullDate(week);
+                option.value = cleanWeek;
+                option.textContent = formatFullDate(cleanWeek);
                 select.appendChild(option);
             });
-            
-            if (availableWeeksList.length > 0) {
-                document.getElementById('weekPicker').value = availableWeeksList[0];
-                loadComparison();
-            }
         } catch (err) {
             console.error('Failed to load weeks:', err);
         }
@@ -538,10 +559,6 @@
     // Main load function
     async function loadComparison() {
         let weekStart = document.getElementById('weekPicker').value;
-        if (!weekStart && availableWeeksList.length > 0) {
-            weekStart = availableWeeksList[0];
-            document.getElementById('weekPicker').value = weekStart;
-        }
         if (!weekStart) {
             const today = new Date();
             const day = today.getDay();
@@ -552,6 +569,7 @@
             document.getElementById('weekPicker').value = weekStart;
         }
         
+        // Show loading, hide everything else
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('kpiSection').style.display = 'none';
@@ -561,116 +579,28 @@
         document.getElementById('graphSection').style.display = 'none';
         
         try {
-            // Load summary data for selected week (for KPIs, fast movers, trends, graph)
-            const summaryRes = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
-            const summaryData = await summaryRes.json();
+            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
+            const data = await res.json();
+            currentData = data;
             
-            // Load ALL daily rates for the full date range
-            const allDatesRes = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
-            const allWeeks = await allDatesRes.json();
-            const cleanWeeks = allWeeks.map(w => String(w).split(':')[0].split('%')[0]).filter(w => w);
-            cleanWeeks.sort();
-            
-            if (cleanWeeks.length === 0) throw new Error('No data');
-            
-            const firstWeek = cleanWeeks[0];
-            const lastWeek = cleanWeeks[cleanWeeks.length - 1];
-            
-            // Get all dates between first and last week
-            const allDates = [];
-            const startDate = new Date(firstWeek + 'T00:00:00');
-            const endDate = new Date(lastWeek + 'T00:00:00');
-            endDate.setDate(endDate.getDate() + 6); // include the Sunday of last week
-            
-            let currentDate = new Date(startDate);
-            while (currentDate <= endDate) {
-                allDates.push(formatDateForAPI(currentDate));
-                currentDate.setDate(currentDate.getDate() + 1);
+            if (!data.properties || data.properties.length === 0) {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('emptyState').style.display = 'block';
+                return;
             }
             
-            // Fetch all properties
-            const propsRes = await fetch(`${API_BASE}/api/rate-shop/properties`);
-            const properties = await propsRes.json();
-            
-            // Build rate map: property_name -> date -> rate/soldOut
-            const ratesMap = new Map();
-            for (const prop of properties) {
-                ratesMap.set(prop.property_name, new Map());
-            }
-            
-            // Fetch each week's data
-            for (const week of cleanWeeks) {
-                try {
-                    const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${week}`);
-                    const weekData = await res.json();
-                    if (weekData.properties) {
-                        for (const propData of weekData.properties) {
-                            const propName = propData.property;
-                            const propRates = ratesMap.get(propName);
-                            if (!propRates) continue;
-                            
-                            const weekStartDate = new Date(week + 'T00:00:00');
-                            for (let i = 0; i < weekData.days.length; i++) {
-                                const day = weekData.days[i];
-                                const current = propData[`${day}_current`];
-                                const soldOut = propData[`${day}_sold_out`];
-                                const date = new Date(weekStartDate);
-                                date.setDate(weekStartDate.getDate() + i);
-                                const dateStr = formatDateForAPI(date);
-                                
-                                if (current !== undefined && current !== null) {
-                                    propRates.set(dateStr, { rate: current, soldOut: false });
-                                } else if (soldOut) {
-                                    propRates.set(dateStr, { rate: null, soldOut: true });
-                                }
-                            }
-                        }
-                    }
-                } catch(e) { console.warn(`Failed week ${week}`, e); }
-            }
-            
-            // Build table with ALL dates
-            const tableRows = [];
-            for (const prop of properties) {
-                const propName = prop.property_name;
-                const rates = ratesMap.get(propName) || new Map();
-                const cells = [];
-                for (const date of allDates) {
-                    const cell = rates.get(date);
-                    if (cell) {
-                        if (cell.soldOut) {
-                            cells.push({ type: 'sold', text: 'Sold out' });
-                        } else if (cell.rate) {
-                            cells.push({ type: 'rate', value: cell.rate, display: `R ${Math.round(cell.rate).toLocaleString()}` });
-                        } else {
-                            cells.push({ type: 'no', text: '—' });
-                        }
-                    } else {
-                        cells.push({ type: 'no', text: '—' });
-                    }
-                }
-                tableRows.push({ name: propName, cells });
-            }
-            
-            // Render the full table
-            renderFullTable(allDates, tableRows);
-            
-            // Render KPIs, fast movers, trends, graph from summary data
-            if (summaryData.properties && summaryData.properties.length > 0) {
-                renderKPIs(summaryData);
-                renderFastMovers(summaryData);
-                renderTrends(summaryData);
-                renderChart(summaryData);
-            }
+            document.getElementById('loadingState').style.display = 'none';
+            renderKPIs(data);
+            renderFastMovers(data);
+            renderTrends(data);
+            renderTable(data);
+            renderChart(data);
             
             document.getElementById('kpiSection').style.display = 'grid';
             document.getElementById('fastMoversSection').style.display = 'block';
             document.getElementById('trendsSection').style.display = 'block';
             document.getElementById('tableSection').style.display = 'block';
             document.getElementById('graphSection').style.display = 'block';
-            document.getElementById('loadingState').style.display = 'none';
-            
-            document.getElementById('tableNote').innerHTML = `📅 Showing ${allDates.length} days of data from ${formatFullDate(firstWeek)} to ${formatFullDate(lastWeek)} | ↔️ Scroll horizontally to see future dates | Property names stay fixed`;
             
         } catch (err) {
             document.getElementById('loadingState').style.display = 'none';
@@ -678,39 +608,8 @@
             document.getElementById('emptyState').style.display = 'block';
         }
     }
-    
-    function formatDateForAPI(date) {
-        return date.toISOString().split('T')[0];
-    }
-    
-    function renderFullTable(dates, rows) {
-        const container = document.getElementById('tableContainer');
-        let html = `<table class="rate-table"><thead><tr><th>Property</th>`;
-        
-        for (const date of dates) {
-            const displayDate = formatDate(date);
-            const dayName = getDayName(date);
-            html += `<th><div class="date-header"><span class="day">${dayName}</span><span class="date">${displayDate}</span></div></th>`;
-        }
-        html += `</tr></thead><tbody>`;
-        
-        for (const row of rows) {
-            html += `<tr><td style="font-weight:700;text-align:left;">${escapeHtml(row.name)}</td>`;
-            for (const cell of row.cells) {
-                if (cell.type === 'sold') {
-                    html += `<td><span class="sold-out-badge">Sold out</span></td>`;
-                } else if (cell.type === 'rate') {
-                    html += `<td><span class="rate-number">${cell.display}</span></td>`;
-                } else {
-                    html += `<td><span class="no-data">—</span></td>`;
-                }
-            }
-            html += `</tr>`;
-        }
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-    }
 
+    // Render KPIs
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
@@ -787,6 +686,8 @@
         `;
     }
 
+    // Render Fast Movers (from weekly data - using mock or fetch from weekly endpoint)
+    // For now, calculate from daily data
     function renderFastMovers(data) {
         const days = data.days;
         const properties = data.properties;
@@ -835,7 +736,10 @@
         `).join('');
     }
 
+    // Render 4-week trends
     function renderTrends(data) {
+        // For now, show placeholder since 4-week data needs weekly endpoint
+        // Using available data to show some trends
         const properties = data.properties.slice(0, 4);
         const trendsHtml = properties.map(p => {
             const firstRate = p[`${data.days[0]}_current`] || 0;
@@ -862,6 +766,83 @@
         document.getElementById('trendsGrid').innerHTML = trendsHtml;
     }
 
+    // Render main table with dates
+    function renderTable(data) {
+        const days = data.days;
+        const properties = data.properties;
+        
+        // Get actual dates for the week
+        const startDate = new Date(data.week_start_date + 'T00:00:00');
+        const weekDates = [];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(startDate);
+            d.setDate(startDate.getDate() + i);
+            weekDates.push(d.toISOString().split('T')[0]);
+        }
+        
+        let tableHtml = `
+            <table class="rate-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+        `;
+        
+        for (let i = 0; i < days.length; i++) {
+            tableHtml += `
+                <th>
+                    <div class="date-header">
+                        <span class="day">${days[i]}</span>
+                        <span class="date">${formatDate(weekDates[i])}</span>
+                    </div>
+                </th>
+            `;
+        }
+        
+        tableHtml += `</tr></thead><tbody>`;
+        
+        for (const prop of properties) {
+            tableHtml += `<tr><td>${escapeHtml(prop.property)}</td>`;
+            
+            for (let i = 0; i < days.length; i++) {
+                const day = days[i];
+                const current = prop[`${day}_current`];
+                const previous = prop[`${day}_previous`];
+                const change = prop[`${day}_change`];
+                const changePct = prop[`${day}_change_pct`];
+                const soldOut = prop[`${day}_sold_out`];
+                
+                if (soldOut) {
+                    tableHtml += `<td><span class="sold-out">Sold out</span></td>`;
+                } else if (current) {
+                    let changeHtml = '';
+                    if (change !== null && change !== undefined && change !== 0) {
+                        const changeClass = change > 0 ? 'change-positive' : 'change-negative';
+                        const sign = change > 0 ? '+' : '';
+                        changeHtml = `<div><span class="change-badge ${changeClass}">${sign}${Math.round(Math.abs(change))} (${sign}${Math.abs(Math.round(changePct))}%)</span></div>`;
+                    } else if (previous) {
+                        changeHtml = `<div><span class="change-badge change-neutral">0 (0%)</span></div>`;
+                    }
+                    
+                    tableHtml += `
+                        <td>
+                            <div class="current-rate">R ${Math.round(current).toLocaleString()}</div>
+                            ${previous ? `<div class="prev-rate">Last week: R ${Math.round(previous).toLocaleString()}</div>` : ''}
+                            ${changeHtml}
+                        </td>
+                    `;
+                } else {
+                    tableHtml += `<td><span class="no-data">—</span></td>`;
+                }
+            }
+            tableHtml += `</tr>`;
+        }
+        
+        tableHtml += `</tbody></table>`;
+        document.getElementById('tableContainer').innerHTML = tableHtml;
+        document.getElementById('tableNote').innerHTML = `📌 Showing week starting ${formatFullDate(data.week_start_date)} vs ${formatFullDate(data.prev_week_start_date)} | ↔️ Scroll horizontally for more properties | ↕️ Scroll vertically for all dates`;
+    }
+
+    // Render chart
     function renderChart(data) {
         const days = data.days;
         const properties = data.properties;
@@ -949,6 +930,7 @@
     
     // Initialize
     loadAvailableWeeks();
+    loadComparison();
 </script>
 </body>
 </html>
