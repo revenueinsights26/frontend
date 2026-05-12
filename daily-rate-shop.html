@@ -706,35 +706,39 @@
     </div>
 </div>
 
-<!-- WEEK SELECTOR (legacy, hidden but kept for data loading) -->
-<div class="week-bar" style="display:none;">
-    <div class="week-controls">
-        <label>📅 Compare Week:</label>
-        <input type="date" id="weekPicker" class="week-picker">
-        <button class="refresh-btn" onclick="loadComparison()">Load</button>
+<!-- DATE NAVIGATION BAR (arrows + week selector combined) -->
+<div class="date-nav-bar" style="flex-wrap:wrap; gap:8px;">
+    <!-- Arrow navigation -->
+    <button class="date-nav-btn" id="navFirstBtn" onclick="navigateDates('first')" title="Jump to earliest dates">«</button>
+    <button class="date-nav-btn" id="navPrevBtn" onclick="navigateDates('prev')" title="Previous 7 days">‹</button>
+    <div class="date-nav-date-pill" onclick="document.getElementById('hiddenDatePicker').showPicker ? document.getElementById('hiddenDatePicker').showPicker() : document.getElementById('hiddenDatePicker').click()" style="position:relative;">
+        📅 <span id="currentDateLabel">Loading...</span>
+        <input type="date" id="hiddenDatePicker" style="position:absolute;opacity:0;pointer-events:none;width:0;top:0;left:0;" onchange="jumpToDate(this.value)">
     </div>
-    <div class="week-controls">
-        <label>Saved weeks:</label>
-        <select id="weekSelect" class="week-select">
-            <option value="">— Select week —</option>
-        </select>
+    <button class="date-nav-btn" id="navNextBtn" onclick="navigateDates('next')" title="Next 7 days">›</button>
+    <button class="date-nav-btn" id="navLastBtn" onclick="navigateDates('last')" title="Jump to latest dates">»</button>
+    <button class="view-today-btn" onclick="navigateDates('today')">View today</button>
+    <div class="date-nav-info" title="Shows 7 days per view. Use arrows or select a week below.">ℹ</div>
+    <span id="dateRangeDisplay"></span>
+
+    <!-- Week selector (restored) — right side -->
+    <div style="margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div class="week-controls">
+            <label>📅 Jump to week:</label>
+            <input type="date" id="weekPicker" class="week-picker" onchange="onWeekPickerChange(this.value)">
+        </div>
+        <div class="week-controls">
+            <label>Saved weeks:</label>
+            <select id="weekSelect" class="week-select">
+                <option value="">— Select saved week —</option>
+            </select>
+        </div>
+        <button class="refresh-btn" onclick="onManualLoad()">Load</button>
     </div>
 </div>
 
-<!-- DATE NAVIGATION BAR (like the image) -->
-<div class="date-nav-bar">
-    <button class="date-nav-btn" id="navFirstBtn" onclick="navigateDates('first')" title="Jump to beginning">«</button>
-    <button class="date-nav-btn" id="navPrevBtn" onclick="navigateDates('prev')" title="Previous 7 days">‹</button>
-    <div class="date-nav-date-pill" onclick="document.getElementById('hiddenDatePicker').showPicker ? document.getElementById('hiddenDatePicker').showPicker() : document.getElementById('hiddenDatePicker').click()">
-        📅 <span id="currentDateLabel">Loading...</span>
-        <input type="date" id="hiddenDatePicker" style="position:absolute;opacity:0;pointer-events:none;width:0;" onchange="jumpToDate(this.value)">
-    </div>
-    <button class="date-nav-btn" id="navNextBtn" onclick="navigateDates('next')" title="Next 7 days">›</button>
-    <button class="date-nav-btn" id="navLastBtn" onclick="navigateDates('last')" title="Jump to latest">»</button>
-    <button class="view-today-btn" onclick="navigateDates('today')">View today</button>
-    <div class="date-nav-info" title="Shows 7 days per view. Navigate with arrows.">ℹ</div>
-    <span id="dateRangeDisplay"></span>
-</div>
+<!-- Hidden inputs kept for internal use -->
+<input type="hidden" id="weekPickerHidden">
 
 <!-- KPI SECTION -->
 <div id="kpiSection" class="kpi-grid" style="display: none;"></div>
@@ -801,46 +805,48 @@
 
 <script>
     const API_BASE = 'https://backend-x5sw.onrender.com';
-    let currentData = null;
     let chart = null;
 
-    // ---- DATE WINDOW STATE ----
-    // allAvailableDates: sorted array of all dates from the API (strings YYYY-MM-DD)
-    // currentWindowStart: index into allAvailableDates for the first visible column
+    // ---- STATE ----
     const WINDOW_SIZE = 7;
-    let allAvailableDates = [];
-    let currentWindowStart = 0; // index
-    let allPropertiesData = {}; // cache: date -> property rates
+    let allAvailableDates = [];   // ALL dates across ALL weeks, sorted asc
+    let allWeekStarts = [];       // sorted list of week-start strings from API
+    let weekDataCache = {};       // weekStart -> full API response data
+    let allPropertiesData = {};   // date -> { propName -> {current,previous,change,changePct,soldOut} }
+    let currentWindowStart = 0;  // index into allAvailableDates
 
-    // Helper functions
+    // ---- HELPERS ----
     function formatDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr + 'T00:00:00');
         return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' });
     }
-    
     function formatFullDate(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr + 'T00:00:00');
         return d.toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' });
     }
-
     function formatDayName(dateStr) {
         if (!dateStr) return '';
         const d = new Date(dateStr + 'T00:00:00');
         return d.toLocaleDateString('en-ZA', { weekday: 'short' });
     }
-    
     function escapeHtml(str) {
         return String(str || '').replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
     }
+    function todayStr() { return new Date().toISOString().split('T')[0]; }
 
-    function todayStr() {
-        return new Date().toISOString().split('T')[0];
+    // Get the week-start (Monday) for any given date string
+    function getWeekStart(dateStr) {
+        const d = new Date(dateStr + 'T00:00:00');
+        const day = d.getDay();
+        const diff = day === 0 ? 6 : day - 1;
+        d.setDate(d.getDate() - diff);
+        return d.toISOString().split('T')[0];
     }
 
     // ---- NAVIGATION ----
-    function navigateDates(direction) {
+    async function navigateDates(direction) {
         if (allAvailableDates.length === 0) return;
         const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
         if (direction === 'prev') {
@@ -854,28 +860,23 @@
         } else if (direction === 'today') {
             const today = todayStr();
             let idx = allAvailableDates.indexOf(today);
-            if (idx === -1) {
-                // find nearest
-                idx = allAvailableDates.findIndex(d => d >= today);
-                if (idx === -1) idx = allAvailableDates.length - 1;
-            }
+            if (idx === -1) idx = allAvailableDates.findIndex(d => d >= today);
+            if (idx === -1) idx = allAvailableDates.length - 1;
             currentWindowStart = Math.min(maxStart, Math.max(0, idx));
         }
         updateNavUI();
-        renderCurrentWindow();
+        await renderCurrentWindow();
     }
 
-    function jumpToDate(dateStr) {
+    async function jumpToDate(dateStr) {
         if (!dateStr || allAvailableDates.length === 0) return;
         let idx = allAvailableDates.indexOf(dateStr);
-        if (idx === -1) {
-            idx = allAvailableDates.findIndex(d => d >= dateStr);
-            if (idx === -1) idx = allAvailableDates.length - 1;
-        }
+        if (idx === -1) idx = allAvailableDates.findIndex(d => d >= dateStr);
+        if (idx === -1) idx = allAvailableDates.length - 1;
         const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
         currentWindowStart = Math.min(maxStart, Math.max(0, idx));
         updateNavUI();
-        renderCurrentWindow();
+        await renderCurrentWindow();
     }
 
     function updateNavUI() {
@@ -884,35 +885,90 @@
         document.getElementById('navPrevBtn').disabled = currentWindowStart === 0;
         document.getElementById('navNextBtn').disabled = currentWindowStart >= maxStart;
         document.getElementById('navLastBtn').disabled = currentWindowStart >= maxStart;
-
         const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
         if (windowDates.length > 0) {
-            const first = windowDates[0];
-            const last = windowDates[windowDates.length - 1];
+            const first = windowDates[0], last = windowDates[windowDates.length - 1];
             document.getElementById('currentDateLabel').textContent = formatDate(first);
-            document.getElementById('dateRangeDisplay').textContent =
-                `${formatDate(first)} — ${formatDate(last)}`;
+            document.getElementById('dateRangeDisplay').textContent = `${formatDate(first)} — ${formatDate(last)}`;
         }
     }
 
-    // Render the current 7-day window using already-loaded data
-    function renderCurrentWindow() {
-        if (!currentData) return;
+    // ---- FETCH WEEK DATA (with cache) ----
+    async function fetchWeekData(weekStart) {
+        if (weekDataCache[weekStart]) return weekDataCache[weekStart];
+        try {
+            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
+            const data = await res.json();
+            if (data && data.properties && data.properties.length > 0) {
+                weekDataCache[weekStart] = data;
+                // Cache per-date
+                const startDate = new Date(weekStart + 'T00:00:00');
+                data.days.forEach((dayKey, i) => {
+                    const d = new Date(startDate);
+                    d.setDate(startDate.getDate() + i);
+                    const dateStr = d.toISOString().split('T')[0];
+                    allPropertiesData[dateStr] = {};
+                    data.properties.forEach(prop => {
+                        allPropertiesData[dateStr][prop.property] = {
+                            current: prop[`${dayKey}_current`],
+                            previous: prop[`${dayKey}_previous`],
+                            change: prop[`${dayKey}_change`],
+                            changePct: prop[`${dayKey}_change_pct`],
+                            soldOut: prop[`${dayKey}_sold_out`]
+                        };
+                    });
+                });
+            }
+            return data;
+        } catch(e) {
+            console.warn('Failed to fetch week', weekStart, e);
+            return null;
+        }
+    }
+
+    // Get all property names across all loaded data
+    function getAllPropertyNames() {
+        const names = new Set();
+        Object.values(allPropertiesData).forEach(dateMap => {
+            Object.keys(dateMap).forEach(n => names.add(n));
+        });
+        return [...names].sort();
+    }
+
+    // ---- RENDER CURRENT WINDOW ----
+    // Ensures data for all dates in the window are fetched, then renders
+    async function renderCurrentWindow() {
         const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
-        
-        // Build a synthetic data object shaped like original API response
+        if (windowDates.length === 0) return;
+
+        // Show loading in table area while fetching
+        document.getElementById('tableContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">Loading dates…</div>';
+
+        // Ensure data is fetched for any weeks that overlap this window
+        const weeksNeeded = new Set(windowDates.map(d => getWeekStart(d)));
+        await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
+
+        // Build synthetic data from cache
+        const propNames = getAllPropertyNames();
+        if (propNames.length === 0) {
+            document.getElementById('tableContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">No data available for this date range.</div>';
+            return;
+        }
+
         const syntheticDays = windowDates.map(d => formatDayName(d));
+        // Use first available week's data for KPI reference week
+        const firstWeek = [...weeksNeeded][0];
+        const refData = weekDataCache[firstWeek] || Object.values(weekDataCache)[0];
+
         const syntheticData = {
             days: syntheticDays,
-            week_start_date: windowDates[0] || currentData.week_start_date,
-            prev_week_start_date: currentData.prev_week_start_date,
-            properties: currentData.properties.map(prop => {
-                const newProp = { property: prop.property };
+            week_start_date: windowDates[0],
+            prev_week_start_date: refData ? refData.prev_week_start_date : null,
+            properties: propNames.map(propName => {
+                const newProp = { property: propName };
                 windowDates.forEach((date, i) => {
                     const dayKey = syntheticDays[i];
-                    // Try to find matching data from original
-                    // We map by original day keys from stored allDatesData
-                    const cached = allPropertiesData[date] && allPropertiesData[date][prop.property];
+                    const cached = allPropertiesData[date] && allPropertiesData[date][propName];
                     if (cached) {
                         newProp[`${dayKey}_current`] = cached.current;
                         newProp[`${dayKey}_previous`] = cached.previous;
@@ -920,81 +976,80 @@
                         newProp[`${dayKey}_change_pct`] = cached.changePct;
                         newProp[`${dayKey}_sold_out`] = cached.soldOut;
                     } else {
-                        // Fall back to original data matching by date position
-                        const origIdx = currentData.days ? getOrigDateIdx(date) : -1;
-                        if (origIdx !== -1) {
-                            const origDay = currentData.days[origIdx];
-                            newProp[`${dayKey}_current`] = prop[`${origDay}_current`];
-                            newProp[`${dayKey}_previous`] = prop[`${origDay}_previous`];
-                            newProp[`${dayKey}_change`] = prop[`${origDay}_change`];
-                            newProp[`${dayKey}_change_pct`] = prop[`${origDay}_change_pct`];
-                            newProp[`${dayKey}_sold_out`] = prop[`${origDay}_sold_out`];
-                        } else {
-                            newProp[`${dayKey}_current`] = null;
-                        }
+                        newProp[`${dayKey}_current`] = null;
                     }
                 });
                 return newProp;
-            }),
-            // store the actual dates for rendering
-            _windowDates: windowDates
+            })
         };
-        
+
         renderTable(syntheticData, windowDates);
         renderChart(syntheticData, windowDates);
+        // Update KPIs and movers based on current window
+        renderKPIs(syntheticData);
+        renderFastMovers(syntheticData);
         generateAICommentary(syntheticData, windowDates);
     }
 
-    function getOrigDateIdx(targetDate) {
-        if (!currentData || !currentData.week_start_date) return -1;
-        const startDate = new Date(currentData.week_start_date + 'T00:00:00');
-        for (let i = 0; i < currentData.days.length; i++) {
-            const d = new Date(startDate);
-            d.setDate(startDate.getDate() + i);
-            if (d.toISOString().split('T')[0] === targetDate) return i;
-        }
-        return -1;
-    }
-
-    // ---- LOAD AVAILABLE WEEKS ----
+    // ---- LOAD AVAILABLE WEEKS (builds full date array) ----
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
             const weeks = await res.json();
+
+            // Clean and sort week starts
+            allWeekStarts = weeks
+                .map(w => String(w).split(':')[0].split('%')[0].trim())
+                .filter(w => /^\d{4}-\d{2}-\d{2}$/.test(w))
+                .sort();
+
+            // Build allAvailableDates: 7 days per week, deduplicated & sorted
+            const dateSet = new Set();
+            allWeekStarts.forEach(weekStart => {
+                const d = new Date(weekStart + 'T00:00:00');
+                for (let i = 0; i < 7; i++) {
+                    const dd = new Date(d);
+                    dd.setDate(d.getDate() + i);
+                    dateSet.add(dd.toISOString().split('T')[0]);
+                }
+            });
+            allAvailableDates = [...dateSet].sort();
+
+            // Populate week selector dropdown
             const select = document.getElementById('weekSelect');
-            select.innerHTML = '<option value="">— Select week —</option>';
-            weeks.forEach(week => {
-                const cleanWeek = String(week).split(':')[0].split('%')[0];
+            select.innerHTML = '<option value="">— Select saved week —</option>';
+            allWeekStarts.forEach(weekStart => {
                 const option = document.createElement('option');
-                option.value = cleanWeek;
-                option.textContent = formatFullDate(cleanWeek);
+                option.value = weekStart;
+                option.textContent = formatFullDate(weekStart);
                 select.appendChild(option);
             });
+
         } catch (err) {
             console.error('Failed to load weeks:', err);
         }
     }
 
+    // ---- WEEK SELECTOR / MANUAL LOAD HANDLERS ----
     document.getElementById('weekSelect').addEventListener('change', function(e) {
         if (e.target.value) {
             document.getElementById('weekPicker').value = e.target.value;
-            loadComparison();
+            jumpToDate(e.target.value);
         }
     });
 
-    // ---- MAIN LOAD ----
-    async function loadComparison() {
-        let weekStart = document.getElementById('weekPicker').value;
-        if (!weekStart) {
-            const today = new Date();
-            const day = today.getDay();
-            const diff = day === 0 ? 6 : day - 1;
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - diff);
-            weekStart = monday.toISOString().split('T')[0];
-            document.getElementById('weekPicker').value = weekStart;
-        }
-        
+    function onWeekPickerChange(val) {
+        if (val) jumpToDate(val);
+    }
+
+    function onManualLoad() {
+        const val = document.getElementById('weekPicker').value;
+        if (val) jumpToDate(val);
+        else navigateDates('today');
+    }
+
+    // ---- INITIAL LOAD ----
+    async function initialLoad() {
         document.getElementById('loadingState').style.display = 'block';
         document.getElementById('emptyState').style.display = 'none';
         document.getElementById('kpiSection').style.display = 'none';
@@ -1003,69 +1058,52 @@
         document.getElementById('tableSection').style.display = 'none';
         document.getElementById('graphSection').style.display = 'none';
         document.getElementById('aiCommentarySection').style.display = 'none';
-        
-        try {
-            const res = await fetch(`${API_BASE}/api/rate-shop/daily-comparison?week_start_date=${weekStart}`);
-            const data = await res.json();
-            currentData = data;
-            
-            if (!data.properties || data.properties.length === 0) {
-                document.getElementById('loadingState').style.display = 'none';
-                document.getElementById('emptyState').style.display = 'block';
-                return;
-            }
 
-            // Build allAvailableDates from the loaded week
-            const startDate = new Date(data.week_start_date + 'T00:00:00');
-            allAvailableDates = [];
-            for (let i = 0; i < data.days.length; i++) {
-                const d = new Date(startDate);
-                d.setDate(startDate.getDate() + i);
-                allAvailableDates.push(d.toISOString().split('T')[0]);
-            }
+        await loadAvailableWeeks();
 
-            // Cache per-date property data
-            allPropertiesData = {};
-            allAvailableDates.forEach((date, i) => {
-                const dayKey = data.days[i];
-                allPropertiesData[date] = {};
-                data.properties.forEach(prop => {
-                    allPropertiesData[date][prop.property] = {
-                        current: prop[`${dayKey}_current`],
-                        previous: prop[`${dayKey}_previous`],
-                        change: prop[`${dayKey}_change`],
-                        changePct: prop[`${dayKey}_change_pct`],
-                        soldOut: prop[`${dayKey}_sold_out`]
-                    };
-                });
-            });
-
-            // Start window at today or first date
-            const today = todayStr();
-            let todayIdx = allAvailableDates.indexOf(today);
-            if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
-            if (todayIdx === -1) todayIdx = 0;
-            currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
-            
+        if (allAvailableDates.length === 0) {
             document.getElementById('loadingState').style.display = 'none';
-            renderKPIs(data);
-            renderFastMovers(data);
-            renderTrends(data);
-            updateNavUI();
-            renderCurrentWindow();
-            
-            document.getElementById('kpiSection').style.display = 'grid';
-            document.getElementById('fastMoversSection').style.display = 'block';
-            document.getElementById('trendsSection').style.display = 'block';
-            document.getElementById('tableSection').style.display = 'block';
-            document.getElementById('graphSection').style.display = 'block';
-            document.getElementById('aiCommentarySection').style.display = 'block';
-            
-        } catch (err) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('emptyState').innerHTML = `<div class="empty-state">❌ Error: ${err.message}</div>`;
             document.getElementById('emptyState').style.display = 'block';
+            return;
         }
+
+        // Start at today (or nearest date)
+        const today = todayStr();
+        let todayIdx = allAvailableDates.indexOf(today);
+        if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
+        if (todayIdx === -1) todayIdx = 0;
+        currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
+
+        // Pre-fetch the current window's weeks
+        const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
+        const weeksNeeded = new Set(windowDates.map(d => getWeekStart(d)));
+        await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
+
+        // Also fetch the first available week for KPI/movers/trends context
+        if (allWeekStarts.length > 0) await fetchWeekData(allWeekStarts[allWeekStarts.length - 1]);
+
+        const refData = weekDataCache[allWeekStarts[allWeekStarts.length - 1]] || Object.values(weekDataCache)[0];
+        if (!refData) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('loadingState').style.display = 'none';
+        updateNavUI();
+
+        // Render trends from the most recent week
+        renderTrends(refData);
+
+        // Render the current window (table, chart, KPIs, AI)
+        await renderCurrentWindow();
+
+        document.getElementById('kpiSection').style.display = 'grid';
+        document.getElementById('fastMoversSection').style.display = 'block';
+        document.getElementById('trendsSection').style.display = 'block';
+        document.getElementById('tableSection').style.display = 'block';
+        document.getElementById('graphSection').style.display = 'block';
+        document.getElementById('aiCommentarySection').style.display = 'block';
     }
 
     // ---- RENDER KPIs ----
@@ -1396,13 +1434,19 @@
     }
 
     // ---- AI COMMENTARY ----
+    // lastCommentaryData holds the most recent data snapshot for the refresh button
+    let lastCommentaryData = null;
+    let lastCommentaryDates = null;
+
     async function generateAICommentary(data, windowDates) {
-        // Allow calling without args (manual refresh button)
+        // Called from nav flow WITH data, OR from refresh button WITHOUT data
         if (!data) {
-            if (!currentData) return;
-            const dates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
-            renderCurrentWindow();
-            return;
+            if (!lastCommentaryData) return;
+            data = lastCommentaryData;
+            windowDates = lastCommentaryDates;
+        } else {
+            lastCommentaryData = data;
+            lastCommentaryDates = windowDates;
         }
 
         const bodyEl = document.getElementById('aiCommentaryBody');
@@ -1584,8 +1628,7 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
     }
     
     // Initialize
-    loadAvailableWeeks();
-    loadComparison();
+    initialLoad();
 </script>
 </body>
 </html>
