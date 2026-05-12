@@ -143,7 +143,7 @@
       <div class="step-sep"></div>
       <div class="step" id="step2-el"><div class="step-num">2</div> Review & pick week</div>
       <div class="step-sep"></div>
-      <div class="step" id="step3-el"><div class="step-num">3</div> Save to dashboard</div>
+      <div class="step" id="step3-el"><div class="step-num">3</div> Save all weeks to dashboard</div>
     </div>
 
     <div id="step1" class="card">
@@ -168,7 +168,7 @@
     <div id="step2" style="display:none;">
       <div class="card">
         <div class="card-title">Select a week to import</div>
-        <div class="card-sub">Choose the Monday that starts the week you want to save.</div>
+        <div class="card-sub">Preview any week to check the data. When you click <strong>Save all weeks to dashboard</strong>, <strong>every week in the file</strong> is saved at once — so all future dates will appear in the dashboard.</div>
         <div class="ctrl-grid">
           <div class="ctrl-group"><div class="ctrl-label">Week Starting (Monday) ★</div><input type="date" class="ctrl-input" id="week-start"><div class="ctrl-hint">Averages Mon–Sun for each competitor</div></div>
           <div class="ctrl-group"><div class="ctrl-label">Available weeks in file</div><select class="ctrl-input" id="week-picker" onchange="selectWeekFromPicker()"><option value="">— pick from file —</option></select><div class="ctrl-hint">Mondays detected in the Lighthouse data</div></div>
@@ -186,7 +186,7 @@
         </div>
         <div class="action-bar">
           <button class="btn-secondary" onclick="backToUpload()">← Upload a different file</button>
-          <button class="btn-primary" id="save-btn" onclick="saveData()">💾 Save to dashboard</button>
+          <button class="btn-primary" id="save-btn" onclick="saveData()">💾 Save all weeks to dashboard</button>
         </div>
         <div id="status-banner"></div>
       </div>
@@ -385,104 +385,121 @@
     document.getElementById('step2-el').className = 'step active';
   }
 
-  // NEW: saveData function for daily rate tracking
+  // saveData: saves ALL weeks found in the file, one API call per week, in sequence
   async function saveData() {
-    const weekStart = document.getElementById('week-start').value;
     const banner = document.getElementById('status-banner');
-
-    if (!weekStart) {
-      banner.className = 'error';
-      banner.textContent = '❌ Please select a week start date.';
-      banner.style.display = 'block';
-      return;
-    }
-
-    const mon = new Date(weekStart + 'T00:00:00');
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(mon);
-      d.setDate(d.getDate() + i);
-      weekDates.push(toISO(d));
-    }
-
-    // Build payload: store daily rates for each property
-    const data = [];
-    for (const prop of allProperties) {
-      // Skip if it's a metadata column
-      const lowerProp = prop.toLowerCase();
-      if (lowerProp.includes('demand') || lowerProp.includes('ranking') || lowerProp.includes('holiday') || lowerProp.includes('event')) {
-        continue;
-      }
-      
-      // Get daily rates for this property
-      const dailyRates = [];
-      let hasData = false;
-      for (const date of weekDates) {
-        const val = parsedData[prop]?.[date];
-        let rate = null;
-        let soldOut = false;
-        if (val === 'sold_out') {
-          soldOut = true;
-          hasData = true;
-        } else if (typeof val === 'number') {
-          rate = val;
-          hasData = true;
-        }
-        dailyRates.push({ date: date, rate: rate, sold_out: soldOut });
-      }
-      
-      if (!hasData) continue;
-      
-      data.push({
-        property_name: prop,
-        area: 'Ellipse',
-        property_type: 'Competitor',
-        week_start_date: weekStart,
-        daily_rates: dailyRates
-      });
-    }
-
-    if (data.length === 0) {
-      banner.className = 'error';
-      banner.textContent = '❌ No data found for this week in the file. Try a different week.';
-      banner.style.display = 'block';
-      return;
-    }
-
     const btn = document.getElementById('save-btn');
+
+    if (allDates.length === 0) {
+      banner.className = 'error';
+      banner.textContent = '❌ No data loaded. Please upload a file first.';
+      banner.style.display = 'block';
+      return;
+    }
+
+    // Collect all Mondays (week starts) present in the file
+    const mondaysInFile = [...new Set(allDates.map(d => {
+      const dt = new Date(d + 'T00:00:00');
+      const day = dt.getDay();
+      const diff = day === 0 ? 6 : day - 1;
+      dt.setDate(dt.getDate() - diff);
+      return toISO(dt);
+    }))].sort();
+
+    if (mondaysInFile.length === 0) {
+      banner.className = 'error';
+      banner.textContent = '❌ Could not determine any weeks from the file dates.';
+      banner.style.display = 'block';
+      return;
+    }
+
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Saving…';
+    btn.innerHTML = '<span class="spinner"></span> Saving all weeks…';
     banner.className = 'loading';
-    banner.textContent = `⏳ Saving daily rates for ${data.length} properties for week of ${weekStart}…`;
+    banner.textContent = `⏳ Saving ${mondaysInFile.length} week(s) of data…`;
     banner.style.display = 'block';
 
-    try {
-      const res = await fetch(`${API_BASE}/api/rate-shop/save-daily-rates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
-        body: JSON.stringify({ data: data })
-      });
+    let totalSaved = 0;
+    let weeksOk = 0;
+    let errors = [];
 
-      if (res.ok) {
-        const result = await res.json();
-        banner.className = 'success';
-        banner.textContent = `✅ Saved! ${result.saved_count} properties with daily rates for week of ${weekStart}.`;
-        banner.style.display = 'block';
-        document.getElementById('step3-el').className = 'step done';
-      } else {
-        const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
-        banner.className = 'error';
-        banner.textContent = `❌ Error: ${err.detail}`;
-        banner.style.display = 'block';
+    for (let wi = 0; wi < mondaysInFile.length; wi++) {
+      const weekStart = mondaysInFile[wi];
+      const mon = new Date(weekStart + 'T00:00:00');
+      const weekDates = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(mon);
+        d.setDate(d.getDate() + i);
+        weekDates.push(toISO(d));
       }
-    } catch (err) {
-      banner.className = 'error';
-      banner.textContent = `❌ Network error: ${err.message}`;
-      banner.style.display = 'block';
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '💾 Save to dashboard';
+
+      // Build payload for this week
+      const data = [];
+      for (const prop of allProperties) {
+        const lowerProp = prop.toLowerCase();
+        if (lowerProp.includes('demand') || lowerProp.includes('ranking') || lowerProp.includes('holiday') || lowerProp.includes('event')) {
+          continue;
+        }
+        const dailyRates = [];
+        let hasData = false;
+        for (const date of weekDates) {
+          const val = parsedData[prop]?.[date];
+          let rate = null;
+          let soldOut = false;
+          if (val === 'sold_out') { soldOut = true; hasData = true; }
+          else if (typeof val === 'number') { rate = val; hasData = true; }
+          dailyRates.push({ date: date, rate: rate, sold_out: soldOut });
+        }
+        if (!hasData) continue;
+        data.push({
+          property_name: prop,
+          area: 'Ellipse',
+          property_type: 'Competitor',
+          week_start_date: weekStart,
+          daily_rates: dailyRates
+        });
+      }
+
+      if (data.length === 0) continue; // no data for this week, skip silently
+
+      // Update progress
+      banner.textContent = `⏳ Saving week ${wi + 1} of ${mondaysInFile.length}: ${weekStart} (${data.length} properties)…`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/rate-shop/save-daily-rates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-API-Key': apiKey },
+          body: JSON.stringify({ data: data })
+        });
+        if (res.ok) {
+          const result = await res.json();
+          totalSaved += result.saved_count || data.length;
+          weeksOk++;
+        } else {
+          const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+          errors.push(`${weekStart}: ${err.detail}`);
+        }
+      } catch (err) {
+        errors.push(`${weekStart}: ${err.message}`);
+      }
     }
+
+    btn.disabled = false;
+    btn.innerHTML = '💾 Save all weeks to dashboard';
+
+    if (errors.length === 0) {
+      banner.className = 'success';
+      banner.textContent = `✅ All done! Saved ${weeksOk} week(s) (${mondaysInFile.length} total in file) — ${totalSaved} property-weeks written to the dashboard. All future dates are now available.`;
+      document.getElementById('step3-el').className = 'step done';
+    } else if (weeksOk > 0) {
+      banner.className = 'success';
+      banner.textContent = `⚠️ Saved ${weeksOk} of ${mondaysInFile.length} weeks. Errors: ${errors.join(' | ')}`;
+      document.getElementById('step3-el').className = 'step done';
+    } else {
+      banner.className = 'error';
+      banner.textContent = `❌ All weeks failed. First error: ${errors[0]}`;
+    }
+    banner.style.display = 'block';
   }
 
   function goToStep2() {
