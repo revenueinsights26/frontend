@@ -909,14 +909,9 @@
                     const dateStr = d.toISOString().split('T')[0];
                     allPropertiesData[dateStr] = {};
                     data.properties.forEach(prop => {
-                        const cur = prop[`${dayKey}_current`];
-                        const prev = prop[`${dayKey}_previous`];
-                        // For future weeks the API may store uploaded rates in `previous`
-                        // while `current` is null — use whichever has a value.
-                        const effectiveCurrent = cur != null ? cur : prev;
                         allPropertiesData[dateStr][prop.property] = {
-                            current: effectiveCurrent,
-                            previous: prev,
+                            current: prop[`${dayKey}_current`],
+                            previous: prop[`${dayKey}_previous`],
                             change: prop[`${dayKey}_change`],
                             changePct: prop[`${dayKey}_change_pct`],
                             soldOut: prop[`${dayKey}_sold_out`]
@@ -960,18 +955,13 @@
             return;
         }
 
-        // Use stable index-based keys (d0, d1 … d6) to avoid day-name collisions
-        // when the window spans two calendar weeks (e.g. two Mondays)
-        const syntheticDays = windowDates.map((_, i) => `d${i}`);
-        const syntheticDayLabels = windowDates.map(d => formatDayName(d)); // for display only
-
+        const syntheticDays = windowDates.map(d => formatDayName(d));
         // Use first available week's data for KPI reference week
         const firstWeek = [...weeksNeeded][0];
         const refData = weekDataCache[firstWeek] || Object.values(weekDataCache)[0];
 
         const syntheticData = {
             days: syntheticDays,
-            dayLabels: syntheticDayLabels,   // human-readable labels passed to renderTable/renderChart
             week_start_date: windowDates[0],
             prev_week_start_date: refData ? refData.prev_week_start_date : null,
             properties: propNames.map(propName => {
@@ -980,10 +970,7 @@
                     const dayKey = syntheticDays[i];
                     const cached = allPropertiesData[date] && allPropertiesData[date][propName];
                     if (cached) {
-                        // Prefer current; fall back to previous for future weeks where
-                        // the API may return uploaded rates in the previous field
-                        const rate = cached.current != null ? cached.current : cached.previous;
-                        newProp[`${dayKey}_current`] = rate;
+                        newProp[`${dayKey}_current`] = cached.current;
                         newProp[`${dayKey}_previous`] = cached.previous;
                         newProp[`${dayKey}_change`] = cached.change;
                         newProp[`${dayKey}_change_pct`] = cached.changePct;
@@ -1005,6 +992,7 @@
     }
 
     // ---- LOAD AVAILABLE WEEKS (builds full date array) ----
+    // REPLACED FUNCTION - NOW FETCHES FROM available-dates ENDPOINT
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
@@ -1016,17 +1004,24 @@
                 .filter(w => /^\d{4}-\d{2}-\d{2}$/.test(w))
                 .sort();
 
-            // Build allAvailableDates: 7 days per week, deduplicated & sorted
-            const dateSet = new Set();
-            allWeekStarts.forEach(weekStart => {
-                const d = new Date(weekStart + 'T00:00:00');
-                for (let i = 0; i < 7; i++) {
-                    const dd = new Date(d);
-                    dd.setDate(d.getDate() + i);
-                    dateSet.add(dd.toISOString().split('T')[0]);
-                }
-            });
-            allAvailableDates = [...dateSet].sort();
+            // Fetch ALL dates that have data
+            const datesRes = await fetch(`${API_BASE}/api/rate-shop/available-dates`);
+            if (datesRes.ok) {
+                const availableDates = await datesRes.json();
+                allAvailableDates = [...new Set(availableDates)].sort();
+            } else {
+                // Fallback to old method if endpoint doesn't exist yet
+                const dateSet = new Set();
+                allWeekStarts.forEach(weekStart => {
+                    const d = new Date(weekStart + 'T00:00:00');
+                    for (let i = 0; i < 7; i++) {
+                        const dd = new Date(d);
+                        dd.setDate(d.getDate() + i);
+                        dateSet.add(dd.toISOString().split('T')[0]);
+                    }
+                });
+                allAvailableDates = [...dateSet].sort();
+            }
 
             // Populate week selector dropdown
             const select = document.getElementById('weekSelect');
@@ -1080,18 +1075,12 @@
             return;
         }
 
-        // Start at today if present; otherwise at the first available date
-        // This ensures future weeks are reachable via next navigation
+        // Start at today (or nearest date)
         const today = todayStr();
         let todayIdx = allAvailableDates.indexOf(today);
         if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
-        // If today is beyond all available dates, start at the last window
-        const maxStart = Math.max(0, allAvailableDates.length - WINDOW_SIZE);
-        if (todayIdx === -1) {
-            currentWindowStart = maxStart;
-        } else {
-            currentWindowStart = Math.min(maxStart, Math.max(0, todayIdx));
-        }
+        if (todayIdx === -1) todayIdx = 0;
+        currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
 
         // Pre-fetch the current window's weeks
         const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
@@ -1282,7 +1271,6 @@
     // ---- RENDER TABLE (with windowDates for proper column headers) ----
     function renderTable(data, windowDates) {
         const days = data.days;
-        const dayLabels = data.dayLabels || days;
         const properties = data.properties;
         const dates = windowDates || [];
         const today = todayStr();
@@ -1302,7 +1290,7 @@
             tableHtml += `
                 <th style="${bgStyle}">
                     <div class="date-header">
-                        <span class="day" style="${isToday ? 'color:#1d4ed8;' : ''}">${dayLabels[i]}${isToday ? ' ★' : ''}</span>
+                        <span class="day" style="${isToday ? 'color:#1d4ed8;' : ''}">${days[i]}${isToday ? ' ★' : ''}</span>
                         <span class="date">${dateStr ? formatDate(dateStr) : ''}</span>
                     </div>
                 </th>
@@ -1363,7 +1351,6 @@
     // ---- RENDER CHART (updates with navigation) ----
     function renderChart(data, windowDates) {
         const days = data.days;
-        const dayLabels = data.dayLabels || days;
         const properties = data.properties;
         const dates = windowDates || [];
         
@@ -1395,9 +1382,9 @@
         }
         
         // Build labels: "Mon 12 May" style
-        const labels = dayLabels.map((label, i) => {
+        const labels = days.map((day, i) => {
             const dateStr = dates[i];
-            return dateStr ? `${label} ${formatDate(dateStr)}` : label;
+            return dateStr ? `${day} ${formatDate(dateStr)}` : day;
         });
 
         const ctx = document.getElementById('rateChart').getContext('2d');
