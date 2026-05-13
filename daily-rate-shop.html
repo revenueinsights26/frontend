@@ -998,17 +998,16 @@
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
             const weeks = await res.json();
 
-            // Robustly extract YYYY-MM-DD from whatever the API returns
+            // Robustly extract YYYY-MM-DD from whatever the API returns —
+            // uses .match() so extra chars, spaces, colons etc. never drop a date
             const rawList = Array.isArray(weeks) ? weeks : Object.keys(weeks);
             allWeekStarts = rawList
                 .map(w => { const m = String(w).match(/(\d{4}-\d{2}-\d{2})/); return m ? m[1] : null; })
                 .filter(Boolean)
-                .filter((v, i, a) => a.indexOf(v) === i)
+                .filter((v, i, a) => a.indexOf(v) === i) // deduplicate
                 .sort();
 
-            console.log('Week starts from API:', allWeekStarts);
-
-            // Build allAvailableDates by expanding each week start into 7 days
+            // Build allAvailableDates by expanding every week start into 7 days
             const dateSet = new Set();
             allWeekStarts.forEach(weekStart => {
                 const d = new Date(weekStart + 'T00:00:00');
@@ -1018,9 +1017,8 @@
                 }
             });
             allAvailableDates = [...dateSet].sort();
-            console.log('Total dates:', allAvailableDates.length, '| Range:', allAvailableDates[0], 'to', allAvailableDates[allAvailableDates.length-1]);
 
-            // Populate week selector - show ALL weeks including future
+            // Populate week selector — all weeks including future ones
             const select = document.getElementById('weekSelect');
             select.innerHTML = '<option value="">— Select saved week —</option>';
             allWeekStarts.forEach(weekStart => {
@@ -1097,7 +1095,7 @@
         document.getElementById('loadingState').style.display = 'none';
         updateNavUI();
 
-        // Render the current window (table, chart, KPIs, trends, AI)
+        // renderCurrentWindow handles table, chart, KPIs, trends, and AI commentary
         await renderCurrentWindow();
 
         document.getElementById('kpiSection').style.display = 'grid';
@@ -1234,12 +1232,12 @@
         `).join('');
     }
 
-    // ---- RENDER TRENDS (dynamic - uses real cached data across last 4 weeks) ----
+    // ---- RENDER TRENDS (dynamic — reads last 4 weeks from cache) ----
     function renderTrends() {
-        // Find the 4 most recent week starts that have cached data
+        // Get the last 4 week starts that have cached data
         const cachedWeeks = allWeekStarts
             .filter(w => weekDataCache[w] && weekDataCache[w].properties)
-            .slice(-4); // last 4 in sorted order
+            .slice(-4);
 
         if (cachedWeeks.length === 0) {
             document.getElementById('trendsGrid').innerHTML =
@@ -1247,15 +1245,13 @@
             return;
         }
 
-        // Collect all property names across cached weeks
+        // Collect up to 4 property names seen across cached weeks
         const propSet = new Set();
-        cachedWeeks.forEach(w => {
-            weekDataCache[w].properties.forEach(p => propSet.add(p.property));
-        });
+        cachedWeeks.forEach(w => weekDataCache[w].properties.forEach(p => propSet.add(p.property)));
         const propNames = [...propSet].sort().slice(0, 4);
 
         const trendsHtml = propNames.map(propName => {
-            // For each week, get the average rate for this property
+            // Average rate per week for this property
             const weekAvgs = cachedWeeks.map(weekStart => {
                 const data = weekDataCache[weekStart];
                 const prop = data.properties.find(p => p.property === propName);
@@ -1267,14 +1263,12 @@
             if (weekAvgs.length === 0) return '';
 
             const firstAvg = weekAvgs[0];
-            const lastAvg = weekAvgs[weekAvgs.length - 1];
+            const lastAvg  = weekAvgs[weekAvgs.length - 1];
             const changePct = firstAvg > 0 ? ((lastAvg - firstAvg) / firstAvg * 100) : 0;
-            const barColor = changePct > 0 ? '#10b981' : (changePct < 0 ? '#ef4444' : '#94a3b8');
-            const barWidth = Math.min(Math.abs(changePct) * 3, 100);
+            const barColor  = changePct > 0 ? '#10b981' : (changePct < 0 ? '#ef4444' : '#94a3b8');
+            const barWidth  = Math.min(Math.abs(changePct) * 3, 100);
             const latestWeek = cachedWeeks[cachedWeeks.length - 1];
-
-            // Build mini week labels like "W1 → W4"
-            const wkLabels = cachedWeeks.map((_, i) => `W${i + 1}`).join(' → ');
+            const wkLabels   = cachedWeeks.map((_, i) => `W${i + 1}`).join(' → ');
 
             return `
                 <div class="trend-card">
@@ -1293,13 +1287,14 @@
                         <div class="trend-bar-fill" style="width:${barWidth}%;background:${barColor};"></div>
                     </div>
                     <div style="font-size:11px;margin-top:6px;${changePct > 0 ? 'color:#10b981' : (changePct < 0 ? 'color:#ef4444' : 'color:#64748b')}">
-                        ${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% over ${cachedWeeks.length} weeks
+                        ${changePct > 0 ? '+' : ''}${changePct.toFixed(1)}% over ${cachedWeeks.length} week${cachedWeeks.length > 1 ? 's' : ''}
                     </div>
                 </div>
             `;
         }).join('');
 
-        document.getElementById('trendsGrid').innerHTML = trendsHtml || '<div style="color:#94a3b8;font-size:13px;">Insufficient data for trend.</div>';
+        document.getElementById('trendsGrid').innerHTML = trendsHtml ||
+            '<div style="color:#94a3b8;font-size:13px;">Insufficient data for trend.</div>';
     }
 
     // ---- RENDER TABLE (with windowDates for proper column headers) ----
