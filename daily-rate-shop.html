@@ -373,15 +373,17 @@
             font-weight: 700;
             font-size: 12px;
             color: #64748b;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 2px solid #e2e8f0;
             border-right: 1px solid #e2e8f0;
             z-index: 10;
+            white-space: nowrap;
         }
         .rate-table th:first-child {
             position: sticky;
             left: 0;
-            background: #f8fafc;
-            z-index: 20;
+            top: 0;
+            background: #f0f4f8;
+            z-index: 30;
             text-align: left;
         }
         .rate-table td {
@@ -896,6 +898,90 @@
         .alert-text strong {
             color: #0f172a;
         }
+        .comp-rank-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        .comp-rank-name {
+            width: 200px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-shrink: 0;
+        }
+        .comp-rank-name.is-selected {
+            color: #1e40af;
+            font-weight: 800;
+        }
+        .comp-rank-bar-bg {
+            flex: 1;
+            height: 26px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            overflow: hidden;
+            position: relative;
+        }
+        .comp-rank-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            transition: width 0.6s ease;
+        }
+        .comp-rank-rate {
+            width: 80px;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+            flex-shrink: 0;
+        }
+        .perf-score-ring {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid #bfdbfe;
+            margin-bottom: 24px;
+        }
+        .perf-score-circle {
+            width: 80px;
+            height: 80px;
+            flex-shrink: 0;
+        }
+        .perf-score-info {
+            flex: 1;
+        }
+        .perf-score-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #1e40af;
+            margin-bottom: 4px;
+        }
+        .perf-score-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .perf-score-desc {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+        }
         .loading-compare {
             text-align: center;
             padding: 40px;
@@ -1130,6 +1216,14 @@
         <div id="compareContent">
             <div class="loading-compare">Loading your hotel intelligence...</div>
         </div>
+        <div id="hotelVsMarketChartWrap" style="display:none; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">📈 YOUR RATE VS MARKET AVERAGE — TREND OVER SELECTED PERIOD</div>
+            <canvas id="hotelVsMarketChart" style="max-height: 260px; width: 100%;"></canvas>
+        </div>
+        <div id="competitiveRankWrap" style="display:none; margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
+            <div style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px;">🏆 COMPETITIVE RATE POSITIONING — WHERE YOU STAND IN THE MARKET</div>
+            <div id="competitiveRankBars"></div>
+        </div>
     </div>
 </div>
 
@@ -1283,12 +1377,13 @@
         allHotelsList = propNames;
         updateHotelDropdown();
 
-        const syntheticDays = windowDates.map(d => formatDayName(d));
+        const syntheticDays = windowDates.map((d, i) => `d${i}_${d}`); // unique keys: d0_2025-06-10, d1_2025-06-11 …
         const firstWeek = [...weeksNeeded][0];
         const refData = weekDataCache[firstWeek] || Object.values(weekDataCache)[0];
 
         const syntheticData = {
             days: syntheticDays,
+            windowDates: windowDates,
             week_start_date: windowDates[0],
             prev_week_start_date: refData ? refData.prev_week_start_date : null,
             properties: propNames.map(propName => {
@@ -1739,13 +1834,13 @@
                 </div>
             </div>
             
-            <div class="advanced-toggle" onclick="toggleAdvanced(this)">
+            <div class="advanced-toggle open" onclick="toggleAdvanced(this)">
                 <div class="advanced-toggle-title">
                     <span>📊</span> Advanced Analytics — Rate Elasticity, Volatility & Market Position
                 </div>
                 <div class="advanced-toggle-icon">▼</div>
             </div>
-            <div class="advanced-content">
+            <div class="advanced-content show">
                 <div class="advanced-grid">
                     <div class="advanced-card">
                         <div class="advanced-card-title">📈 Rate Elasticity Score</div>
@@ -1781,6 +1876,151 @@
         `;
         
         section.style.display = 'block';
+        
+        // --- Hotel vs Market Trend Chart ---
+        const chartWrap = document.getElementById('hotelVsMarketChartWrap');
+        chartWrap.style.display = 'block';
+        
+        // Build time series: hotel rate and market avg per date
+        const trendDates = [];
+        const trendHotel = [];
+        const trendMarket = [];
+        for (const date of rangeDates) {
+            const dateData = allPropertiesData[date];
+            if (!dateData) continue;
+            const hotelEntry = dateData[selectedHotel];
+            if (!hotelEntry || hotelEntry.soldOut || !hotelEntry.current) continue;
+            let mSum = 0, mCnt = 0;
+            for (const [p, pd] of Object.entries(dateData)) {
+                if (p === selectedHotel) continue;
+                if (!pd.soldOut && pd.current) { mSum += pd.current; mCnt++; }
+            }
+            if (mCnt === 0) continue;
+            trendDates.push(formatDate(date));
+            trendHotel.push(hotelEntry.current);
+            trendMarket.push(Math.round(mSum / mCnt));
+        }
+        
+        if (window._hotelVsMktChart) window._hotelVsMktChart.destroy();
+        const hvmCtx = document.getElementById('hotelVsMarketChart').getContext('2d');
+        window._hotelVsMktChart = new Chart(hvmCtx, {
+            type: 'line',
+            data: {
+                labels: trendDates,
+                datasets: [
+                    {
+                        label: selectedHotel.length > 35 ? selectedHotel.substring(0,35)+'…' : selectedHotel,
+                        data: trendHotel,
+                        borderColor: '#1e40af',
+                        backgroundColor: 'rgba(30,64,175,0.08)',
+                        borderWidth: 2.5,
+                        tension: 0.3,
+                        fill: true,
+                        pointRadius: trendDates.length > 60 ? 0 : 3,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Market Average',
+                        data: trendMarket,
+                        borderColor: '#94a3b8',
+                        backgroundColor: 'rgba(148,163,184,0.06)',
+                        borderWidth: 1.5,
+                        tension: 0.3,
+                        fill: true,
+                        borderDash: [5, 4],
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: {
+                        callbacks: {
+                            label: ctx => `${ctx.dataset.label}: R ${Math.round(ctx.raw).toLocaleString()}`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        ticks: { callback: v => `R ${v.toLocaleString()}` },
+                        grid: { color: 'rgba(0,0,0,0.04)' }
+                    },
+                    x: {
+                        ticks: { maxTicksLimit: 12, maxRotation: 0 },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+        
+        // --- Competitive Position (Rate Ranking Bars) ---
+        const rankWrap = document.getElementById('competitiveRankWrap');
+        rankWrap.style.display = 'block';
+        
+        // Collect average rates for all properties
+        const propAverages = {};
+        for (const hotel of allHotelsList) {
+            const rates = [];
+            for (const date of rangeDates) {
+                const d = allPropertiesData[date];
+                if (!d) continue;
+                const pd = d[hotel];
+                if (pd && !pd.soldOut && pd.current) rates.push(pd.current);
+            }
+            if (rates.length) propAverages[hotel] = Math.round(rates.reduce((a,b)=>a+b,0)/rates.length);
+        }
+        
+        const sorted = Object.entries(propAverages).sort((a,b) => b[1]-a[1]);
+        const maxRate = sorted.length ? sorted[0][1] : 1;
+        const myRank = sorted.findIndex(([h]) => h === selectedHotel) + 1;
+        
+        // Performance score: composite of rank, sold-out efficiency, and rate position
+        const rankScore = sorted.length ? Math.round(((sorted.length - myRank + 1) / sorted.length) * 40) : 20;
+        const positionScore = hotelAvg > 0 && marketAvg > 0 ? Math.min(30, Math.round((hotelAvg / marketAvg) * 20)) : 15;
+        const occupancyScore = hotelSoldOutDates.length > 0 ? Math.min(30, hotelSoldOutDates.length * 3) : 10;
+        const perfScore = Math.min(100, rankScore + positionScore + occupancyScore);
+        const perfGrade = perfScore >= 80 ? 'Excellent' : perfScore >= 60 ? 'Good' : perfScore >= 40 ? 'Average' : 'Needs Attention';
+        const perfColor = perfScore >= 80 ? '#10b981' : perfScore >= 60 ? '#3b82f6' : perfScore >= 40 ? '#f59e0b' : '#ef4444';
+        
+        // Build SVG donut for score
+        const angle = (perfScore / 100) * 283; // circumference ~283
+        const perfSvg = `<svg viewBox="0 0 36 36" class="perf-score-circle">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e2e8f0" stroke-width="3.5"/>
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${perfColor}" stroke-width="3.5" stroke-dasharray="${angle}, 283" stroke-linecap="round" transform="rotate(-90 18 18)"/>
+            <text x="18" y="20.5" text-anchor="middle" font-size="9" font-weight="800" fill="#0f172a">${perfScore}</text>
+        </svg>`;
+        
+        const rankBarsHtml = sorted.slice(0, 12).map(([hotel, avg]) => {
+            const isMe = hotel === selectedHotel;
+            const barColor = isMe ? '#1e40af' : '#cbd5e1';
+            const width = Math.round((avg / maxRate) * 100);
+            return `<div class="comp-rank-row">
+                <div class="comp-rank-name ${isMe ? 'is-selected' : ''}" title="${escapeHtml(hotel)}">${isMe ? '▶ ' : ''}${escapeHtml(hotel.length > 28 ? hotel.substring(0,26)+'…' : hotel)}</div>
+                <div class="comp-rank-bar-bg">
+                    <div class="comp-rank-bar-fill" style="width:${width}%; background:${barColor};">R ${avg.toLocaleString()}</div>
+                </div>
+                <div class="comp-rank-rate">R ${avg.toLocaleString()}</div>
+            </div>`;
+        }).join('');
+        
+        // Inject performance score before compare grid
+        const existingContent = document.getElementById('compareContent').innerHTML;
+        document.getElementById('compareContent').innerHTML = `
+            <div class="perf-score-ring">
+                ${perfSvg}
+                <div class="perf-score-info">
+                    <div class="perf-score-label">📊 Performance Score</div>
+                    <div class="perf-score-value" style="color:${perfColor}">${perfScore}<span style="font-size:16px;font-weight:500;color:#64748b;">/100</span></div>
+                    <div class="perf-score-desc">${perfGrade} · Ranked <strong>#${myRank}</strong> of <strong>${sorted.length}</strong> properties by average rate · ${hotelSoldOutDates.length} sold-out days in period</div>
+                </div>
+            </div>
+        ` + existingContent;
+        
+        document.getElementById('competitiveRankBars').innerHTML = rankBarsHtml;
     }
     
     window.toggleAdvanced = function(element) {
@@ -1792,6 +2032,7 @@
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
+        const dates = data.windowDates || [];
         
         let totalCurrent = 0, rateCount = 0, totalPrev = 0, prevCount = 0;
         let allRates = [];
@@ -1943,14 +2184,14 @@
     function renderTable(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
-        const dates = windowDates || [];
+        const dates = windowDates || data.windowDates || [];
         const today = todayStr();
         
         let tableHtml = `
             <table class="rate-table">
                 <thead>
                     <tr>
-                        <th>Property</th>
+                        <th style="min-width:180px;">Property</th>
         `;
         
         for (let i = 0; i < days.length; i++) {
@@ -1958,10 +2199,11 @@
             const isToday = dateStr === today;
             const isWeekend = dateStr ? [0, 6].includes(new Date(dateStr + 'T00:00:00').getDay()) : false;
             const bgStyle = isToday ? 'background:#dbeafe;' : (isWeekend ? 'background:#fff7ed;' : '');
+            const displayDay = dateStr ? formatDayName(dateStr) : days[i];
             tableHtml += `
-                <th style="${bgStyle}">
+                <th style="${bgStyle}min-width:130px;">
                     <div class="date-header">
-                        <span class="day" style="${isToday ? 'color:#1d4ed8;' : ''}">${days[i]}${isToday ? ' ★' : ''}</span>
+                        <span class="day" style="${isToday ? 'color:#1d4ed8;' : ''}">${displayDay}${isToday ? ' ★' : ''}</span>
                         <span class="date">${dateStr ? formatDate(dateStr) : ''}</span>
                     </div>
                 </th>
@@ -2022,7 +2264,7 @@
     function renderChart(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
-        const dates = windowDates || [];
+        const dates = windowDates || data.windowDates || [];
         
         const avgCurrent = [];
         const avgPrevious = [];
@@ -2053,7 +2295,7 @@
         
         const labels = days.map((day, i) => {
             const dateStr = dates[i];
-            return dateStr ? `${day} ${formatDate(dateStr)}` : day;
+            return dateStr ? `${formatDayName(dateStr)} ${formatDate(dateStr)}` : day;
         });
 
         const ctx = document.getElementById('rateChart').getContext('2d');
