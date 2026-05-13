@@ -133,7 +133,7 @@
         }
         .refresh-btn:hover { background: #2563eb; }
 
-        /* ========== DATE NAVIGATION (like the image) ========== */
+        /* ========== DATE NAVIGATION ========== */
         .date-nav-bar {
             background: white;
             border-bottom: 1px solid #e2e8f0;
@@ -685,6 +685,260 @@
             color: #166534;
             line-height: 1.55;
         }
+
+        /* ========== NEW: YOUR HOTEL VS MARKET SECTION ========== */
+        .hotel-compare-section {
+            margin: 0 28px 40px 28px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 24px 28px;
+        }
+        .hotel-compare-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .hotel-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .hotel-selector label {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .hotel-search-input {
+            min-width: 280px;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+            background: white;
+        }
+        .hotel-search-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .date-range-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .range-btn {
+            padding: 6px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .range-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+        .range-btn:hover:not(.active) {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .compare-badge {
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+        @media (max-width: 900px) {
+            .compare-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .compare-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.2s;
+        }
+        .compare-card:hover {
+            border-color: #cbd5e1;
+            background: white;
+        }
+        .compare-card.highlight {
+            background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+            border-color: #bfdbfe;
+        }
+        .compare-card.warning {
+            background: linear-gradient(135deg, #fef2f2, #fff5f5);
+            border-color: #fecaca;
+        }
+        .compare-card-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            margin-bottom: 12px;
+        }
+        .compare-card-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+        }
+        .compare-card-sub {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .compare-card-change {
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .opportunity-banner {
+            background: linear-gradient(135deg, #fef3c7, #fffbeb);
+            border: 1px solid #fcd34d;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .opportunity-banner .label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        .opportunity-banner .amount {
+            font-size: 36px;
+            font-weight: 800;
+            color: #b45309;
+        }
+        .opportunity-banner .sub {
+            font-size: 13px;
+            color: #78350f;
+            margin-top: 8px;
+        }
+        .demand-heatmap {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 24px;
+        }
+        .heatmap-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 14px;
+            text-transform: uppercase;
+        }
+        .heatmap-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 6px;
+        }
+        .heatmap-cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: help;
+            transition: all 0.15s;
+        }
+        .heatmap-cell:hover {
+            transform: scale(1.05);
+        }
+        .heatmap-high {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .heatmap-med {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .heatmap-low {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .heatmap-none {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+        .heatmap-label {
+            font-size: 9px;
+            font-weight: 500;
+        }
+        .alert-list {
+            list-style: none;
+            margin-top: 12px;
+        }
+        .alert-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .alert-item:last-child {
+            border-bottom: none;
+        }
+        .alert-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .alert-icon.warning {
+            background: #fef3c7;
+        }
+        .alert-icon.success {
+            background: #dcfce7;
+        }
+        .alert-icon.info {
+            background: #dbeafe;
+        }
+        .alert-text {
+            font-size: 13px;
+            color: #334155;
+            line-height: 1.5;
+        }
+        .alert-text strong {
+            color: #0f172a;
+        }
+        .loading-compare {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -706,9 +960,8 @@
     </div>
 </div>
 
-<!-- DATE NAVIGATION BAR (arrows + week selector combined) -->
+<!-- DATE NAVIGATION BAR -->
 <div class="date-nav-bar" style="flex-wrap:wrap; gap:8px;">
-    <!-- Arrow navigation -->
     <button class="date-nav-btn" id="navFirstBtn" onclick="navigateDates('first')" title="Jump to earliest dates">«</button>
     <button class="date-nav-btn" id="navPrevBtn" onclick="navigateDates('prev')" title="Previous 7 days">‹</button>
     <div class="date-nav-date-pill" onclick="document.getElementById('hiddenDatePicker').showPicker ? document.getElementById('hiddenDatePicker').showPicker() : document.getElementById('hiddenDatePicker').click()" style="position:relative;">
@@ -721,7 +974,6 @@
     <div class="date-nav-info" title="Shows 7 days per view. Use arrows or select a week below.">ℹ</div>
     <span id="dateRangeDisplay"></span>
 
-    <!-- Week selector (restored) — right side -->
     <div style="margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div class="week-controls">
             <label>📅 Jump to week:</label>
@@ -737,7 +989,6 @@
     </div>
 </div>
 
-<!-- Hidden inputs kept for internal use -->
 <input type="hidden" id="weekPickerHidden">
 
 <!-- KPI SECTION -->
@@ -800,6 +1051,31 @@
     </div>
 </div>
 
+<!-- ★ NEW: YOUR HOTEL VS MARKET INTELLIGENCE SECTION ★ -->
+<div id="hotelCompareSection" style="display: none;">
+    <div class="section-header">
+        <div class="section-title">🏨 YOUR HOTEL VS MARKET</div>
+    </div>
+    <div class="hotel-compare-section">
+        <div class="hotel-compare-header">
+            <div class="hotel-selector">
+                <label>🔍 Select your hotel:</label>
+                <input type="text" id="hotelSearchInput" class="hotel-search-input" placeholder="Type to search hotels..." autocomplete="off" list="hotelSuggestions">
+                <datalist id="hotelSuggestions"></datalist>
+                <span class="compare-badge" id="selectedHotelBadge">Hospitality at Waterfall City</span>
+            </div>
+            <div class="date-range-selector">
+                <button class="range-btn" data-range="4weeks">4 Weeks</button>
+                <button class="range-btn" data-range="3months">3 Months</button>
+                <button class="range-btn active" data-range="6months">6 Months</button>
+            </div>
+        </div>
+        <div id="compareContent">
+            <div class="loading-compare">Loading your hotel intelligence...</div>
+        </div>
+    </div>
+</div>
+
 <div id="loadingState" class="loading">Loading market intelligence...</div>
 <div id="emptyState" class="empty-state" style="display: none;">📭 No data found. Upload daily rates first.</div>
 
@@ -809,11 +1085,16 @@
 
     // ---- STATE ----
     const WINDOW_SIZE = 7;
-    let allAvailableDates = [];   // ALL dates across ALL weeks, sorted asc
-    let allWeekStarts = [];       // sorted list of week-start strings from API
-    let weekDataCache = {};       // weekStart -> full API response data
-    let allPropertiesData = {};   // date -> { propName -> {current,previous,change,changePct,soldOut} }
-    let currentWindowStart = 0;  // index into allAvailableDates
+    let allAvailableDates = [];
+    let allWeekStarts = [];
+    let weekDataCache = {};
+    let allPropertiesData = {};
+    let currentWindowStart = 0;
+    
+    // New state for hotel comparison
+    let selectedHotel = "Hospitality at Waterfall City - Ellipse Waterfall";
+    let currentDateRange = "6months";
+    let allHotelsList = [];
 
     // ---- HELPERS ----
     function formatDate(dateStr) {
@@ -836,7 +1117,6 @@
     }
     function todayStr() { return new Date().toISOString().split('T')[0]; }
 
-    // Get the week-start (Monday) for any given date string
     function getWeekStart(dateStr) {
         const d = new Date(dateStr + 'T00:00:00');
         const day = d.getDay();
@@ -893,7 +1173,7 @@
         }
     }
 
-    // ---- FETCH WEEK DATA (with cache) ----
+    // ---- FETCH WEEK DATA ----
     async function fetchWeekData(weekStart) {
         if (weekDataCache[weekStart]) return weekDataCache[weekStart];
         try {
@@ -901,7 +1181,6 @@
             const data = await res.json();
             if (data && data.properties && data.properties.length > 0) {
                 weekDataCache[weekStart] = data;
-                // Cache per-date
                 const startDate = new Date(weekStart + 'T00:00:00');
                 data.days.forEach((dayKey, i) => {
                     const d = new Date(startDate);
@@ -926,7 +1205,6 @@
         }
     }
 
-    // Get all property names across all loaded data
     function getAllPropertyNames() {
         const names = new Set();
         Object.values(allPropertiesData).forEach(dateMap => {
@@ -936,27 +1214,26 @@
     }
 
     // ---- RENDER CURRENT WINDOW ----
-    // Ensures data for all dates in the window are fetched, then renders
     async function renderCurrentWindow() {
         const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
         if (windowDates.length === 0) return;
 
-        // Show loading in table area while fetching
         document.getElementById('tableContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">Loading dates…</div>';
 
-        // Ensure data is fetched for any weeks that overlap this window
         const weeksNeeded = new Set(windowDates.map(d => getWeekStart(d)));
         await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
 
-        // Build synthetic data from cache
         const propNames = getAllPropertyNames();
         if (propNames.length === 0) {
             document.getElementById('tableContainer').innerHTML = '<div style="text-align:center;padding:40px;color:#94a3b8;">No data available for this date range.</div>';
             return;
         }
 
+        // Update hotel list for dropdown
+        allHotelsList = propNames;
+        updateHotelDropdown();
+
         const syntheticDays = windowDates.map(d => formatDayName(d));
-        // Use first available week's data for KPI reference week
         const firstWeek = [...weeksNeeded][0];
         const refData = weekDataCache[firstWeek] || Object.values(weekDataCache)[0];
 
@@ -985,32 +1262,30 @@
 
         renderTable(syntheticData, windowDates);
         renderChart(syntheticData, windowDates);
-        // Update KPIs and movers based on current window
         renderKPIs(syntheticData);
         renderFastMovers(syntheticData);
         generateAICommentary(syntheticData, windowDates);
+        
+        // ★ NEW: Render hotel comparison section
+        renderHotelComparison();
     }
 
-    // ---- LOAD AVAILABLE WEEKS (builds full date array) ----
-    // REPLACED FUNCTION - NOW FETCHES FROM available-dates ENDPOINT
+    // ---- LOAD AVAILABLE WEEKS ----
     async function loadAvailableWeeks() {
         try {
             const res = await fetch(`${API_BASE}/api/rate-shop/available-weeks`);
             const weeks = await res.json();
 
-            // Clean and sort week starts
             allWeekStarts = weeks
                 .map(w => String(w).split(':')[0].split('%')[0].trim())
                 .filter(w => /^\d{4}-\d{2}-\d{2}$/.test(w))
                 .sort();
 
-            // Fetch ALL dates that have data
             const datesRes = await fetch(`${API_BASE}/api/rate-shop/available-dates`);
             if (datesRes.ok) {
                 const availableDates = await datesRes.json();
                 allAvailableDates = [...new Set(availableDates)].sort();
             } else {
-                // Fallback to old method if endpoint doesn't exist yet
                 const dateSet = new Set();
                 allWeekStarts.forEach(weekStart => {
                     const d = new Date(weekStart + 'T00:00:00');
@@ -1023,7 +1298,6 @@
                 allAvailableDates = [...dateSet].sort();
             }
 
-            // Populate week selector dropdown
             const select = document.getElementById('weekSelect');
             select.innerHTML = '<option value="">— Select saved week —</option>';
             allWeekStarts.forEach(weekStart => {
@@ -1038,7 +1312,17 @@
         }
     }
 
-    // ---- WEEK SELECTOR / MANUAL LOAD HANDLERS ----
+    function updateHotelDropdown() {
+        const datalist = document.getElementById('hotelSuggestions');
+        datalist.innerHTML = '';
+        allHotelsList.forEach(hotel => {
+            const option = document.createElement('option');
+            option.value = hotel;
+            datalist.appendChild(option);
+        });
+    }
+
+    // ---- WEEK SELECTOR HANDLERS ----
     document.getElementById('weekSelect').addEventListener('change', function(e) {
         if (e.target.value) {
             document.getElementById('weekPicker').value = e.target.value;
@@ -1056,65 +1340,258 @@
         else navigateDates('today');
     }
 
-    // ---- INITIAL LOAD ----
-    async function initialLoad() {
-        document.getElementById('loadingState').style.display = 'block';
-        document.getElementById('emptyState').style.display = 'none';
-        document.getElementById('kpiSection').style.display = 'none';
-        document.getElementById('fastMoversSection').style.display = 'none';
-        document.getElementById('trendsSection').style.display = 'none';
-        document.getElementById('tableSection').style.display = 'none';
-        document.getElementById('graphSection').style.display = 'none';
-        document.getElementById('aiCommentarySection').style.display = 'none';
-
-        await loadAvailableWeeks();
-
-        if (allAvailableDates.length === 0) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
-            return;
-        }
-
-        // Start at today (or nearest date)
-        const today = todayStr();
-        let todayIdx = allAvailableDates.indexOf(today);
-        if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
-        if (todayIdx === -1) todayIdx = 0;
-        currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
-
-        // Pre-fetch the current window's weeks
-        const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
-        const weeksNeeded = new Set(windowDates.map(d => getWeekStart(d)));
-        await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
-
-        // Also fetch the first available week for KPI/movers/trends context
-        if (allWeekStarts.length > 0) await fetchWeekData(allWeekStarts[allWeekStarts.length - 1]);
-
-        const refData = weekDataCache[allWeekStarts[allWeekStarts.length - 1]] || Object.values(weekDataCache)[0];
-        if (!refData) {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('emptyState').style.display = 'block';
-            return;
-        }
-
-        document.getElementById('loadingState').style.display = 'none';
-        updateNavUI();
-
-        // Render trends from the most recent week
-        renderTrends(refData);
-
-        // Render the current window (table, chart, KPIs, AI)
-        await renderCurrentWindow();
-
-        document.getElementById('kpiSection').style.display = 'grid';
-        document.getElementById('fastMoversSection').style.display = 'block';
-        document.getElementById('trendsSection').style.display = 'block';
-        document.getElementById('tableSection').style.display = 'block';
-        document.getElementById('graphSection').style.display = 'block';
-        document.getElementById('aiCommentarySection').style.display = 'block';
+    // ---- DATE RANGE HANDLER ----
+    function setupDateRangeButtons() {
+        document.querySelectorAll('.range-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDateRange = this.getAttribute('data-range');
+                renderHotelComparison();
+            });
+        });
     }
 
-    // ---- RENDER KPIs ----
+    // ---- HOTEL SEARCH HANDLER ----
+    function setupHotelSearch() {
+        const input = document.getElementById('hotelSearchInput');
+        input.addEventListener('input', function() {
+            if (allHotelsList.includes(this.value)) {
+                selectedHotel = this.value;
+                document.getElementById('selectedHotelBadge').textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
+                renderHotelComparison();
+            }
+        });
+    }
+
+    // ---- GET DATES FOR SELECTED RANGE ----
+    function getDatesForRange() {
+        const today = new Date();
+        const endDate = new Date(today);
+        let startDate = new Date(today);
+        
+        switch(currentDateRange) {
+            case '4weeks':
+                startDate.setDate(today.getDate() - 28);
+                break;
+            case '3months':
+                startDate.setMonth(today.getMonth() - 3);
+                break;
+            case '6months':
+                startDate.setMonth(today.getMonth() - 6);
+                break;
+            default:
+                startDate.setMonth(today.getMonth() - 6);
+        }
+        
+        const startStr = startDate.toISOString().split('T')[0];
+        const endStr = endDate.toISOString().split('T')[0];
+        
+        return allAvailableDates.filter(d => d >= startStr && d <= endStr);
+    }
+
+    // ---- RENDER HOTEL COMPARISON (NEW SECTION) ----
+    async function renderHotelComparison() {
+        const container = document.getElementById('compareContent');
+        const section = document.getElementById('hotelCompareSection');
+        
+        if (!allAvailableDates.length || allHotelsList.length === 0) {
+            container.innerHTML = '<div class="loading-compare">Waiting for hotel data to load...</div>';
+            section.style.display = 'block';
+            return;
+        }
+        
+        // Validate selected hotel exists
+        if (!allHotelsList.includes(selectedHotel) && allHotelsList.length > 0) {
+            selectedHotel = allHotelsList[0];
+            document.getElementById('selectedHotelBadge').textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
+            document.getElementById('hotelSearchInput').value = selectedHotel;
+        }
+        
+        const rangeDates = getDatesForRange();
+        if (rangeDates.length === 0) {
+            container.innerHTML = '<div class="loading-compare">No data available for selected date range.</div>';
+            section.style.display = 'block';
+            return;
+        }
+        
+        // Fetch all weeks needed for the date range
+        const weeksNeeded = new Set(rangeDates.map(d => getWeekStart(d)));
+        await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
+        
+        // Calculate metrics
+        let hotelRates = [];
+        let hotelSoldOutDates = [];
+        let hotelTotalRate = 0;
+        let hotelRateCount = 0;
+        
+        let marketRates = [];
+        let marketSoldOutCounts = {};
+        
+        for (const date of rangeDates) {
+            const dateData = allPropertiesData[date];
+            if (!dateData) continue;
+            
+            // Hotel data
+            const hotelData = dateData[selectedHotel];
+            if (hotelData) {
+                if (hotelData.soldOut) {
+                    hotelSoldOutDates.push(date);
+                } else if (hotelData.current) {
+                    hotelRates.push(hotelData.current);
+                    hotelTotalRate += hotelData.current;
+                    hotelRateCount++;
+                }
+            }
+            
+            // Market data (all properties except selected hotel)
+            let marketSum = 0;
+            let marketCount = 0;
+            let soldOutCount = 0;
+            for (const [propName, propData] of Object.entries(dateData)) {
+                if (propName === selectedHotel) continue;
+                if (propData.soldOut) {
+                    soldOutCount++;
+                } else if (propData.current) {
+                    marketSum += propData.current;
+                    marketCount++;
+                }
+            }
+            if (marketCount > 0) {
+                marketRates.push(marketSum / marketCount);
+            }
+            marketSoldOutCounts[date] = soldOutCount;
+        }
+        
+        const hotelAvg = hotelRates.length ? hotelRates.reduce((a,b) => a+b, 0) / hotelRates.length : 0;
+        const marketAvg = marketRates.length ? marketRates.reduce((a,b) => a+b, 0) / marketRates.length : 0;
+        const hotelChangePct = marketAvg ? ((hotelAvg - marketAvg) / marketAvg * 100) : 0;
+        
+        const hotelMin = hotelRates.length ? Math.min(...hotelRates) : 0;
+        const hotelMax = hotelRates.length ? Math.max(...hotelRates) : 0;
+        const marketMin = marketRates.length ? Math.min(...marketRates) : 0;
+        const marketMax = marketRates.length ? Math.max(...marketRates) : 0;
+        
+        // Opportunity Gap Calculation
+        let totalLostRevenue = 0;
+        for (const date of hotelSoldOutDates) {
+            const dateData = allPropertiesData[date];
+            if (!dateData) continue;
+            let marketHigh = 0;
+            for (const [propName, propData] of Object.entries(dateData)) {
+                if (propName === selectedHotel) continue;
+                if (propData.current && propData.current > marketHigh) {
+                    marketHigh = propData.current;
+                }
+            }
+            const hotelRateOnSoldOut = hotelRates.length ? hotelAvg : 0;
+            if (marketHigh > hotelRateOnSoldOut) {
+                totalLostRevenue += (marketHigh - hotelRateOnSoldOut);
+            }
+        }
+        
+        // Demand Heatmap (last 7 days)
+        const last7Days = rangeDates.slice(-7);
+        const heatmapData = last7Days.map(date => {
+            const soldOutCount = marketSoldOutCounts[date] || 0;
+            const totalProps = allHotelsList.length - 1;
+            const intensity = totalProps ? (soldOutCount / totalProps) * 100 : 0;
+            return { date, intensity };
+        });
+        
+        // Generate alerts
+        const alerts = [];
+        if (hotelAvg > marketAvg * 1.15) {
+            alerts.push({ type: 'warning', text: `Your rate (R ${Math.round(hotelAvg).toLocaleString()}) is 15%+ above market average (R ${Math.round(marketAvg).toLocaleString()}). Ensure your value proposition justifies this premium.` });
+        } else if (hotelAvg < marketAvg * 0.85) {
+            alerts.push({ type: 'success', text: `Your rate (R ${Math.round(hotelAvg).toLocaleString()}) is below market average. If occupancy is high, you may be leaving revenue on the table.` });
+        }
+        
+        if (hotelSoldOutDates.length > 0 && totalLostRevenue > 0) {
+            alerts.push({ type: 'warning', text: `You sold out on ${hotelSoldOutDates.length} date(s) in this period. On those dates, the market peak rate was R ${Math.round(totalLostRevenue / hotelSoldOutDates.length).toLocaleString()} higher than your average. Potential lost revenue: R ${Math.round(totalLostRevenue).toLocaleString()}+ per room.` });
+        }
+        
+        const highDemandDates = Object.entries(marketSoldOutCounts).filter(([_, count]) => count >= (allHotelsList.length - 1) * 0.5);
+        if (highDemandDates.length > 0) {
+            alerts.push({ type: 'info', text: `${highDemandDates.length} date(s) showed high market demand (50%+ competitors sold out). Your pricing on these dates: R ${Math.round(hotelRates.slice(-highDemandDates.length).reduce((a,b)=>a+b,0) / (highDemandDates.length || 1)).toLocaleString()}.` });
+        }
+        
+        // Render HTML
+        container.innerHTML = `
+            <div class="compare-grid">
+                <div class="compare-card ${hotelAvg > marketAvg ? 'highlight' : ''}">
+                    <div class="compare-card-title">🏨 Your Avg Rate</div>
+                    <div class="compare-card-value">R ${Math.round(hotelAvg).toLocaleString()}</div>
+                    <div class="compare-card-sub">${hotelRates.length} days with data</div>
+                    <div class="compare-card-change ${hotelChangePct > 0 ? 'trend-up' : (hotelChangePct < 0 ? 'trend-down' : 'trend-neutral')}">
+                        ${hotelChangePct > 0 ? '+' : ''}${hotelChangePct.toFixed(1)}% vs market avg
+                    </div>
+                </div>
+                <div class="compare-card">
+                    <div class="compare-card-title">📊 Market Avg Rate</div>
+                    <div class="compare-card-value">R ${Math.round(marketAvg).toLocaleString()}</div>
+                    <div class="compare-card-sub">${allHotelsList.length - 1} competitors</div>
+                </div>
+                <div class="compare-card">
+                    <div class="compare-card-title">📈 Your Rate Range</div>
+                    <div class="compare-card-value">R ${Math.round(hotelMin).toLocaleString()} - ${Math.round(hotelMax).toLocaleString()}</div>
+                    <div class="compare-card-sub">Market: R ${Math.round(marketMin).toLocaleString()} - ${Math.round(marketMax).toLocaleString()}</div>
+                </div>
+                <div class="compare-card ${hotelSoldOutDates.length > 0 ? 'warning' : ''}">
+                    <div class="compare-card-title">🔥 Sold Out Days</div>
+                    <div class="compare-card-value">${hotelSoldOutDates.length}</div>
+                    <div class="compare-card-sub">in the selected period</div>
+                </div>
+            </div>
+            
+            ${totalLostRevenue > 0 ? `
+            <div class="opportunity-banner">
+                <div class="label">💰 OPPORTUNITY GAP</div>
+                <div class="amount">R ${Math.round(totalLostRevenue).toLocaleString()}+</div>
+                <div class="sub">Estimated lost revenue potential on sold-out dates (based on market peak rates)</div>
+            </div>
+            ` : ''}
+            
+            <div class="demand-heatmap">
+                <div class="heatmap-title">📅 DEMAND HEATMAP — Last 7 days (% of competitors sold out)</div>
+                <div class="heatmap-grid">
+                    ${heatmapData.map(day => {
+                        let intensityClass = 'heatmap-none';
+                        if (day.intensity >= 50) intensityClass = 'heatmap-high';
+                        else if (day.intensity >= 25) intensityClass = 'heatmap-med';
+                        else if (day.intensity > 0) intensityClass = 'heatmap-low';
+                        const dayName = formatDayName(day.date);
+                        const dateShort = formatDate(day.date);
+                        return `<div class="heatmap-cell ${intensityClass}" title="${dayName} ${dateShort}: ${Math.round(day.intensity)}% sold out">
+                            <span>${dayName.substring(0,2)}</span>
+                            <span class="heatmap-label">${Math.round(day.intensity)}%</span>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>
+            
+            <div>
+                <div class="compare-card-title" style="margin-bottom: 12px;">⚡ ACTIONABLE INSIGHTS</div>
+                <div class="alert-list">
+                    ${alerts.length > 0 ? alerts.map(alert => `
+                        <div class="alert-item">
+                            <div class="alert-icon ${alert.type}">${alert.type === 'warning' ? '⚠️' : (alert.type === 'success' ? '✅' : 'ℹ️')}</div>
+                            <div class="alert-text">${escapeHtml(alert.text)}</div>
+                        </div>
+                    `).join('') : `
+                        <div class="alert-item">
+                            <div class="alert-icon info">✅</div>
+                            <div class="alert-text">Your pricing is well-aligned with the market. Continue monitoring competitor movements and sold-out signals to optimize further.</div>
+                        </div>
+                    `}
+                </div>
+            </div>
+        `;
+        
+        section.style.display = 'block';
+    }
+
+    // ---- EXISTING RENDER FUNCTIONS (unchanged) ----
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
@@ -1191,7 +1668,6 @@
         `;
     }
 
-    // ---- RENDER FAST MOVERS ----
     function renderFastMovers(data) {
         const days = data.days;
         const properties = data.properties;
@@ -1240,7 +1716,6 @@
         `).join('');
     }
 
-    // ---- RENDER TRENDS ----
     function renderTrends(data) {
         const properties = data.properties.slice(0, 4);
         const trendsHtml = properties.map(p => {
@@ -1268,7 +1743,6 @@
         document.getElementById('trendsGrid').innerHTML = trendsHtml;
     }
 
-    // ---- RENDER TABLE (with windowDates for proper column headers) ----
     function renderTable(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
@@ -1348,7 +1822,6 @@
         }
     }
 
-    // ---- RENDER CHART (updates with navigation) ----
     function renderChart(data, windowDates) {
         const days = data.days;
         const properties = data.properties;
@@ -1381,7 +1854,6 @@
             avgPrevious.push(countPrev > 0 ? sumPrev / countPrev : 0);
         }
         
-        // Build labels: "Mon 12 May" style
         const labels = days.map((day, i) => {
             const dateStr = dates[i];
             return dateStr ? `${day} ${formatDate(dateStr)}` : day;
@@ -1441,13 +1913,11 @@
         });
     }
 
-    // ---- AI COMMENTARY ----
-    // lastCommentaryData holds the most recent data snapshot for the refresh button
+    // ---- AI COMMENTARY (unchanged) ----
     let lastCommentaryData = null;
     let lastCommentaryDates = null;
 
     async function generateAICommentary(data, windowDates) {
-        // Called from nav flow WITH data, OR from refresh button WITHOUT data
         if (!data) {
             if (!lastCommentaryData) return;
             data = lastCommentaryData;
@@ -1471,11 +1941,9 @@
             <div style="font-size:11px;margin-top:8px;color:#94a3b8;">Analysing rate movements, demand signals & pricing gaps</div>
         </div>`;
 
-        // Build a summary of the data to send to Claude
         const days = data.days;
         const properties = data.properties;
 
-        // Compute stats per property
         const propStats = properties.map(prop => {
             let rates = [], changes = [], soldOuts = 0;
             days.forEach(day => {
@@ -1491,7 +1959,6 @@
             return { name: prop.property, avgRate: Math.round(avg), totalChange: Math.round(totalChange), soldOuts };
         });
 
-        // Market-wide stats
         let allCurrentRates = [];
         let totalUp = 0, totalDown = 0, totalFlat = 0;
         properties.forEach(prop => {
@@ -1579,7 +2046,6 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
                 </div>
             `;
         } catch (err) {
-            // Fallback: generate rule-based commentary if API fails
             const fallbackCommentary = generateFallbackCommentary(propStats, mktAvg, mktMin, mktMax, totalUp, totalDown, dateRange);
             bodyEl.innerHTML = fallbackCommentary;
             console.warn('AI API unavailable, using rule-based commentary:', err.message);
@@ -1634,8 +2100,63 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
             </div>
         </div>`;
     }
+
+    // ---- INITIAL LOAD ----
+    async function initialLoad() {
+        document.getElementById('loadingState').style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('kpiSection').style.display = 'none';
+        document.getElementById('fastMoversSection').style.display = 'none';
+        document.getElementById('trendsSection').style.display = 'none';
+        document.getElementById('tableSection').style.display = 'none';
+        document.getElementById('graphSection').style.display = 'none';
+        document.getElementById('aiCommentarySection').style.display = 'none';
+
+        await loadAvailableWeeks();
+
+        if (allAvailableDates.length === 0) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+        }
+
+        const today = todayStr();
+        let todayIdx = allAvailableDates.indexOf(today);
+        if (todayIdx === -1) todayIdx = allAvailableDates.findIndex(d => d >= today);
+        if (todayIdx === -1) todayIdx = 0;
+        currentWindowStart = Math.min(Math.max(0, todayIdx), Math.max(0, allAvailableDates.length - WINDOW_SIZE));
+
+        const windowDates = allAvailableDates.slice(currentWindowStart, currentWindowStart + WINDOW_SIZE);
+        const weeksNeeded = new Set(windowDates.map(d => getWeekStart(d)));
+        await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
+
+        if (allWeekStarts.length > 0) await fetchWeekData(allWeekStarts[allWeekStarts.length - 1]);
+
+        const refData = weekDataCache[allWeekStarts[allWeekStarts.length - 1]] || Object.values(weekDataCache)[0];
+        if (!refData) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+            return;
+        }
+
+        document.getElementById('loadingState').style.display = 'none';
+        updateNavUI();
+
+        renderTrends(refData);
+        await renderCurrentWindow();
+
+        document.getElementById('kpiSection').style.display = 'grid';
+        document.getElementById('fastMoversSection').style.display = 'block';
+        document.getElementById('trendsSection').style.display = 'block';
+        document.getElementById('tableSection').style.display = 'block';
+        document.getElementById('graphSection').style.display = 'block';
+        document.getElementById('aiCommentarySection').style.display = 'block';
+        
+        // Setup new UI handlers
+        setupDateRangeButtons();
+        setupHotelSearch();
+    }
     
-    // Initialize
     initialLoad();
 </script>
 </body>
