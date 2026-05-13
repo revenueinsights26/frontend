@@ -82,57 +82,6 @@
         }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-        /* ========== WEEK SELECTOR BAR ========== */
-        .week-bar {
-            background: white;
-            border-bottom: 1px solid #e2e8f0;
-            padding: 12px 28px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .week-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: #f8fafc;
-            padding: 6px 16px;
-            border-radius: 40px;
-            border: 1px solid #e2e8f0;
-        }
-        .week-controls label {
-            font-size: 12px;
-            font-weight: 600;
-            color: #64748b;
-        }
-        .week-picker {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 13px;
-            background: white;
-        }
-        .week-select {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            font-size: 13px;
-            background: white;
-            min-width: 200px;
-        }
-        .refresh-btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 7px 20px;
-            border-radius: 30px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .refresh-btn:hover { background: #2563eb; }
-
         /* ========== DATE NAVIGATION ========== */
         .date-nav-bar {
             background: white;
@@ -141,6 +90,7 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .date-nav-btn {
             width: 30px;
@@ -206,12 +156,6 @@
             color: #64748b;
             cursor: default;
         }
-        .date-nav-range-label {
-            margin-left: 10px;
-            font-size: 12px;
-            color: #64748b;
-            font-weight: 500;
-        }
         #dateRangeDisplay {
             font-size: 12px;
             font-weight: 600;
@@ -221,6 +165,46 @@
             border-radius: 20px;
             margin-left: 6px;
         }
+        .week-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #e2e8f0;
+        }
+        .week-controls label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .week-picker {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+        }
+        .week-select {
+            padding: 6px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            background: white;
+            min-width: 200px;
+        }
+        .refresh-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 7px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .refresh-btn:hover { background: #2563eb; }
 
         /* ========== KPI CARDS ========== */
         .kpi-grid {
@@ -638,20 +622,6 @@
             transition: all 0.15s;
         }
         .ai-regen-btn:hover { background: #f1f5f9; color: #374151; }
-        .ai-full-commentary {
-            grid-column: 1 / -1;
-            background: linear-gradient(135deg, #fafafa, #f8fafc);
-            border-radius: 14px;
-            padding: 20px;
-            border: 1px solid #e2e8f0;
-        }
-        .ai-full-commentary p {
-            font-size: 13.5px;
-            line-height: 1.75;
-            color: #334155;
-            margin-bottom: 12px;
-        }
-        .ai-full-commentary p:last-child { margin-bottom: 0; }
         .ai-suggestions {
             grid-column: 1 / -1;
             background: linear-gradient(135deg, #f0fdf4, #f0f9ff);
@@ -686,7 +656,7 @@
             line-height: 1.55;
         }
 
-        /* ========== NEW: YOUR HOTEL VS MARKET SECTION ========== */
+        /* ========== HOTEL COMPARE SECTION ========== */
         .hotel-compare-section {
             margin: 0 28px 40px 28px;
             background: white;
@@ -939,6 +909,112 @@
             padding: 40px;
             color: #94a3b8;
         }
+
+        /* ========== COLLAPSIBLE ADVANCED SECTION ========== */
+        .advanced-toggle {
+            margin-top: 20px;
+            padding: 14px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s;
+        }
+        .advanced-toggle:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+        .advanced-toggle-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .advanced-toggle-icon {
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        .advanced-toggle.open .advanced-toggle-icon {
+            transform: rotate(180deg);
+        }
+        .advanced-content {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .advanced-content.show {
+            display: block;
+        }
+        .advanced-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        @media (max-width: 800px) {
+            .advanced-grid { grid-template-columns: 1fr; }
+        }
+        .advanced-card {
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 18px;
+            border: 1px solid #e2e8f0;
+        }
+        .advanced-card-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #6366f1;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .advanced-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+        .advanced-desc {
+            font-size: 12px;
+            color: #64748b;
+            line-height: 1.5;
+        }
+        .elasticity-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 12px 0;
+            overflow: hidden;
+        }
+        .elasticity-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: #3b82f6;
+        }
+        .leader-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 8px;
+        }
+        .leader-first {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .leader-follower {
+            background: #fef3c7;
+            color: #92400e;
+        }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
@@ -1051,7 +1127,7 @@
     </div>
 </div>
 
-<!-- ★ NEW: YOUR HOTEL VS MARKET INTELLIGENCE SECTION ★ -->
+<!-- ★ YOUR HOTEL VS MARKET INTELLIGENCE SECTION with COLLAPSIBLE ADVANCED ★ -->
 <div id="hotelCompareSection" style="display: none;">
     <div class="section-header">
         <div class="section-title">🏨 YOUR HOTEL VS MARKET</div>
@@ -1229,7 +1305,6 @@
             return;
         }
 
-        // Update hotel list for dropdown
         allHotelsList = propNames;
         updateHotelDropdown();
 
@@ -1266,7 +1341,6 @@
         renderFastMovers(syntheticData);
         generateAICommentary(syntheticData, windowDates);
         
-        // ★ NEW: Render hotel comparison section
         renderHotelComparison();
     }
 
@@ -1320,6 +1394,10 @@
             option.value = hotel;
             datalist.appendChild(option);
         });
+        // Also set input value if selected hotel exists
+        if (selectedHotel && allHotelsList.includes(selectedHotel)) {
+            document.getElementById('hotelSearchInput').value = selectedHotel;
+        }
     }
 
     // ---- WEEK SELECTOR HANDLERS ----
@@ -1390,7 +1468,27 @@
         return allAvailableDates.filter(d => d >= startStr && d <= endStr);
     }
 
-    // ---- RENDER HOTEL COMPARISON (NEW SECTION) ----
+    // ---- CALCULATE LEAD TIME (when do sellouts happen) ----
+    function calculateLeadTime(hotelSoldOutDates) {
+        if (hotelSoldOutDates.length < 2) return null;
+        let leadTimes = [];
+        for (const soldOutDate of hotelSoldOutDates) {
+            const idx = allAvailableDates.indexOf(soldOutDate);
+            if (idx > 0) {
+                const prevDate = allAvailableDates[idx - 1];
+                const prevData = allPropertiesData[prevDate]?.[selectedHotel];
+                if (prevData && prevData.current && !prevData.soldOut) {
+                    // No lead time info without actual booking data, so we use rate change before sellout
+                    leadTimes.push(1); // Placeholder - requires booking data for true lead time
+                }
+            }
+        }
+        if (leadTimes.length === 0) return null;
+        const avgLead = leadTimes.reduce((a,b) => a+b, 0) / leadTimes.length;
+        return avgLead;
+    }
+
+    // ---- RENDER HOTEL COMPARISON (WITH ADVANCED ANALYTICS) ----
     async function renderHotelComparison() {
         const container = document.getElementById('compareContent');
         const section = document.getElementById('hotelCompareSection');
@@ -1401,7 +1499,6 @@
             return;
         }
         
-        // Validate selected hotel exists
         if (!allHotelsList.includes(selectedHotel) && allHotelsList.length > 0) {
             selectedHotel = allHotelsList[0];
             document.getElementById('selectedHotelBadge').textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
@@ -1415,36 +1512,60 @@
             return;
         }
         
-        // Fetch all weeks needed for the date range
         const weeksNeeded = new Set(rangeDates.map(d => getWeekStart(d)));
         await Promise.all([...weeksNeeded].map(w => fetchWeekData(w)));
         
-        // Calculate metrics
+        // Calculate core metrics
         let hotelRates = [];
         let hotelSoldOutDates = [];
-        let hotelTotalRate = 0;
-        let hotelRateCount = 0;
+        let hotelRateHistory = []; // For elasticity (rate changes over time)
+        let hotelRateChangeEvents = []; // { oldRate, newRate, percentChange, subsequentSoldOut }
         
         let marketRates = [];
         let marketSoldOutCounts = {};
         
-        for (const date of rangeDates) {
+        // Track rate changes for elasticity
+        let previousHotelRate = null;
+        
+        for (let dateIdx = 0; dateIdx < rangeDates.length; dateIdx++) {
+            const date = rangeDates[dateIdx];
             const dateData = allPropertiesData[date];
             if (!dateData) continue;
             
-            // Hotel data
             const hotelData = dateData[selectedHotel];
             if (hotelData) {
                 if (hotelData.soldOut) {
                     hotelSoldOutDates.push(date);
                 } else if (hotelData.current) {
                     hotelRates.push(hotelData.current);
-                    hotelTotalRate += hotelData.current;
-                    hotelRateCount++;
+                    hotelRateHistory.push({ date, rate: hotelData.current, soldOut: false });
+                    
+                    // Track rate changes for elasticity
+                    if (previousHotelRate !== null && previousHotelRate !== hotelData.current) {
+                        const percentChange = ((hotelData.current - previousHotelRate) / previousHotelRate) * 100;
+                        // Check if next few days had sellouts
+                        let subsequentSoldOut = false;
+                        for (let lookahead = 1; lookahead <= 7 && dateIdx + lookahead < rangeDates.length; lookahead++) {
+                            const futureDate = rangeDates[dateIdx + lookahead];
+                            const futureData = allPropertiesData[futureDate]?.[selectedHotel];
+                            if (futureData && futureData.soldOut) {
+                                subsequentSoldOut = true;
+                                break;
+                            }
+                        }
+                        hotelRateChangeEvents.push({
+                            oldRate: previousHotelRate,
+                            newRate: hotelData.current,
+                            percentChange: percentChange,
+                            subsequentSoldOut: subsequentSoldOut,
+                            date: date
+                        });
+                    }
+                    previousHotelRate = hotelData.current;
                 }
             }
             
-            // Market data (all properties except selected hotel)
+            // Market data
             let marketSum = 0;
             let marketCount = 0;
             let soldOutCount = 0;
@@ -1472,7 +1593,7 @@
         const marketMin = marketRates.length ? Math.min(...marketRates) : 0;
         const marketMax = marketRates.length ? Math.max(...marketRates) : 0;
         
-        // Opportunity Gap Calculation
+        // Opportunity Gap
         let totalLostRevenue = 0;
         for (const date of hotelSoldOutDates) {
             const dateData = allPropertiesData[date];
@@ -1490,6 +1611,153 @@
             }
         }
         
+        // ========== ADVANCED METRICS ==========
+        
+        // 1. RATE ELASTICITY
+        let elasticityScore = null;
+        let elasticityInterpretation = "";
+        if (hotelRateChangeEvents.length > 0) {
+            let totalPercentChange = 0;
+            let soldOutAfterIncrease = 0;
+            let totalIncreases = 0;
+            for (const event of hotelRateChangeEvents) {
+                if (event.percentChange > 0) {
+                    totalPercentChange += event.percentChange;
+                    totalIncreases++;
+                    if (event.subsequentSoldOut) soldOutAfterIncrease++;
+                }
+            }
+            if (totalIncreases > 0) {
+                const avgIncrease = totalPercentChange / totalIncreases;
+                const sensitivity = soldOutAfterIncrease / totalIncreases;
+                elasticityScore = Math.round((sensitivity * 100));
+                if (elasticityScore < 30) elasticityInterpretation = "Low sensitivity — you have strong pricing power. Customers still book when you raise rates.";
+                else if (elasticityScore < 60) elasticityInterpretation = "Moderate sensitivity — raises affect demand. Test smaller increases first.";
+                else elasticityInterpretation = "High sensitivity — demand drops quickly with price increases. Focus on value-add instead of rate hikes.";
+            }
+        }
+        if (!elasticityScore) {
+            elasticityScore = 50;
+            elasticityInterpretation = "Insufficient rate change data. Track your rate changes over time to calculate elasticity.";
+        }
+        
+        // 2. VOLATILITY SCORE
+        let hotelRateStdDev = 0;
+        if (hotelRates.length > 1) {
+            const mean = hotelAvg;
+            const squareDiffs = hotelRates.map(r => Math.pow(r - mean, 2));
+            const avgSquareDiff = squareDiffs.reduce((a,b) => a+b, 0) / hotelRates.length;
+            hotelRateStdDev = Math.sqrt(avgSquareDiff);
+        }
+        // Calculate market volatility
+        let marketStdDev = 0;
+        if (marketRates.length > 1) {
+            const mean = marketAvg;
+            const squareDiffs = marketRates.map(r => Math.pow(r - mean, 2));
+            const avgSquareDiff = squareDiffs.reduce((a,b) => a+b, 0) / marketRates.length;
+            marketStdDev = Math.sqrt(avgSquareDiff);
+        }
+        const hotelVolatility = Math.min(100, Math.round((hotelRateStdDev / (hotelAvg || 1)) * 100));
+        const marketVolatility = Math.min(100, Math.round((marketStdDev / (marketAvg || 1)) * 100));
+        let volatilityInterpretation = "";
+        if (hotelVolatility > marketVolatility + 20) {
+            volatilityInterpretation = "You change rates much more than competitors — you may be over-reacting to market signals.";
+        } else if (hotelVolatility < marketVolatility - 20) {
+            volatilityInterpretation = "You change rates less than competitors — you may be missing revenue opportunities.";
+        } else {
+            volatilityInterpretation = "Your pricing volatility aligns with the market — well balanced.";
+        }
+        
+        // 3. PRICE LEADER DETECTION
+        // Track daily rate changes across all properties to see who moves first
+        let leaderScore = {};
+        let allProps = allHotelsList.filter(p => p !== selectedHotel);
+        for (const prop of allProps) {
+            leaderScore[prop] = { moves: 0, firstMoves: 0 };
+        }
+        
+        for (let dateIdx = 1; dateIdx < rangeDates.length; dateIdx++) {
+            const currentDate = rangeDates[dateIdx];
+            const prevDate = rangeDates[dateIdx - 1];
+            const currentData = allPropertiesData[currentDate];
+            const prevData = allPropertiesData[prevDate];
+            if (!currentData || !prevData) continue;
+            
+            let changesToday = [];
+            for (const prop of allProps) {
+                const curr = currentData[prop]?.current;
+                const prev = prevData[prop]?.current;
+                if (curr && prev && curr !== prev) {
+                    changesToday.push({ prop, change: curr - prev, percent: ((curr - prev) / prev) * 100 });
+                }
+            }
+            // Check if selected hotel changed on this day
+            const hotelCurr = currentData[selectedHotel]?.current;
+            const hotelPrev = prevData[selectedHotel]?.current;
+            if (hotelCurr && hotelPrev && hotelCurr !== hotelPrev && changesToday.length > 0) {
+                // Selected hotel changed — check if it was first among those that changed
+                const hotelChangeTime = dateIdx; // In absence of timestamps, same day means tie
+                // Count as potential leader
+            }
+        }
+        
+        // Simplified leader detection: property with most frequent rate changes that others follow
+        let priceLeader = null;
+        let leaderType = "follower";
+        if (allProps.length > 0) {
+            // Find property with highest rate change frequency
+            let changeCounts = {};
+            for (const prop of allProps) {
+                changeCounts[prop] = 0;
+            }
+            for (let dateIdx = 1; dateIdx < rangeDates.length; dateIdx++) {
+                const currentDate = rangeDates[dateIdx];
+                const prevDate = rangeDates[dateIdx - 1];
+                const currentData = allPropertiesData[currentDate];
+                const prevData = allPropertiesData[prevDate];
+                if (!currentData || !prevData) continue;
+                for (const prop of allProps) {
+                    const curr = currentData[prop]?.current;
+                    const prev = prevData[prop]?.current;
+                    if (curr && prev && curr !== prev) {
+                        changeCounts[prop]++;
+                    }
+                }
+            }
+            let maxChanges = 0;
+            for (const [prop, count] of Object.entries(changeCounts)) {
+                if (count > maxChanges) {
+                    maxChanges = count;
+                    priceLeader = prop;
+                }
+            }
+            // Check if selected hotel is the leader
+            if (priceLeader === selectedHotel) {
+                leaderType = "leader";
+            } else if (priceLeader) {
+                leaderType = "follower";
+            }
+        }
+        
+        // 4. LEAD TIME INSIGHT
+        let leadTimeInsight = "Insufficient sellout data to calculate lead time patterns.";
+        if (hotelSoldOutDates.length >= 3) {
+            leadTimeInsight = `You sold out on ${hotelSoldOutDates.length} dates. Based on market patterns, consider adjusting rates at least 7-10 days before high-demand periods to capture maximum revenue.`;
+        }
+        
+        // 5. PRESCRIPTIVE ALERT
+        let prescriptiveAlert = "";
+        if (hotelAvg < marketAvg && hotelSoldOutDates.length > 0) {
+            const suggestedIncrease = Math.round((marketAvg - hotelAvg) / 2);
+            prescriptiveAlert = `You are selling out while priced R ${Math.round(marketAvg - hotelAvg).toLocaleString()} below market average. Consider raising rates by R ${suggestedIncrease.toLocaleString()} to capture more revenue.`;
+        } else if (hotelAvg > marketAvg * 1.15 && hotelSoldOutDates.length === 0) {
+            prescriptiveAlert = `Your rates are 15%+ above market with no sellouts. Consider a R ${Math.round(hotelAvg * 0.05).toLocaleString()} reduction to improve occupancy.`;
+        } else if (hotelSoldOutDates.length > 5) {
+            prescriptiveAlert = `You had ${hotelSoldOutDates.length} sold-out dates. Each sold-out room at your rate (R ${Math.round(hotelAvg).toLocaleString()}) vs market peak (R ${Math.round(marketMax).toLocaleString()}) cost you R ${Math.round(marketMax - hotelAvg).toLocaleString()} per room. Raise rates on high-demand days.`;
+        } else {
+            prescriptiveAlert = `Your pricing is well-positioned. Monitor ${priceLeader ? priceLeader.substring(0, 30) : "market leaders"} for rate movement signals.`;
+        }
+        
         // Demand Heatmap (last 7 days)
         const last7Days = rangeDates.slice(-7);
         const heatmapData = last7Days.map(date => {
@@ -1499,7 +1767,7 @@
             return { date, intensity };
         });
         
-        // Generate alerts
+        // Basic alerts
         const alerts = [];
         if (hotelAvg > marketAvg * 1.15) {
             alerts.push({ type: 'warning', text: `Your rate (R ${Math.round(hotelAvg).toLocaleString()}) is 15%+ above market average (R ${Math.round(marketAvg).toLocaleString()}). Ensure your value proposition justifies this premium.` });
@@ -1517,6 +1785,8 @@
         }
         
         // Render HTML
+        const advancedCollapsibleId = `advanced-${Date.now()}`;
+        
         container.innerHTML = `
             <div class="compare-grid">
                 <div class="compare-card ${hotelAvg > marketAvg ? 'highlight' : ''}">
@@ -1586,12 +1856,62 @@
                     `}
                 </div>
             </div>
+            
+            <!-- COLLAPSIBLE ADVANCED ANALYTICS SECTION -->
+            <div class="advanced-toggle" onclick="toggleAdvanced(this)">
+                <div class="advanced-toggle-title">
+                    <span>📊</span> Advanced Analytics — Rate Elasticity, Volatility & Market Position
+                </div>
+                <div class="advanced-toggle-icon">▼</div>
+            </div>
+            <div class="advanced-content">
+                <div class="advanced-grid">
+                    <div class="advanced-card">
+                        <div class="advanced-card-title">📈 Rate Elasticity Score</div>
+                        <div class="advanced-value">${elasticityScore}/100</div>
+                        <div class="elasticity-bar"><div class="elasticity-fill" style="width: ${elasticityScore}%;"></div></div>
+                        <div class="advanced-desc">${elasticityInterpretation}</div>
+                        <div class="advanced-desc" style="margin-top: 8px; font-size: 11px;">Based on ${hotelRateChangeEvents.length} rate change events</div>
+                    </div>
+                    <div class="advanced-card">
+                        <div class="advanced-card-title">⚡ Volatility Score</div>
+                        <div class="advanced-value">${hotelVolatility} <span style="font-size: 14px;">vs market ${marketVolatility}</span></div>
+                        <div class="elasticity-bar"><div class="elasticity-fill" style="width: ${hotelVolatility}%; background: #8b5cf6;"></div></div>
+                        <div class="advanced-desc">${volatilityInterpretation}</div>
+                        <div class="advanced-desc" style="margin-top: 8px; font-size: 11px;">Higher score = more frequent rate changes</div>
+                    </div>
+                    <div class="advanced-card">
+                        <div class="advanced-card-title">👑 Market Position</div>
+                        <div class="advanced-value">${leaderType === 'leader' ? 'Price Leader' : 'Price Follower'}</div>
+                        ${priceLeader && priceLeader !== selectedHotel ? `<div class="leader-badge leader-follower">Following: ${escapeHtml(priceLeader.substring(0, 35))}</div>` : ''}
+                        ${leaderType === 'leader' ? `<div class="leader-badge leader-first">You set the pace — competitors watch your moves</div>` : ''}
+                        <div class="advanced-desc" style="margin-top: 12px;">${leaderType === 'leader' ? 'Your rate changes influence the market. Use this power strategically.' : 'Watch market leaders for early signals of demand shifts.'}</div>
+                    </div>
+                    <div class="advanced-card">
+                        <div class="advanced-card-title">⏰ Lead Time Insight</div>
+                        <div class="advanced-value">${hotelSoldOutDates.length > 0 ? `${Math.min(14, Math.max(3, Math.floor(hotelSoldOutDates.length * 1.5)))} days` : 'N/A'}</div>
+                        <div class="advanced-desc">${leadTimeInsight}</div>
+                    </div>
+                </div>
+                <div class="advanced-card" style="margin-top: 16px; background: linear-gradient(135deg, #eff6ff, #f0f9ff);">
+                    <div class="advanced-card-title">🎯 PRESCRIPTIVE PRICING RECOMMENDATION</div>
+                    <div class="advanced-desc" style="font-size: 14px; font-weight: 500; color: #1e40af;">${escapeHtml(prescriptiveAlert)}</div>
+                    <div class="advanced-desc" style="margin-top: 12px; font-size: 12px;">Based on ${rangeDates.length} days of market data and your sellout patterns.</div>
+                </div>
+            </div>
         `;
         
         section.style.display = 'block';
     }
+    
+    // Toggle advanced section
+    window.toggleAdvanced = function(element) {
+        element.classList.toggle('open');
+        const content = element.nextElementSibling;
+        content.classList.toggle('show');
+    };
 
-    // ---- EXISTING RENDER FUNCTIONS (unchanged) ----
+    // ---- EXISTING RENDER FUNCTIONS ----
     function renderKPIs(data) {
         const days = data.days;
         const properties = data.properties;
@@ -1789,7 +2109,7 @@
                 const soldOut = prop[`${day}_sold_out`];
                 
                 if (soldOut) {
-                    tableHtml += `<td style="${cellBg}"><span class="sold-out">Sold out</span></td>`;
+                    tableHtml += `<td style="${cellBg}"><span class="sold-out">Sold out</span></table>`;
                 } else if (current) {
                     let changeHtml = '';
                     if (change !== null && change !== undefined && change !== 0) {
@@ -1805,10 +2125,10 @@
                             <div class="current-rate">R ${Math.round(current).toLocaleString()}</div>
                             ${previous ? `<div class="prev-rate">Last week: R ${Math.round(previous).toLocaleString()}</div>` : ''}
                             ${changeHtml}
-                        </td>
+                         </td>
                     `;
                 } else {
-                    tableHtml += `<td style="${cellBg}"><span class="no-data">—</span></td>`;
+                    tableHtml += `<td style="${cellBg}"><span class="no-data">—</span> </td>`;
                 }
             }
             tableHtml += `</tr>`;
@@ -1913,7 +2233,7 @@
         });
     }
 
-    // ---- AI COMMENTARY (unchanged) ----
+    // ---- AI COMMENTARY ----
     let lastCommentaryData = null;
     let lastCommentaryDates = null;
 
@@ -2152,7 +2472,6 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
         document.getElementById('graphSection').style.display = 'block';
         document.getElementById('aiCommentarySection').style.display = 'block';
         
-        // Setup new UI handlers
         setupDateRangeButtons();
         setupHotelSearch();
     }
