@@ -845,7 +845,7 @@ function generateEmailPreview(hotelName, ins, area) {
     const hotDatesStr = ins.highDemandDates.map(d=>formatDateShort(d)).join(', ') || "several high-demand days identified";
     const gapDirection = ins.gapPerNight > 0 ? `R ${ins.gapPerNight} BELOW market` : `R ${Math.abs(ins.gapPerNight)} ABOVE market`;
     const opportunityMsg = ins.isUnderPriced
-        ? `You may be leaving approximately <strong>R ${ins.monthlyLoss.toLocaleString()} per month</strong> on the table.`
+        ? `This suggests you may be losing approximately <strong>R ${ins.monthlyLoss.toLocaleString()} per month</strong> in potential revenue.`
         : `Your pricing is above the market average — consider value-add packages to maintain high occupancy.`;
 
     const propCount = ins.totalProperties || rawExcelData?.allProperties?.length || 0;
@@ -898,9 +898,14 @@ function generateEmailPreview(hotelName, ins, area) {
     <div style="font-size:12px;color:#718096;margin-top:4px;">Market Intelligence · ${escapeHtml(areaDisplay)} · ${todayStr}</div>
   </div>
 
+  <div style="background:#f7f9fc;border-radius:8px;padding:10px 14px;margin-bottom:18px;border:1px solid #e1e8f0;">
+    <span style="font-size:11px;color:#a0aec0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Subject: </span>
+    <span style="font-size:13px;color:#0d1b2e;font-weight:600;">Quick insight: your rates vs ${escapeHtml(areaDisplay)} hotels</span>
+  </div>
+
   <p style="font-size:15px;line-height:1.6;margin-bottom:14px;">Dear <strong>${escapeHtml(hotelName)}</strong> team,</p>
   <p style="font-size:14px;line-height:1.6;color:#4a5568;margin-bottom:16px;">
-    We analysed publicly available rates across <strong>${escapeHtml(areaDisplay)}</strong>, benchmarking your property against <strong>${propCount > 1 ? propCount - 1 : 'your'} competing properties</strong> in the local market.
+    We recently analysed published room rates across <strong>${escapeHtml(areaDisplay)}</strong>, including your property, and compared them against <strong>${propCount > 1 ? propCount - 1 : 'nearby'} nearby competitors</strong> in the local market.
   </p>
 
   <!-- KPI table -->
@@ -938,16 +943,17 @@ function generateEmailPreview(hotelName, ins, area) {
   <!-- CTA -->
   <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
     <div style="color:white;font-size:14px;line-height:1.6;">
-      ✨ Want a <strong>full 30-day pricing calendar</strong> with custom rate recommendations for ${escapeHtml(hotelName)}?<br>
-      Simply reply <strong style="color:#f5c842;">"YES"</strong> — no obligation, just actionable insights.
+      ✨ Reply <strong style="color:#f5c842;">"YES"</strong> and I'll run a <strong>full day-by-day pricing breakdown</strong> for your property — no obligation, just actionable insights.
     </div>
   </div>
 
   <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
 
-  <div style="font-size:12px;color:#718096;line-height:1.7;">
+  <div style="font-size:12px;color:#718096;line-height:1.9;">
     Revenue Insights<br>
-    info@revenueinsights.co.za
+    info@revenueinsights.co.za<br>
+    <a href="https://revenueinsights26.github.io/frontend/" style="color:#1a56db;text-decoration:none;">revenueinsights26.github.io/frontend</a><br>
+    <span style="color:#a0aec0;font-size:11px;">Independent revenue analysis using publicly available data.</span>
   </div>
 </div>`;
 
