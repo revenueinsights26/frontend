@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Revenue Insights | Marketing Intelligence Tool</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 32px 24px;
+        }
+
+        /* utility */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 24px 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.2px;
+            color: #0f172a;
+        }
+
+        h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: white;
+            border: 1px solid #cbd5e1;
+            color: #1e293b;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #cbd5e1;
+            color: #334155;
+        }
+
+        select, input {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .track-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .track-table th, .track-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-replied { background: #dcfce7; color: #15803d; }
+
+        .email-preview {
+            background: #fafcff;
+            border: 1px solid #e2edf2;
+            border-radius: 20px;
+            padding: 20px;
+            font-family: 'Segoe UI', system-ui;
+            max-height: 520px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        .kpi-mini {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .metric {
+            flex: 1;
+        }
+        .metric-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #64748b;
+        }
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .demand-tag {
+            background: #fee2e2;
+            color: #b91c1c;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+
+        hr {
+            margin: 16px 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .copy-success {
+            background: #22c55e;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+        }
+        .drag-active {
+            border-color: #3b82f6;
+            background: #eff6ff;
+        }
+        @media (max-width: 900px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            body { padding: 20px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <h1 style="font-size: 26px; background: linear-gradient(135deg,#1e40af,#3b82f6); background-clip: text; -webkit-background-clip: text; color: transparent;">📧 Revenue Insights · Pitch Builder</h1>
+            <p style="color: #475569; margin-top: 6px;">Lighthouse upload → personalised email + follow-up tracker</p>
+        </div>
+        <button id="exportTrackerBtn" class="btn-secondary" style="background:white;">📎 Export CSV Tracker</button>
+    </div>
+
+    <!-- upload area -->
+    <div class="card" style="margin-bottom: 28px;">
+        <div class="card-header">
+            <h2>📁 1. Upload Lighthouse rate shop (Excel)</h2>
+            <span class="badge">Waterfall · Sandton · Cape Town</span>
+        </div>
+        <div id="dropzone" style="border: 2px dashed #cbd5e1; border-radius: 20px; padding: 32px; text-align: center; cursor: pointer; background: #fafcff;">
+            <div>📂 Drop .xlsx file or click to select</div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
+            <button id="chooseFileBtn" style="margin-top: 12px; background: #f1f5f9; color:#1e293b;">Browse file</button>
+        </div>
+        <div id="fileInfo" style="margin-top: 12px; font-size: 13px; color: #2b6e3c; display: none;">✅ File loaded: <span id="fileName"></span></div>
+    </div>
+
+    <div class="grid-2">
+        <!-- LEFT: Hotel selection + insights -->
+        <div>
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <h2>🏨 2. Select hotel to analyse</h2>
+                </div>
+                <div class="flex-between">
+                    <select id="hotelSelect" style="flex:2; min-width: 180px;">
+                        <option value="">— Load file first —</option>
+                    </select>
+                    <select id="areaSelect" style="flex:1;">
+                        <option value="Johannesburg / Waterfall">Johannesburg / Waterfall</option>
+                        <option value="Cape Town CBD">Cape Town CBD</option>
+                        <option value="Sandton">Sandton</option>
+                    </select>
+                    <button id="refreshInsightsBtn">🔄 Refresh insights</button>
+                </div>
+                <div id="insightsPanel" style="margin-top: 24px;">
+                    <div class="kpi-mini">
+                        <div class="metric"><div class="metric-label">Your Avg Rate</div><div class="metric-value" id="yourRateVal">—</div></div>
+                        <div class="metric"><div class="metric-label">Market Avg Rate</div><div class="metric-value" id="marketAvgVal">—</div></div>
+                        <div class="metric"><div class="metric-label">Monthly Gap (est.)</div><div class="metric-value" id="monthlyGapVal">—</div></div>
+                        <div class="metric"><div class="metric-label">Sold-out dates (market)</div><div class="metric-value" id="soldOutCountVal">—</div></div>
+                    </div>
+                    <div id="demandFlags" style="background: #fefce8; border-radius: 16px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #eab308;"></div>
+                    <div id="recommendationText" style="background: #eff6ff; border-radius: 16px; padding: 16px; font-size: 14px; line-height: 1.6;"></div>
+                </div>
+            </div>
+            <!-- tracking table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📋 Campaign Tracker (local storage)</h2>
+                    <button id="resetTrackerBtn" class="btn-outline" style="padding:6px 12px;">Reset all</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="track-table" id="trackingTable">
+                        <thead><tr><th>Hotel</th><th>Area</th><th>Email sent</th><th>Follow-up 1 (Day3)</th><th>Follow-up 2 (Day7)</th><th>Reply</th><th>Actions</th></tr></thead>
+                        <tbody id="trackingBody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 12px; font-size: 12px; color: #64748b;">✅ Click "Mark sent" after email. Reminders will highlight pending follow-ups.</div>
+            </div>
+        </div>
+
+        <!-- RIGHT: Email preview and copy -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <h2>✉️ 3. Email preview (copy ready)</h2>
+                    <button id="copyEmailBtn" style="background:#1e293b;">📋 Copy email HTML</button>
+                </div>
+                <div id="emailPreviewContainer" class="email-preview" style="background:#fff; font-family: system-ui;">
+                    ⚡ Select a hotel and insights will appear here.
+                </div>
+                <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
+                    <button id="markSentBtn" class="btn-secondary">✅ Mark email sent & track</button>
+                    <button id="markFollowup1Btn" class="btn-secondary">📆 Mark Day3 follow-up sent</button>
+                    <button id="markFollowup2Btn" class="btn-secondary">📅 Mark Day7 follow-up sent</button>
+                </div>
+                <div style="margin-top: 12px; background: #f1f5f9; border-radius: 12px; padding: 10px; font-size: 12px;">
+                    💡 <strong>Pro tip:</strong> After copying, paste into Zoho Mail (HTML mode). No links, no attachments — safe deliverability.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ------------------- STATE --------------------
+    let rawExcelData = null;        // { allDates: [], propertiesMap: { propName: { date: rateOrSoldOut } } }
+    let allHotelNames = [];
+    let currentHotelData = null;    // insights for selected hotel
+    let currentArea = "Johannesburg / Waterfall";
+    
+    // tracking store: object per hotel name
+    let campaignTracker = {};
+
+    // Load tracker from localStorage
+    function loadTracker() {
+        const stored = localStorage.getItem("revinsights_campaign_tracker");
+        if(stored) {
+            campaignTracker = JSON.parse(stored);
+        } else {
+            campaignTracker = {};
+        }
+        renderTrackerTable();
+    }
+    function saveTracker() {
+        localStorage.setItem("revinsights_campaign_tracker", JSON.stringify(campaignTracker));
+        renderTrackerTable();
+    }
+
+    function getTrackerEntry(hotelName) {
+        if(!campaignTracker[hotelName]) {
+            campaignTracker[hotelName] = {
+                area: currentArea,
+                sentDate: null,
+                followup1Sent: false,
+                followup2Sent: false,
+                replyReceived: false,
+                lastUpdated: new Date().toISOString()
+            };
+        }
+        if(!campaignTracker[hotelName].area) campaignTracker[hotelName].area = currentArea;
+        return campaignTracker[hotelName];
+    }
+
+    function markSent(hotel) {
+        let entry = getTrackerEntry(hotel);
+        entry.sentDate = new Date().toISOString().split('T')[0];
+        saveTracker();
+        alert(`✅ ${hotel} marked as sent on ${entry.sentDate}`);
+    }
+    function markFollowup(hotel, type) {
+        let entry = getTrackerEntry(hotel);
+        if(type === 1) entry.followup1Sent = true;
+        if(type === 2) entry.followup2Sent = true;
+        saveTracker();
+        alert(`📌 Follow-up ${type} recorded for ${hotel}`);
+    }
+    function markReply(hotel) {
+        let entry = getTrackerEntry(hotel);
+        entry.replyReceived = true;
+        saveTracker();
+        alert(`🎉 Reply noted for ${hotel}`);
+    }
+
+    function renderTrackerTable() {
+        const tbody = document.getElementById('trackingBody');
+        tbody.innerHTML = '';
+        const hotels = Object.keys(campaignTracker).sort();
+        for(let h of hotels) {
+            const e = campaignTracker[h];
+            const sentDate = e.sentDate || '—';
+            const f1 = e.followup1Sent ? '✅' : '⏳';
+            const f2 = e.followup2Sent ? '✅' : '⏳';
+            const reply = e.replyReceived ? '✔️ Yes' : '—';
+            tbody.innerHTML += `<tr>
+                <td><strong>${escapeHtml(h)}</strong></td>
+                <td>${escapeHtml(e.area || '—')}</td>
+                <td>${sentDate}</td>
+                <td>${f1}</td>
+                <td>${f2}</td>
+                <td>${reply}</td>
+                <td><button class="mark-reply-btn" data-hotel="${escapeHtml(h)}" style="font-size:11px; padding:4px 8px;">📩 Reply</button></td>
+            </tr>`;
+        }
+        document.querySelectorAll('.mark-reply-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const hotel = btn.getAttribute('data-hotel');
+                markReply(hotel);
+            });
+        });
+        // highlight pending follow-ups (today vs sent date logic)
+        const todayStr = new Date().toISOString().split('T')[0];
+        for(let h of hotels) {
+            const e = campaignTracker[h];
+            if(e.sentDate && !e.followup1Sent) {
+                const sentDateObj = new Date(e.sentDate);
+                const now = new Date();
+                const diffDays = Math.floor((now - sentDateObj) / (1000*60*60*24));
+                if(diffDays >= 3 && diffDays < 7) {
+                    // highlight row but no action needed, just visual
+                }
+            }
+        }
+    }
+
+    // ------------------- PARSE LIGHTHOUSE ------------------
+    function parseLighthouseExcel(arrayBuffer) {
+        const workbook = XLSX.read(arrayBuffer, { cellDates: true });
+        const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('rate')) || workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+        if(!rows || rows.length < 2) throw new Error("Sheet is empty");
+        const headers = rows[0];
+        // detect property columns: skip first column (date)
+        const propertyCols = [];
+        for(let i=1; i<headers.length; i++) {
+            let h = headers[i] ? String(headers[i]).trim() : '';
+            if(h && !h.toLowerCase().includes('demand') && !h.toLowerCase().includes('ranking') && !h.toLowerCase().includes('holiday')) {
+                propertyCols.push({ index: i, name: h });
+            }
+        }
+        const allDates = [];
+        const propertiesMap = {};   // propertyName -> { dateISO: value (number or 'sold_out') }
+        propertyCols.forEach(col => { propertiesMap[col.name] = {}; });
+        
+        for(let r=1; r<rows.length; r++) {
+            const row = rows[r];
+            if(!row || row.length === 0) continue;
+            let rawDate = row[0];
+            if(!rawDate) continue;
+            let dateISO = null;
+            if(rawDate instanceof Date) dateISO = rawDate.toISOString().split('T')[0];
+            else if(typeof rawDate === 'number') {
+                const d = XLSX.SSF.parse_date_code(rawDate);
+                dateISO = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+            } else {
+                const parsed = new Date(rawDate);
+                if(!isNaN(parsed)) dateISO = parsed.toISOString().split('T')[0];
+            }
+            if(!dateISO) continue;
+            allDates.push(dateISO);
+            for(let col of propertyCols) {
+                let val = row[col.index];
+                let processed = null;
+                if(val === null || val === undefined) processed = null;
+                else if(typeof val === 'string' && val.toLowerCase().includes('sold')) processed = 'sold_out';
+                else {
+                    let num = parseFloat(String(val).replace(/[^0-9.-]/g,''));
+                    processed = isNaN(num) ? null : num;
+                }
+                if(processed !== null) propertiesMap[col.name][dateISO] = processed;
+            }
+        }
+        const uniqueDates = [...new Set(allDates)].sort();
+        return { allDates: uniqueDates, propertiesMap, allProperties: propertyCols.map(c => c.name) };
+    }
+
+    // --- compute insights for a specific hotel ---
+    function computeHotelInsights(hotelName, parsedData, areaName) {
+        const { allDates, propertiesMap } = parsedData;
+        const hotelRatesByDate = propertiesMap[hotelName] || {};
+        // market: all other properties
+        const otherProps = Object.keys(propertiesMap).filter(p => p !== hotelName);
+        
+        let hotelRates = [];
+        let soldOutDatesHotel = [];
+        let marketDailyRates = {}; // date -> avg market rate (excluding sold out)
+        let marketSoldOutDates = new Set();
+        
+        for(let date of allDates) {
+            const hotelVal = hotelRatesByDate[date];
+            if(hotelVal === 'sold_out') soldOutDatesHotel.push(date);
+            else if(typeof hotelVal === 'number') hotelRates.push(hotelVal);
+            
+            let marketSum = 0, marketCnt = 0;
+            for(let prop of otherProps) {
+                const val = propertiesMap[prop]?.[date];
+                if(val === 'sold_out') {
+                    marketSoldOutDates.add(date);
+                } else if(typeof val === 'number') {
+                    marketSum += val;
+                    marketCnt++;
+                }
+            }
+            if(marketCnt > 0) marketDailyRates[date] = marketSum / marketCnt;
+        }
+        
+        const yourAvg = hotelRates.length ? hotelRates.reduce((a,b)=>a+b,0)/hotelRates.length : 0;
+        const marketRatesArray = Object.values(marketDailyRates).filter(r => r>0);
+        const marketAvg = marketRatesArray.length ? marketRatesArray.reduce((a,b)=>a+b,0)/marketRatesArray.length : 0;
+        const gapPerNight = marketAvg - yourAvg;
+        const monthlyLossEstimate = gapPerNight * 22;  // 22 trading days approx
+        // find high demand dates (sold out >= 30% competitors)
+        let highDemandDates = [];
+        for(let date of allDates) {
+            let soldOutCount = 0;
+            for(let prop of otherProps) {
+                if(propertiesMap[prop]?.[date] === 'sold_out') soldOutCount++;
+            }
+            const totalCompetitors = otherProps.length;
+            if(totalCompetitors > 0 && (soldOutCount / totalCompetitors) >= 0.3) {
+                highDemandDates.push(date);
+            }
+        }
+        // top 5 demand dates
+        const topDemandDates = highDemandDates.slice(0,5);
+        
+        // generate recommendation
+        let recMessage = "";
+        let actionItems = [];
+        if(gapPerNight < -200) {
+            recMessage = `⚠️ Your rates (R${Math.round(yourAvg)}) are significantly ABOVE market average (R${Math.round(marketAvg)}). Consider value-add packages or strategic discounts on low occupancy days.`;
+            actionItems.push("Introduce early booking offers", "Add breakfast/transfer to justify premium");
+        } else if(gapPerNight > 150) {
+            recMessage = `💰 You are underpricing! R${Math.round(gapPerNight)} below competitors. With ${soldOutDatesHotel.length} sold-out dates? Actually demand is strong: increase weekend rates by 8–12% immediately.`;
+            actionItems.push("Raise Fri–Sun rates by 10%", "Test a mid-week minimum stay");
+        } else {
+            recMessage = `📊 Balanced positioning (R${Math.round(yourAvg)} vs R${Math.round(marketAvg)}). Fine-tune using sold-out signals.`;
+            actionItems.push("Monitor demand heatmaps", "Use sold-out dates as trigger to lift rates");
+        }
+        if(highDemandDates.length > 0) {
+            recMessage += ` 🔥 ${highDemandDates.length} high-demand dates detected where multiple competitors sold out.`;
+            actionItems.push("Increase rates dynamically on those peak dates");
+        }
+        
+        // demand flags html
+        let demandFlagsHtml = `<div style="font-weight: 700; margin-bottom: 8px;">🔥 Demand signals (sold-out competitors)</div>`;
+        if(topDemandDates.length) {
+            demandFlagsHtml += `<div>${topDemandDates.map(d => `<span class="demand-tag">📅 ${formatDateShort(d)}</span>`).join('')}</div>`;
+            demandFlagsHtml += `<div style="margin-top: 8px; font-size:12px;">⭐ These dates show strong market demand — raise rates now.</div>`;
+        } else {
+            demandFlagsHtml += `<div>No significant sold-out activity, but monitor weekends.</div>`;
+        }
+        
+        const soldOutCountMarket = marketSoldOutDates.size;
+        return {
+            yourAvg: Math.round(yourAvg),
+            marketAvg: Math.round(marketAvg),
+            gapPerNight: Math.round(gapPerNight),
+            monthlyLoss: Math.abs(Math.round(monthlyLossEstimate)),
+            isUnderPriced: gapPerNight > 0,
+            soldOutDatesCount: soldOutDatesHotel.length,
+            marketSoldOutDays: soldOutCountMarket,
+            highDemandDates: topDemandDates,
+            recommendationText: recMessage,
+            actionItems: actionItems,
+            yourRateRaw: yourAvg,
+            marketRaw: marketAvg,
+            area: areaName
+        };
+    }
+    
+    function formatDateShort(iso) { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short' }); }
+    function formatCurrency(amt) { return `R ${Math.round(amt).toLocaleString()}`; }
+
+    function updateUIForHotel(hotelName, parsed, area) {
+        if(!parsed || !hotelName) return;
+        const insights = computeHotelInsights(hotelName, parsed, area);
+        currentHotelData = insights;
+        document.getElementById('yourRateVal').innerHTML = formatCurrency(insights.yourAvg);
+        document.getElementById('marketAvgVal').innerHTML = formatCurrency(insights.marketAvg);
+        const monthlyText = insights.isUnderPriced ? `R ${insights.monthlyLoss} missed opp.` : `R ${insights.monthlyLoss} potential loss`;
+        document.getElementById('monthlyGapVal').innerHTML = monthlyText;
+        document.getElementById('soldOutCountVal').innerHTML = `${insights.marketSoldOutDays} days`;
+        const demandHtml = `<div class="demand-flags">${insights.highDemandDates.map(d => `<span class="demand-tag">🔥 ${formatDateShort(d)}</span>`).join('') || '— No extreme demand spikes this period'}</div>`;
+        document.getElementById('demandFlags').innerHTML = `<div style="font-weight: 600; margin-bottom: 6px;">📆 High-demand windows (competitors sold out)</div>${demandHtml}`;
+        document.getElementById('recommendationText').innerHTML = `<strong>💡 Revenue recommendation</strong><br>${insights.recommendationText}<br><ul style="margin-top: 10px; margin-left: 20px;">${insights.actionItems.map(i => `<li>${i}</li>`).join('')}</ul>`;
+        generateEmailPreview(hotelName, insights, area);
+    }
+    
+    // generate HTML email (no links, inline styling)
+    function generateEmailPreview(hotelName, insights, area) {
+        const areaDisplay = area || "Johannesburg / Waterfall";
+        const todayStr = new Date().toLocaleDateString('en-ZA', { year:'numeric', month:'long', day:'numeric' });
+        const hotDatesStr = insights.highDemandDates.map(d => formatDateShort(d)).join(', ') || "several high-demand days identified";
+        const gapDirection = insights.gapPerNight > 0 ? `R ${insights.gapPerNight} BELOW market` : `R ${Math.abs(insights.gapPerNight)} ABOVE market`;
+        const opportunityMsg = insights.isUnderPriced ? `You are leaving ~R ${insights.monthlyLoss} per month on the table.` : `Your pricing is above average, consider adding value to drive occupancy.`;
+        const htmlEmail = `
+<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 20px;">
+  <div style="text-align: center; margin-bottom: 20px;">
+    <div style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg,#1e40af,#3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent;">Revenue Insights</div>
+    <div style="font-size: 12px; color: #64748b;">Market intelligence · ${areaDisplay}</div>
+  </div>
+  <p style="font-size: 15px; line-height: 1.5;">Dear ${escapeHtml(hotelName)} team,</p>
+  <p>We analysed publicly available rates across <strong>${areaDisplay}</strong> (50+ nearby properties) and benchmarked your hotel.</p>
+  <div style="background: #f8fafc; border-radius: 16px; padding: 16px; margin: 16px 0;">
+    <table style="width:100%; border-collapse: collapse;">
+      <tr><td style="padding:6px 0;"><strong>🏨 Your average rate:</strong></td><td style="text-align:right;">${formatCurrency(insights.yourAvg)}</td></tr>
+      <tr><td style="padding:6px 0;"><strong>📊 Market average rate:</strong></td><td style="text-align:right;">${formatCurrency(insights.marketAvg)}</td></tr>
+      <tr><td style="padding:6px 0;"><strong>⚖️ Difference:</strong></td><td style="text-align:right;">${gapDirection}</td></tr>
+      <tr><td style="padding:6px 0;"><strong>📅 Market sold-out days:</strong></td><td style="text-align:right;">${insights.marketSoldOutDays} dates with high demand</td></tr>
+    </table>
+  </div>
+  <div style="background: #fef3c7; border-radius: 12px; padding: 14px; margin: 16px 0;">
+    <div style="font-weight: 700;">🔥 High-demand windows (competitors sold out)</div>
+    <div style="margin-top: 6px;">${hotDatesStr}</div>
+    <div style="font-size: 13px; margin-top: 8px;">These dates show significant demand — raising rates on those nights can capture extra revenue.</div>
+  </div>
+  <div style="background: #e0f2fe; border-radius: 12px; padding: 14px; margin: 16px 0;">
+    <div style="font-weight: 700;">💰 Estimated monthly opportunity</div>
+    <div style="font-size: 32px; font-weight: 800;">${opportunityMsg}</div>
+    <div style="font-size: 13px;">Based on rate gap and typical monthly occupancy.</div>
+  </div>
+  <div style="border-left: 4px solid #3b82f6; padding-left: 14px; margin: 16px 0;">
+    <strong>📌 Recommendation</strong><br>${insights.recommendationText}
+  </div>
+  <div style="margin: 20px 0 16px; font-size: 14px;">
+    ✨ If you'd like a <strong>full daily pricing calendar</strong> + custom rate suggestions for the next 30 days, simply reply with <strong>"YES"</strong>. No obligation, just actionable insights.
+  </div>
+  <hr style="margin: 20px 0; border-color: #e2e8f0;">
+  <div style="font-size: 12px; color: #64748b;">
+    Mthobisi · Revenue Insights<br>
+    info@revenueinsights.co.za
+  </div>
+</div>`;
+        document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
+        window.currentEmailHtml = htmlEmail;
+    }
+    
+    // copy email
+    function copyEmailToClipboard() {
+        if(!window.currentEmailHtml) { alert("No email generated. Please select a hotel."); return; }
+        navigator.clipboard.writeText(window.currentEmailHtml).then(() => {
+            const btn = document.getElementById('copyEmailBtn');
+            const original = btn.innerText;
+            btn.innerText = "✅ Copied!";
+            setTimeout(() => btn.innerText = original, 2000);
+        }).catch(() => alert("Manual copy: select all email content"));
+    }
+    
+    function refreshHotelInsights() {
+        const hotel = document.getElementById('hotelSelect').value;
+        const area = document.getElementById('areaSelect').value;
+        currentArea = area;
+        if(!rawExcelData || !hotel) return;
+        updateUIForHotel(hotel, rawExcelData, area);
+    }
+    
+    // file handling
+    function loadFileAndPopulate(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const parsed = parseLighthouseExcel(data.buffer);
+                rawExcelData = parsed;
+                allHotelNames = parsed.allProperties;
+                const select = document.getElementById('hotelSelect');
+                select.innerHTML = '<option value="">— Select hotel —</option>' + allHotelNames.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
+                document.getElementById('fileInfo').style.display = 'block';
+                document.getElementById('fileName').innerText = file.name;
+                if(allHotelNames.length) {
+                    select.value = allHotelNames[0];
+                    refreshHotelInsights();
+                }
+            } catch(err) {
+                alert("Error parsing file: " + err.message);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    
+    // events
+    document.getElementById('chooseFileBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+    document.getElementById('fileInput').addEventListener('change', (e) => { if(e.target.files[0]) loadFileAndPopulate(e.target.files[0]); });
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-active'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
+    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag-active'); const file = e.dataTransfer.files[0]; if(file) loadFileAndPopulate(file); });
+    document.getElementById('refreshInsightsBtn').addEventListener('click', refreshHotelInsights);
+    document.getElementById('copyEmailBtn').addEventListener('click', copyEmailToClipboard);
+    document.getElementById('markSentBtn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markSent(hotel); });
+    document.getElementById('markFollowup1Btn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markFollowup(hotel,1); });
+    document.getElementById('markFollowup2Btn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markFollowup(hotel,2); });
+    document.getElementById('exportTrackerBtn').addEventListener('click', () => {
+        let csv = "Hotel,Area,Sent Date,Followup1 Sent,Followup2 Sent,Reply Received\n";
+        for(let [h, e] of Object.entries(campaignTracker)) {
+            csv += `"${h}","${e.area || ''}","${e.sentDate || ''}",${e.followup1Sent},${e.followup2Sent},${e.replyReceived}\n`;
+        }
+        const blob = new Blob([csv], {type: 'text/csv'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'campaign_tracker.csv'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    document.getElementById('resetTrackerBtn').addEventListener('click', () => { if(confirm('Delete all tracking data?')) { localStorage.removeItem('revinsights_campaign_tracker'); campaignTracker = {}; renderTrackerTable(); } });
+    loadTracker();
+</script>
+</body>
+</html>
