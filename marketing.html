@@ -5,39 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Revenue Insights | Marketing Intelligence Tool</title>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --navy: #0d1b2e;
+            --navy-mid: #162540;
+            --blue: #1a56db;
+            --blue-light: #3b82f6;
+            --gold: #d4a017;
+            --gold-light: #f5c842;
+            --surface: #f7f9fc;
+            --white: #ffffff;
+            --border: #e1e8f0;
+            --text-primary: #0d1b2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --success: #16a34a;
+            --warning: #b45309;
+            --danger: #dc2626;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 16px rgba(13,27,46,0.07);
+            --shadow-lg: 0 8px 32px rgba(13,27,46,0.12);
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            background: #f1f5f9;
-            color: #0f172a;
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
             padding: 32px 24px;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
-        /* utility */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 28px;
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.3px;
         }
 
+        .app-title span {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .app-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* ─── CARDS ─── */
         .card {
-            background: white;
-            border-radius: 24px;
-            border: 1px solid #e2e8f0;
-            padding: 24px 28px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-            transition: all 0.2s;
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 26px 28px;
+            box-shadow: var(--shadow);
         }
 
         .card-header {
@@ -49,151 +95,264 @@
             gap: 12px;
         }
 
-        h2 {
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            color: #0f172a;
-        }
-
-        h3 {
-            font-size: 14px;
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
             font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 12px;
+            color: var(--navy);
         }
 
-        .badge {
-            background: #f1f5f9;
-            padding: 4px 12px;
-            border-radius: 40px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #1e40af;
-        }
+        /* ─── GRID ─── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
 
-        button {
-            background: #3b82f6;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 40px;
+        /* ─── BUTTONS ─── */
+        button, .btn {
+            font-family: 'DM Sans', sans-serif;
             font-weight: 600;
             font-size: 13px;
-            color: white;
+            border: none;
             cursor: pointer;
-            transition: all 0.2s;
-            font-family: inherit;
+            transition: all 0.18s ease;
+            border-radius: 40px;
+            padding: 10px 20px;
         }
 
-        button:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
+        .btn-primary {
+            background: var(--navy);
+            color: var(--white);
         }
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(13,27,46,0.2); }
+
+        .btn-blue {
+            background: var(--blue);
+            color: var(--white);
+        }
+        .btn-blue:hover { background: #1748c4; transform: translateY(-1px); }
+
+        .btn-gold {
+            background: var(--gold);
+            color: var(--white);
+        }
+        .btn-gold:hover { background: #b88a12; transform: translateY(-1px); }
 
         .btn-secondary {
-            background: white;
-            border: 1px solid #cbd5e1;
-            color: #1e293b;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
         }
+        .btn-secondary:hover { border-color: #94a3b8; background: var(--surface); }
 
-        .btn-secondary:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
-        }
-
-        .btn-outline {
+        .btn-ghost {
             background: transparent;
-            border: 1px solid #cbd5e1;
-            color: #334155;
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
         }
+        .btn-ghost:hover { border-color: var(--blue-light); color: var(--blue); }
 
-        select, input {
+        button { background: var(--navy); color: var(--white); }
+        button:hover { opacity: 0.88; }
+
+        /* ─── FORM CONTROLS ─── */
+        select, input[type="text"] {
             padding: 10px 14px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            background: white;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--white);
             font-size: 13px;
-            font-family: inherit;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+            transition: border-color 0.15s;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--blue);
         }
 
+        /* ─── BADGE ─── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #eef2ff;
+            color: var(--blue);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        /* ─── UPLOAD ─── */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafcff;
+            transition: all 0.2s;
+        }
+        .dropzone:hover, .drag-active { border-color: var(--blue); background: #eff6ff; }
+        .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
+        .dropzone-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* ─── KPI STRIP ─── */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-box {
+            text-align: center;
+            padding: 12px 8px;
+            background: var(--white);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .kpi-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .kpi-value {
+            font-family: 'Playfair Display', serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--navy);
+            line-height: 1.1;
+        }
+
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ─── DEMAND TAGS ─── */
+        .demand-tag {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 3px;
+        }
+
+        /* ─── TABLE ─── */
         .track-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 13px;
         }
-
-        .track-table th, .track-table td {
-            padding: 10px 8px;
+        .track-table th {
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
             text-align: left;
-            border-bottom: 1px solid #f1f5f9;
         }
+        .track-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .track-table tr:hover td { background: #fafcff; }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 10px;
+            padding: 3px 10px;
             border-radius: 20px;
             font-size: 11px;
             font-weight: 700;
         }
-
         .status-sent { background: #dbeafe; color: #1e40af; }
         .status-pending { background: #fef3c7; color: #92400e; }
         .status-replied { background: #dcfce7; color: #15803d; }
 
+        /* ─── EMAIL PREVIEW ─── */
         .email-preview {
             background: #fafcff;
-            border: 1px solid #e2edf2;
-            border-radius: 20px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
             padding: 20px;
-            font-family: 'Segoe UI', system-ui;
-            max-height: 520px;
+            max-height: 560px;
             overflow-y: auto;
-            white-space: pre-wrap;
         }
 
-        .kpi-mini {
-            display: flex;
-            justify-content: space-between;
-            background: #f8fafc;
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .metric {
-            flex: 1;
-        }
-        .metric-label {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #64748b;
-        }
-        .metric-value {
-            font-size: 28px;
-            font-weight: 800;
-            color: #0f172a;
-        }
-
-        .demand-tag {
-            background: #fee2e2;
-            color: #b91c1c;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-right: 6px;
-            margin-bottom: 6px;
-        }
-
-        hr {
+        /* ─── CHART AREA ─── */
+        .chart-container {
+            position: relative;
             margin: 16px 0;
-            border: none;
-            border-top: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            background: var(--white);
+            padding: 16px;
+            border: 1px solid var(--border);
         }
+
+        .chart-title {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 10px;
+        }
+
+        /* ─── INSIGHT BLOCK ─── */
+        .insight-block {
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            margin-bottom: 14px;
+            font-size: 13.5px;
+            line-height: 1.65;
+        }
+        .insight-block.warning { background: #fffbeb; border-left: 4px solid var(--gold); }
+        .insight-block.info { background: #eff6ff; border-left: 4px solid var(--blue-light); }
+        .insight-block.success { background: #f0fdf4; border-left: 4px solid #22c55e; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            body { padding: 16px 14px; }
+            .kpi-strip { grid-template-columns: 1fr 1fr; }
+            .grid-3 { grid-template-columns: 1fr 1fr; }
+            .app-title { font-size: 22px; }
+        }
+
+        /* step numbers */
+        .step-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
         .flex-between {
             display: flex;
             justify-content: space-between;
@@ -201,109 +360,185 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .copy-success {
-            background: #22c55e;
+
+        .prop-count-pill {
+            background: linear-gradient(135deg, var(--navy), var(--blue));
             color: white;
-            padding: 5px 12px;
-            border-radius: 30px;
+            padding: 4px 14px;
+            border-radius: 40px;
             font-size: 12px;
-        }
-        .drag-active {
-            border-color: #3b82f6;
-            background: #eff6ff;
-        }
-        @media (max-width: 900px) {
-            .grid-2 { grid-template-columns: 1fr; }
-            body { padding: 20px 16px; }
+            font-weight: 700;
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+
+    <!-- HEADER -->
+    <div class="app-header">
         <div>
-            <h1 style="font-size: 26px; background: linear-gradient(135deg,#1e40af,#3b82f6); background-clip: text; -webkit-background-clip: text; color: transparent;">📧 Revenue Insights · Pitch Builder</h1>
-            <p style="color: #475569; margin-top: 6px;">Lighthouse upload → personalised email + follow-up tracker</p>
+            <div class="app-title">Revenue <span>Insights</span></div>
+            <div class="app-subtitle">Lighthouse Rate Intelligence · Personalised Email Pitch Builder</div>
         </div>
-        <button id="exportTrackerBtn" class="btn-secondary" style="background:white;">📎 Export CSV Tracker</button>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span id="propCountPill" class="prop-count-pill" style="display:none;"></span>
+            <button id="exportTrackerBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">📎 Export CSV</button>
+        </div>
     </div>
 
-    <!-- upload area -->
-    <div class="card" style="margin-bottom: 28px;">
+    <!-- STEP 1: UPLOAD -->
+    <div class="card" style="margin-bottom: 24px;">
         <div class="card-header">
-            <h2>📁 1. Upload Lighthouse rate shop (Excel)</h2>
-            <span class="badge">Waterfall · Sandton · Cape Town</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="step-dot">1</span>
+                <span class="section-title">Upload Lighthouse Rate Shop (Excel)</span>
+            </div>
+            <span class="badge" id="cityBadge">🇿🇦 All Major SA Cities</span>
         </div>
-        <div id="dropzone" style="border: 2px dashed #cbd5e1; border-radius: 20px; padding: 32px; text-align: center; cursor: pointer; background: #fafcff;">
-            <div>📂 Drop .xlsx file or click to select</div>
-            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display: none;">
-            <button id="chooseFileBtn" style="margin-top: 12px; background: #f1f5f9; color:#1e293b;">Browse file</button>
+        <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">📂</div>
+            <div class="dropzone-label">Drop your <strong>.xlsx</strong> file here, or click to browse</div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none;">
+            <button id="chooseFileBtn" style="margin-top:14px; background:var(--surface); color:var(--text-primary); border:1.5px solid var(--border);">Browse file</button>
         </div>
-        <div id="fileInfo" style="margin-top: 12px; font-size: 13px; color: #2b6e3c; display: none;">✅ File loaded: <span id="fileName"></span></div>
+        <div id="fileInfo" style="margin-top:12px;font-size:13px;color:var(--success);display:none;">✅ File loaded: <strong><span id="fileName"></span></strong> — <span id="propCountText"></span></div>
     </div>
 
+    <!-- STEP 2 & 3 -->
     <div class="grid-2">
-        <!-- LEFT: Hotel selection + insights -->
+
+        <!-- LEFT -->
         <div>
-            <div class="card" style="margin-bottom: 24px;">
+            <!-- Hotel selection -->
+            <div class="card" style="margin-bottom:20px;">
                 <div class="card-header">
-                    <h2>🏨 2. Select hotel to analyse</h2>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">2</span>
+                        <span class="section-title">Select property to analyse</span>
+                    </div>
                 </div>
-                <div class="flex-between">
-                    <select id="hotelSelect" style="flex:2; min-width: 180px;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                    <select id="hotelSelect" style="flex:2;min-width:180px;">
                         <option value="">— Load file first —</option>
                     </select>
-                    <select id="areaSelect" style="flex:1;">
+                    <select id="areaSelect" style="flex:1;min-width:150px;">
                         <option value="Johannesburg / Waterfall">Johannesburg / Waterfall</option>
-                        <option value="Cape Town CBD">Cape Town CBD</option>
                         <option value="Sandton">Sandton</option>
+                        <option value="Rosebank">Rosebank</option>
+                        <option value="Midrand">Midrand</option>
+                        <option value="Cape Town CBD">Cape Town CBD</option>
+                        <option value="Cape Town V&A Waterfront">Cape Town V&A Waterfront</option>
+                        <option value="Cape Town Southern Suburbs">Cape Town Southern Suburbs</option>
+                        <option value="Durban CBD">Durban CBD</option>
+                        <option value="Durban Umhlanga">Durban Umhlanga</option>
+                        <option value="Durban Ballito">Durban Ballito</option>
+                        <option value="Pretoria / Tshwane">Pretoria / Tshwane</option>
+                        <option value="Centurion">Centurion</option>
+                        <option value="Port Elizabeth / Gqeberha">Port Elizabeth / Gqeberha</option>
+                        <option value="East London">East London</option>
+                        <option value="Bloemfontein">Bloemfontein</option>
+                        <option value="Nelspruit / Mbombela">Nelspruit / Mbombela</option>
+                        <option value="Polokwane">Polokwane</option>
+                        <option value="Kimberley">Kimberley</option>
+                        <option value="George / Garden Route">George / Garden Route</option>
+                        <option value="Knysna">Knysna</option>
+                        <option value="Stellenbosch">Stellenbosch</option>
+                        <option value="Paarl / Franschhoek">Paarl / Franschhoek</option>
+                        <option value="Pietermaritzburg">Pietermaritzburg</option>
+                        <option value="Richards Bay">Richards Bay</option>
+                        <option value="Rustenburg">Rustenburg</option>
+                        <option value="Witbank / eMalahleni">Witbank / eMalahleni</option>
+                        <option value="Upington">Upington</option>
+                        <option value="Kruger / Hazyview">Kruger / Hazyview</option>
                     </select>
-                    <button id="refreshInsightsBtn">🔄 Refresh insights</button>
+                    <button id="refreshInsightsBtn" class="btn-blue" style="background:var(--blue);">🔄 Refresh</button>
                 </div>
-                <div id="insightsPanel" style="margin-top: 24px;">
-                    <div class="kpi-mini">
-                        <div class="metric"><div class="metric-label">Your Avg Rate</div><div class="metric-value" id="yourRateVal">—</div></div>
-                        <div class="metric"><div class="metric-label">Market Avg Rate</div><div class="metric-value" id="marketAvgVal">—</div></div>
-                        <div class="metric"><div class="metric-label">Monthly Gap (est.)</div><div class="metric-value" id="monthlyGapVal">—</div></div>
-                        <div class="metric"><div class="metric-label">Sold-out dates (market)</div><div class="metric-value" id="soldOutCountVal">—</div></div>
+
+                <!-- KPI strip -->
+                <div class="kpi-strip" style="margin-top:22px;">
+                    <div class="kpi-box">
+                        <div class="kpi-label">Your Avg Rate</div>
+                        <div class="kpi-value" id="yourRateVal">—</div>
                     </div>
-                    <div id="demandFlags" style="background: #fefce8; border-radius: 16px; padding: 16px; margin-bottom: 20px; border-left: 4px solid #eab308;"></div>
-                    <div id="recommendationText" style="background: #eff6ff; border-radius: 16px; padding: 16px; font-size: 14px; line-height: 1.6;"></div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Market Avg Rate</div>
+                        <div class="kpi-value" id="marketAvgVal">—</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Monthly Gap (est.)</div>
+                        <div class="kpi-value" style="font-size:17px;" id="monthlyGapVal">—</div>
+                    </div>
+                    <div class="kpi-box">
+                        <div class="kpi-label">Compset Sold-out Days</div>
+                        <div class="kpi-value" id="soldOutCountVal">—</div>
+                    </div>
                 </div>
+
+                <!-- 7-day chart -->
+                <div class="chart-container" id="rateChartWrapper" style="display:none;">
+                    <div class="chart-title">📊 Your Rate vs Compset Average — Next 7 Days</div>
+                    <canvas id="rateChart" height="180"></canvas>
+                </div>
+
+                <div id="demandFlags" class="insight-block warning" style="display:none;"></div>
+                <div id="recommendationText" class="insight-block info" style="display:none;"></div>
             </div>
-            <!-- tracking table -->
+
+            <!-- Tracker -->
             <div class="card">
                 <div class="card-header">
-                    <h2>📋 Campaign Tracker (local storage)</h2>
-                    <button id="resetTrackerBtn" class="btn-outline" style="padding:6px 12px;">Reset all</button>
+                    <span class="section-title">📋 Campaign Tracker</span>
+                    <div style="display:flex;gap:8px;">
+                        <button id="resetTrackerBtn" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
+                <div style="overflow-x:auto;">
                     <table class="track-table" id="trackingTable">
-                        <thead><tr><th>Hotel</th><th>Area</th><th>Email sent</th><th>Follow-up 1 (Day3)</th><th>Follow-up 2 (Day7)</th><th>Reply</th><th>Actions</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>Property</th>
+                                <th>Area</th>
+                                <th>Email Sent</th>
+                                <th>Day 3</th>
+                                <th>Day 7</th>
+                                <th>Reply</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
                         <tbody id="trackingBody"></tbody>
                     </table>
                 </div>
-                <div style="margin-top: 12px; font-size: 12px; color: #64748b;">✅ Click "Mark sent" after email. Reminders will highlight pending follow-ups.</div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Click <em>Mark Sent</em> immediately after sending to track follow-ups automatically.</div>
             </div>
         </div>
 
-        <!-- RIGHT: Email preview and copy -->
+        <!-- RIGHT -->
         <div>
             <div class="card">
                 <div class="card-header">
-                    <h2>✉️ 3. Email preview (copy ready)</h2>
-                    <button id="copyEmailBtn" style="background:#1e293b;">📋 Copy email HTML</button>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">3</span>
+                        <span class="section-title">Email Preview</span>
+                    </div>
+                    <button id="copyEmailBtn" style="background:var(--navy);">📋 Copy Email HTML</button>
                 </div>
-                <div id="emailPreviewContainer" class="email-preview" style="background:#fff; font-family: system-ui;">
-                    ⚡ Select a hotel and insights will appear here.
+
+                <div id="emailPreviewContainer" class="email-preview">
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                        <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+                        <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);margin-bottom:6px;">Select a property to generate email</div>
+                        <div style="font-size:12px;">Rate insights, demand signals and graphs will be embedded automatically.</div>
+                    </div>
                 </div>
-                <div style="margin-top: 16px; display: flex; gap: 12px; justify-content: flex-end;">
-                    <button id="markSentBtn" class="btn-secondary">✅ Mark email sent & track</button>
-                    <button id="markFollowup1Btn" class="btn-secondary">📆 Mark Day3 follow-up sent</button>
-                    <button id="markFollowup2Btn" class="btn-secondary">📅 Mark Day7 follow-up sent</button>
+
+                <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+                    <button id="markSentBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">✅ Mark Sent</button>
+                    <button id="markFollowup1Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📆 Day 3 Follow-up</button>
+                    <button id="markFollowup2Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📅 Day 7 Follow-up</button>
                 </div>
-                <div style="margin-top: 12px; background: #f1f5f9; border-radius: 12px; padding: 10px; font-size: 12px;">
-                    💡 <strong>Pro tip:</strong> After copying, paste into Zoho Mail (HTML mode). No links, no attachments — safe deliverability.
+
+                <div style="margin-top:12px;background:var(--surface);border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--text-secondary);border:1px solid var(--border);">
+                    💡 <strong>Pro tip:</strong> Paste into Zoho Mail or Gmail in HTML mode. No external links — optimised for deliverability.
                 </div>
             </div>
         </div>
@@ -311,387 +546,481 @@
 </div>
 
 <script>
-    // ------------------- STATE --------------------
-    let rawExcelData = null;        // { allDates: [], propertiesMap: { propName: { date: rateOrSoldOut } } }
-    let allHotelNames = [];
-    let currentHotelData = null;    // insights for selected hotel
-    let currentArea = "Johannesburg / Waterfall";
-    
-    // tracking store: object per hotel name
-    let campaignTracker = {};
+// ─── STATE ─────────────────────────────────────────────────────────────
+let rawExcelData = null;
+let allHotelNames = [];
+let currentHotelData = null;
+let currentArea = "Johannesburg / Waterfall";
+let campaignTracker = {};
+let rateChartInstance = null;
 
-    // Load tracker from localStorage
-    function loadTracker() {
-        const stored = localStorage.getItem("revinsights_campaign_tracker");
-        if(stored) {
-            campaignTracker = JSON.parse(stored);
+// ─── TRACKER ───────────────────────────────────────────────────────────
+function loadTracker() {
+    try { campaignTracker = JSON.parse(localStorage.getItem("revinsights_campaign_tracker") || "{}"); } catch(e) { campaignTracker = {}; }
+    renderTrackerTable();
+}
+function saveTracker() {
+    localStorage.setItem("revinsights_campaign_tracker", JSON.stringify(campaignTracker));
+    renderTrackerTable();
+}
+function getTrackerEntry(hotelName) {
+    if(!campaignTracker[hotelName]) {
+        campaignTracker[hotelName] = { area: currentArea, sentDate: null, followup1Sent: false, followup2Sent: false, replyReceived: false, lastUpdated: new Date().toISOString() };
+    }
+    if(!campaignTracker[hotelName].area) campaignTracker[hotelName].area = currentArea;
+    return campaignTracker[hotelName];
+}
+function markSent(hotel) {
+    let e = getTrackerEntry(hotel);
+    e.sentDate = new Date().toISOString().split('T')[0];
+    saveTracker();
+    alert(`✅ ${hotel} marked as sent on ${e.sentDate}`);
+}
+function markFollowup(hotel, type) {
+    let e = getTrackerEntry(hotel);
+    if(type===1) e.followup1Sent = true;
+    if(type===2) e.followup2Sent = true;
+    saveTracker();
+    alert(`📌 Follow-up ${type} recorded for ${hotel}`);
+}
+function markReply(hotel) {
+    let e = getTrackerEntry(hotel);
+    e.replyReceived = true;
+    saveTracker();
+    alert(`🎉 Reply noted for ${hotel}`);
+}
+
+function renderTrackerTable() {
+    const tbody = document.getElementById('trackingBody');
+    tbody.innerHTML = '';
+    const hotels = Object.keys(campaignTracker).sort();
+    if(!hotels.length) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:20px;font-style:italic;">No emails tracked yet</td></tr>`;
+        return;
+    }
+    for(let h of hotels) {
+        const e = campaignTracker[h];
+        const sentDate = e.sentDate || '—';
+        const f1 = e.followup1Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const f2 = e.followup2Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const reply = e.replyReceived ? '<span class="status-badge status-replied">✔ Yes</span>' : '—';
+        tbody.innerHTML += `<tr>
+            <td><strong>${escapeHtml(h)}</strong></td>
+            <td style="font-size:12px;color:var(--text-muted);">${escapeHtml(e.area||'—')}</td>
+            <td style="font-size:12px;">${sentDate}</td>
+            <td>${f1}</td>
+            <td>${f2}</td>
+            <td>${reply}</td>
+            <td><button class="mark-reply-btn" data-hotel="${escapeHtml(h)}" style="font-size:11px;padding:5px 10px;background:var(--surface);color:var(--text-primary);border:1px solid var(--border);">📩 Reply</button></td>
+        </tr>`;
+    }
+    document.querySelectorAll('.mark-reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => markReply(btn.getAttribute('data-hotel')));
+    });
+}
+
+// ─── EXCEL PARSER ──────────────────────────────────────────────────────
+function parseLighthouseExcel(arrayBuffer) {
+    const workbook = XLSX.read(arrayBuffer, { cellDates: true });
+    const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('rate')) || workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+    if(!rows || rows.length < 2) throw new Error("Sheet is empty");
+    const headers = rows[0];
+    const propertyCols = [];
+    for(let i=1; i<headers.length; i++) {
+        let h = headers[i] ? String(headers[i]).trim() : '';
+        if(h && !h.toLowerCase().includes('demand') && !h.toLowerCase().includes('ranking') && !h.toLowerCase().includes('holiday')) {
+            propertyCols.push({ index: i, name: h });
+        }
+    }
+    const allDates = [];
+    const propertiesMap = {};
+    propertyCols.forEach(col => { propertiesMap[col.name] = {}; });
+    for(let r=1; r<rows.length; r++) {
+        const row = rows[r];
+        if(!row || row.length === 0) continue;
+        let rawDate = row[0];
+        if(!rawDate) continue;
+        let dateISO = null;
+        if(rawDate instanceof Date) dateISO = rawDate.toISOString().split('T')[0];
+        else if(typeof rawDate === 'number') {
+            const d = XLSX.SSF.parse_date_code(rawDate);
+            dateISO = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
         } else {
-            campaignTracker = {};
+            const parsed = new Date(rawDate);
+            if(!isNaN(parsed)) dateISO = parsed.toISOString().split('T')[0];
         }
-        renderTrackerTable();
+        if(!dateISO) continue;
+        allDates.push(dateISO);
+        for(let col of propertyCols) {
+            let val = row[col.index];
+            let processed = null;
+            if(val === null || val === undefined) processed = null;
+            else if(typeof val === 'string' && val.toLowerCase().includes('sold')) processed = 'sold_out';
+            else {
+                let num = parseFloat(String(val).replace(/[^0-9.-]/g,''));
+                processed = isNaN(num) ? null : num;
+            }
+            if(processed !== null) propertiesMap[col.name][dateISO] = processed;
+        }
     }
-    function saveTracker() {
-        localStorage.setItem("revinsights_campaign_tracker", JSON.stringify(campaignTracker));
-        renderTrackerTable();
+    const uniqueDates = [...new Set(allDates)].sort();
+    return { allDates: uniqueDates, propertiesMap, allProperties: propertyCols.map(c=>c.name) };
+}
+
+// ─── INSIGHTS ENGINE ───────────────────────────────────────────────────
+function computeHotelInsights(hotelName, parsedData, areaName) {
+    const { allDates, propertiesMap } = parsedData;
+    const hotelRatesByDate = propertiesMap[hotelName] || {};
+    const otherProps = Object.keys(propertiesMap).filter(p => p !== hotelName);
+    let hotelRates = [], soldOutDatesHotel = [];
+    let marketDailyRates = {}, hotelDailyRates = {};
+    let marketSoldOutDates = new Set();
+    for(let date of allDates) {
+        const hotelVal = hotelRatesByDate[date];
+        if(hotelVal === 'sold_out') soldOutDatesHotel.push(date);
+        else if(typeof hotelVal === 'number') { hotelRates.push(hotelVal); hotelDailyRates[date] = hotelVal; }
+        let marketSum=0, marketCnt=0;
+        for(let prop of otherProps) {
+            const val = propertiesMap[prop]?.[date];
+            if(val === 'sold_out') marketSoldOutDates.add(date);
+            else if(typeof val === 'number') { marketSum+=val; marketCnt++; }
+        }
+        if(marketCnt>0) marketDailyRates[date] = marketSum/marketCnt;
+    }
+    const yourAvg = hotelRates.length ? hotelRates.reduce((a,b)=>a+b,0)/hotelRates.length : 0;
+    const marketRatesArray = Object.values(marketDailyRates).filter(r=>r>0);
+    const marketAvg = marketRatesArray.length ? marketRatesArray.reduce((a,b)=>a+b,0)/marketRatesArray.length : 0;
+    const gapPerNight = marketAvg - yourAvg;
+    const monthlyLossEstimate = gapPerNight * 22;
+    let highDemandDates = [];
+    for(let date of allDates) {
+        let soldOutCount=0;
+        for(let prop of otherProps) { if(propertiesMap[prop]?.[date]==='sold_out') soldOutCount++; }
+        if(otherProps.length>0 && (soldOutCount/otherProps.length)>=0.3) highDemandDates.push(date);
+    }
+    const topDemandDates = highDemandDates.slice(0,5);
+    let recMessage="", actionItems=[];
+    if(gapPerNight < -200) {
+        recMessage=`⚠️ Your rates (R${Math.round(yourAvg)}) are significantly <strong>ABOVE</strong> the market average (R${Math.round(marketAvg)}). Consider value-add packages or strategic discounts on low-occupancy days.`;
+        actionItems.push("Introduce early booking offers","Add breakfast/transfer to justify premium");
+    } else if(gapPerNight > 150) {
+        recMessage=`💰 You are <strong>underpricing</strong> — R${Math.round(gapPerNight)} below competitors. With demand strong, increase weekend rates by 8–12% immediately.`;
+        actionItems.push("Raise Fri–Sun rates by 10%","Test a mid-week minimum stay");
+    } else {
+        recMessage=`📊 <strong>Balanced positioning</strong> (R${Math.round(yourAvg)} vs R${Math.round(marketAvg)}). Fine-tune using sold-out signals.`;
+        actionItems.push("Monitor demand heatmaps","Use sold-out dates as trigger to lift rates");
+    }
+    if(highDemandDates.length>0) {
+        recMessage+=` 🔥 ${highDemandDates.length} high-demand dates detected where multiple competitors sold out.`;
+        actionItems.push("Increase rates dynamically on peak dates");
     }
 
-    function getTrackerEntry(hotelName) {
-        if(!campaignTracker[hotelName]) {
-            campaignTracker[hotelName] = {
-                area: currentArea,
-                sentDate: null,
-                followup1Sent: false,
-                followup2Sent: false,
-                replyReceived: false,
-                lastUpdated: new Date().toISOString()
-            };
-        }
-        if(!campaignTracker[hotelName].area) campaignTracker[hotelName].area = currentArea;
-        return campaignTracker[hotelName];
+    // Build next 7 days chart data
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const next7Dates = [];
+    for(let i=0;i<7;i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate()+i);
+        next7Dates.push(d.toISOString().split('T')[0]);
+    }
+    const chartLabels = next7Dates.map(d => { const dd = new Date(d); return dd.toLocaleDateString('en-ZA',{weekday:'short',day:'numeric',month:'short'}); });
+    const chartYourRates = next7Dates.map(d => typeof hotelDailyRates[d]==='number' ? Math.round(hotelDailyRates[d]) : null);
+    const chartMarketRates = next7Dates.map(d => typeof marketDailyRates[d]==='number' ? Math.round(marketDailyRates[d]) : null);
+
+    return {
+        yourAvg: Math.round(yourAvg), marketAvg: Math.round(marketAvg),
+        gapPerNight: Math.round(gapPerNight), monthlyLoss: Math.abs(Math.round(monthlyLossEstimate)),
+        isUnderPriced: gapPerNight>0, soldOutDatesCount: soldOutDatesHotel.length,
+        marketSoldOutDays: marketSoldOutDates.size, highDemandDates: topDemandDates,
+        recommendationText: recMessage, actionItems, yourRateRaw: yourAvg, marketRaw: marketAvg, area: areaName,
+        chartLabels, chartYourRates, chartMarketRates, totalProperties: Object.keys(propertiesMap).length
+    };
+}
+
+function formatDateShort(iso) { if(!iso) return ''; const d=new Date(iso); return d.toLocaleDateString('en-ZA',{day:'numeric',month:'short'}); }
+function formatCurrency(amt) { return `R ${Math.round(amt).toLocaleString()}`; }
+function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]); }
+
+// ─── UI UPDATE ──────────────────────────────────────────────────────────
+function updateUIForHotel(hotelName, parsed, area) {
+    if(!parsed||!hotelName) return;
+    const ins = computeHotelInsights(hotelName, parsed, area);
+    currentHotelData = ins;
+
+    document.getElementById('yourRateVal').innerHTML = formatCurrency(ins.yourAvg);
+    document.getElementById('marketAvgVal').innerHTML = formatCurrency(ins.marketAvg);
+    const monthlyText = ins.isUnderPriced ? `R ${ins.monthlyLoss.toLocaleString()} opp.` : `R ${ins.monthlyLoss.toLocaleString()} risk`;
+    document.getElementById('monthlyGapVal').innerHTML = monthlyText;
+    document.getElementById('soldOutCountVal').innerHTML = `${ins.marketSoldOutDays} days`;
+
+    // Demand flags
+    const demandEl = document.getElementById('demandFlags');
+    if(ins.highDemandDates.length) {
+        demandEl.style.display='block';
+        demandEl.innerHTML = `<div style="font-weight:700;margin-bottom:8px;">🔥 High-demand windows (competitors sold out)</div>
+            <div>${ins.highDemandDates.map(d=>`<span class="demand-tag">📅 ${formatDateShort(d)}</span>`).join('')}</div>
+            <div style="margin-top:8px;font-size:12px;">Raise rates on these dates to capture peak demand.</div>`;
+    } else {
+        demandEl.style.display='none';
     }
 
-    function markSent(hotel) {
-        let entry = getTrackerEntry(hotel);
-        entry.sentDate = new Date().toISOString().split('T')[0];
-        saveTracker();
-        alert(`✅ ${hotel} marked as sent on ${entry.sentDate}`);
-    }
-    function markFollowup(hotel, type) {
-        let entry = getTrackerEntry(hotel);
-        if(type === 1) entry.followup1Sent = true;
-        if(type === 2) entry.followup2Sent = true;
-        saveTracker();
-        alert(`📌 Follow-up ${type} recorded for ${hotel}`);
-    }
-    function markReply(hotel) {
-        let entry = getTrackerEntry(hotel);
-        entry.replyReceived = true;
-        saveTracker();
-        alert(`🎉 Reply noted for ${hotel}`);
-    }
+    // Recommendation
+    const recEl = document.getElementById('recommendationText');
+    recEl.style.display='block';
+    recEl.innerHTML = `<strong>💡 Revenue Recommendation</strong><br>${ins.recommendationText}<ul style="margin-top:10px;margin-left:20px;">${ins.actionItems.map(i=>`<li>${i}</li>`).join('')}</ul>`;
 
-    function renderTrackerTable() {
-        const tbody = document.getElementById('trackingBody');
-        tbody.innerHTML = '';
-        const hotels = Object.keys(campaignTracker).sort();
-        for(let h of hotels) {
-            const e = campaignTracker[h];
-            const sentDate = e.sentDate || '—';
-            const f1 = e.followup1Sent ? '✅' : '⏳';
-            const f2 = e.followup2Sent ? '✅' : '⏳';
-            const reply = e.replyReceived ? '✔️ Yes' : '—';
-            tbody.innerHTML += `<tr>
-                <td><strong>${escapeHtml(h)}</strong></td>
-                <td>${escapeHtml(e.area || '—')}</td>
-                <td>${sentDate}</td>
-                <td>${f1}</td>
-                <td>${f2}</td>
-                <td>${reply}</td>
-                <td><button class="mark-reply-btn" data-hotel="${escapeHtml(h)}" style="font-size:11px; padding:4px 8px;">📩 Reply</button></td>
-            </tr>`;
-        }
-        document.querySelectorAll('.mark-reply-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const hotel = btn.getAttribute('data-hotel');
-                markReply(hotel);
-            });
-        });
-        // highlight pending follow-ups (today vs sent date logic)
-        const todayStr = new Date().toISOString().split('T')[0];
-        for(let h of hotels) {
-            const e = campaignTracker[h];
-            if(e.sentDate && !e.followup1Sent) {
-                const sentDateObj = new Date(e.sentDate);
-                const now = new Date();
-                const diffDays = Math.floor((now - sentDateObj) / (1000*60*60*24));
-                if(diffDays >= 3 && diffDays < 7) {
-                    // highlight row but no action needed, just visual
+    // 7-day chart
+    renderRateChart(ins);
+
+    // Email
+    generateEmailPreview(hotelName, ins, area);
+}
+
+// ─── CHART ──────────────────────────────────────────────────────────────
+function renderRateChart(ins) {
+    const wrapper = document.getElementById('rateChartWrapper');
+    wrapper.style.display = 'block';
+    if(rateChartInstance) rateChartInstance.destroy();
+    const ctx = document.getElementById('rateChart').getContext('2d');
+    rateChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ins.chartLabels,
+            datasets: [
+                {
+                    label: 'Your Rate',
+                    data: ins.chartYourRates,
+                    backgroundColor: 'rgba(26,86,219,0.85)',
+                    borderRadius: 6,
+                    order: 1
+                },
+                {
+                    label: 'Compset Average',
+                    data: ins.chartMarketRates,
+                    type: 'line',
+                    borderColor: '#d4a017',
+                    backgroundColor: 'rgba(212,160,23,0.1)',
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#d4a017',
+                    pointRadius: 5,
+                    tension: 0.35,
+                    fill: false,
+                    order: 0
                 }
-            }
-        }
-    }
-
-    // ------------------- PARSE LIGHTHOUSE ------------------
-    function parseLighthouseExcel(arrayBuffer) {
-        const workbook = XLSX.read(arrayBuffer, { cellDates: true });
-        const sheetName = workbook.SheetNames.find(n => n.toLowerCase().includes('rate')) || workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-        if(!rows || rows.length < 2) throw new Error("Sheet is empty");
-        const headers = rows[0];
-        // detect property columns: skip first column (date)
-        const propertyCols = [];
-        for(let i=1; i<headers.length; i++) {
-            let h = headers[i] ? String(headers[i]).trim() : '';
-            if(h && !h.toLowerCase().includes('demand') && !h.toLowerCase().includes('ranking') && !h.toLowerCase().includes('holiday')) {
-                propertyCols.push({ index: i, name: h });
-            }
-        }
-        const allDates = [];
-        const propertiesMap = {};   // propertyName -> { dateISO: value (number or 'sold_out') }
-        propertyCols.forEach(col => { propertiesMap[col.name] = {}; });
-        
-        for(let r=1; r<rows.length; r++) {
-            const row = rows[r];
-            if(!row || row.length === 0) continue;
-            let rawDate = row[0];
-            if(!rawDate) continue;
-            let dateISO = null;
-            if(rawDate instanceof Date) dateISO = rawDate.toISOString().split('T')[0];
-            else if(typeof rawDate === 'number') {
-                const d = XLSX.SSF.parse_date_code(rawDate);
-                dateISO = `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
-            } else {
-                const parsed = new Date(rawDate);
-                if(!isNaN(parsed)) dateISO = parsed.toISOString().split('T')[0];
-            }
-            if(!dateISO) continue;
-            allDates.push(dateISO);
-            for(let col of propertyCols) {
-                let val = row[col.index];
-                let processed = null;
-                if(val === null || val === undefined) processed = null;
-                else if(typeof val === 'string' && val.toLowerCase().includes('sold')) processed = 'sold_out';
-                else {
-                    let num = parseFloat(String(val).replace(/[^0-9.-]/g,''));
-                    processed = isNaN(num) ? null : num;
+            ]
+        },
+        options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: { position: 'top', labels: { font: { family: 'DM Sans', size: 12 }, boxWidth: 14 } },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.parsed.y !== null ? `${ctx.dataset.label}: R ${ctx.parsed.y.toLocaleString()}` : `${ctx.dataset.label}: N/A`
+                    }
                 }
-                if(processed !== null) propertiesMap[col.name][dateISO] = processed;
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    ticks: {
+                        callback: v => `R ${v.toLocaleString()}`,
+                        font: { family: 'DM Sans', size: 11 }
+                    },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: { ticks: { font: { family: 'DM Sans', size: 11 } }, grid: { display: false } }
             }
         }
-        const uniqueDates = [...new Set(allDates)].sort();
-        return { allDates: uniqueDates, propertiesMap, allProperties: propertyCols.map(c => c.name) };
-    }
+    });
+}
 
-    // --- compute insights for a specific hotel ---
-    function computeHotelInsights(hotelName, parsedData, areaName) {
-        const { allDates, propertiesMap } = parsedData;
-        const hotelRatesByDate = propertiesMap[hotelName] || {};
-        // market: all other properties
-        const otherProps = Object.keys(propertiesMap).filter(p => p !== hotelName);
-        
-        let hotelRates = [];
-        let soldOutDatesHotel = [];
-        let marketDailyRates = {}; // date -> avg market rate (excluding sold out)
-        let marketSoldOutDates = new Set();
-        
-        for(let date of allDates) {
-            const hotelVal = hotelRatesByDate[date];
-            if(hotelVal === 'sold_out') soldOutDatesHotel.push(date);
-            else if(typeof hotelVal === 'number') hotelRates.push(hotelVal);
-            
-            let marketSum = 0, marketCnt = 0;
-            for(let prop of otherProps) {
-                const val = propertiesMap[prop]?.[date];
-                if(val === 'sold_out') {
-                    marketSoldOutDates.add(date);
-                } else if(typeof val === 'number') {
-                    marketSum += val;
-                    marketCnt++;
-                }
-            }
-            if(marketCnt > 0) marketDailyRates[date] = marketSum / marketCnt;
-        }
-        
-        const yourAvg = hotelRates.length ? hotelRates.reduce((a,b)=>a+b,0)/hotelRates.length : 0;
-        const marketRatesArray = Object.values(marketDailyRates).filter(r => r>0);
-        const marketAvg = marketRatesArray.length ? marketRatesArray.reduce((a,b)=>a+b,0)/marketRatesArray.length : 0;
-        const gapPerNight = marketAvg - yourAvg;
-        const monthlyLossEstimate = gapPerNight * 22;  // 22 trading days approx
-        // find high demand dates (sold out >= 30% competitors)
-        let highDemandDates = [];
-        for(let date of allDates) {
-            let soldOutCount = 0;
-            for(let prop of otherProps) {
-                if(propertiesMap[prop]?.[date] === 'sold_out') soldOutCount++;
-            }
-            const totalCompetitors = otherProps.length;
-            if(totalCompetitors > 0 && (soldOutCount / totalCompetitors) >= 0.3) {
-                highDemandDates.push(date);
-            }
-        }
-        // top 5 demand dates
-        const topDemandDates = highDemandDates.slice(0,5);
-        
-        // generate recommendation
-        let recMessage = "";
-        let actionItems = [];
-        if(gapPerNight < -200) {
-            recMessage = `⚠️ Your rates (R${Math.round(yourAvg)}) are significantly ABOVE market average (R${Math.round(marketAvg)}). Consider value-add packages or strategic discounts on low occupancy days.`;
-            actionItems.push("Introduce early booking offers", "Add breakfast/transfer to justify premium");
-        } else if(gapPerNight > 150) {
-            recMessage = `💰 You are underpricing! R${Math.round(gapPerNight)} below competitors. With ${soldOutDatesHotel.length} sold-out dates? Actually demand is strong: increase weekend rates by 8–12% immediately.`;
-            actionItems.push("Raise Fri–Sun rates by 10%", "Test a mid-week minimum stay");
-        } else {
-            recMessage = `📊 Balanced positioning (R${Math.round(yourAvg)} vs R${Math.round(marketAvg)}). Fine-tune using sold-out signals.`;
-            actionItems.push("Monitor demand heatmaps", "Use sold-out dates as trigger to lift rates");
-        }
-        if(highDemandDates.length > 0) {
-            recMessage += ` 🔥 ${highDemandDates.length} high-demand dates detected where multiple competitors sold out.`;
-            actionItems.push("Increase rates dynamically on those peak dates");
-        }
-        
-        // demand flags html
-        let demandFlagsHtml = `<div style="font-weight: 700; margin-bottom: 8px;">🔥 Demand signals (sold-out competitors)</div>`;
-        if(topDemandDates.length) {
-            demandFlagsHtml += `<div>${topDemandDates.map(d => `<span class="demand-tag">📅 ${formatDateShort(d)}</span>`).join('')}</div>`;
-            demandFlagsHtml += `<div style="margin-top: 8px; font-size:12px;">⭐ These dates show strong market demand — raise rates now.</div>`;
-        } else {
-            demandFlagsHtml += `<div>No significant sold-out activity, but monitor weekends.</div>`;
-        }
-        
-        const soldOutCountMarket = marketSoldOutDates.size;
-        return {
-            yourAvg: Math.round(yourAvg),
-            marketAvg: Math.round(marketAvg),
-            gapPerNight: Math.round(gapPerNight),
-            monthlyLoss: Math.abs(Math.round(monthlyLossEstimate)),
-            isUnderPriced: gapPerNight > 0,
-            soldOutDatesCount: soldOutDatesHotel.length,
-            marketSoldOutDays: soldOutCountMarket,
-            highDemandDates: topDemandDates,
-            recommendationText: recMessage,
-            actionItems: actionItems,
-            yourRateRaw: yourAvg,
-            marketRaw: marketAvg,
-            area: areaName
-        };
-    }
-    
-    function formatDateShort(iso) { if(!iso) return ''; const d = new Date(iso); return d.toLocaleDateString('en-ZA', { day:'numeric', month:'short' }); }
-    function formatCurrency(amt) { return `R ${Math.round(amt).toLocaleString()}`; }
+// ─── EMAIL GENERATOR ───────────────────────────────────────────────────
+function generateEmailPreview(hotelName, ins, area) {
+    const areaDisplay = area || "South Africa";
+    const todayStr = new Date().toLocaleDateString('en-ZA',{year:'numeric',month:'long',day:'numeric'});
+    const hotDatesStr = ins.highDemandDates.map(d=>formatDateShort(d)).join(', ') || "several high-demand days identified";
+    const gapDirection = ins.gapPerNight > 0 ? `R ${ins.gapPerNight} BELOW market` : `R ${Math.abs(ins.gapPerNight)} ABOVE market`;
+    const opportunityMsg = ins.isUnderPriced
+        ? `You may be leaving approximately <strong>R ${ins.monthlyLoss.toLocaleString()} per month</strong> on the table.`
+        : `Your pricing is above the market average — consider value-add packages to maintain high occupancy.`;
 
-    function updateUIForHotel(hotelName, parsed, area) {
-        if(!parsed || !hotelName) return;
-        const insights = computeHotelInsights(hotelName, parsed, area);
-        currentHotelData = insights;
-        document.getElementById('yourRateVal').innerHTML = formatCurrency(insights.yourAvg);
-        document.getElementById('marketAvgVal').innerHTML = formatCurrency(insights.marketAvg);
-        const monthlyText = insights.isUnderPriced ? `R ${insights.monthlyLoss} missed opp.` : `R ${insights.monthlyLoss} potential loss`;
-        document.getElementById('monthlyGapVal').innerHTML = monthlyText;
-        document.getElementById('soldOutCountVal').innerHTML = `${insights.marketSoldOutDays} days`;
-        const demandHtml = `<div class="demand-flags">${insights.highDemandDates.map(d => `<span class="demand-tag">🔥 ${formatDateShort(d)}</span>`).join('') || '— No extreme demand spikes this period'}</div>`;
-        document.getElementById('demandFlags').innerHTML = `<div style="font-weight: 600; margin-bottom: 6px;">📆 High-demand windows (competitors sold out)</div>${demandHtml}`;
-        document.getElementById('recommendationText').innerHTML = `<strong>💡 Revenue recommendation</strong><br>${insights.recommendationText}<br><ul style="margin-top: 10px; margin-left: 20px;">${insights.actionItems.map(i => `<li>${i}</li>`).join('')}</ul>`;
-        generateEmailPreview(hotelName, insights, area);
-    }
-    
-    // generate HTML email (no links, inline styling)
-    function generateEmailPreview(hotelName, insights, area) {
-        const areaDisplay = area || "Johannesburg / Waterfall";
-        const todayStr = new Date().toLocaleDateString('en-ZA', { year:'numeric', month:'long', day:'numeric' });
-        const hotDatesStr = insights.highDemandDates.map(d => formatDateShort(d)).join(', ') || "several high-demand days identified";
-        const gapDirection = insights.gapPerNight > 0 ? `R ${insights.gapPerNight} BELOW market` : `R ${Math.abs(insights.gapPerNight)} ABOVE market`;
-        const opportunityMsg = insights.isUnderPriced ? `You are leaving ~R ${insights.monthlyLoss} per month on the table.` : `Your pricing is above average, consider adding value to drive occupancy.`;
-        const htmlEmail = `
-<div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 20px;">
-  <div style="text-align: center; margin-bottom: 20px;">
-    <div style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg,#1e40af,#3b82f6); -webkit-background-clip: text; background-clip: text; color: transparent;">Revenue Insights</div>
-    <div style="font-size: 12px; color: #64748b;">Market intelligence · ${areaDisplay}</div>
+    const propCount = ins.totalProperties || rawExcelData?.allProperties?.length || 0;
+
+    // Build inline bar chart for email (SVG-based — works in email clients)
+    const chartData = ins.chartLabels.map((label, i) => ({
+        label,
+        your: ins.chartYourRates[i],
+        market: ins.chartMarketRates[i]
+    }));
+    const validData = chartData.filter(d => d.your !== null || d.market !== null);
+    const allVals = validData.flatMap(d=>[d.your||0, d.market||0]).filter(v=>v>0);
+    const maxVal = allVals.length ? Math.max(...allVals)*1.15 : 2000;
+    const barW = 30, gap = 12, groupW = barW*2+gap+10, chartH = 140, svgW = validData.length*(groupW+8)+60;
+
+    let svgBars = '';
+    validData.forEach((d,i) => {
+        const x = 40 + i*(groupW+8);
+        if(d.your) {
+            const h = Math.round((d.your/maxVal)*chartH);
+            svgBars += `<rect x="${x}" y="${chartH-h+10}" width="${barW}" height="${h}" fill="#1a56db" rx="4"/>
+                <text x="${x+barW/2}" y="${chartH+26}" text-anchor="middle" font-size="9" fill="#4a5568">${d.label.split(' ').slice(0,2).join(' ')}</text>`;
+        }
+        if(d.market) {
+            const h2 = Math.round((d.market/maxVal)*chartH);
+            svgBars += `<rect x="${x+barW+4}" y="${chartH-h2+10}" width="${barW}" height="${h2}" fill="#d4a017" rx="4" opacity="0.85"/>`;
+        }
+    });
+
+    const svgChart = validData.length > 0 ? `
+    <div style="margin:16px 0;background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0;">
+      <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#0d1b2e;">📊 Rate vs Compset Average — Next 7 Days</div>
+      <svg viewBox="0 0 ${svgW} ${chartH+40}" width="100%" style="max-width:520px;display:block;margin:0 auto;">
+        ${svgBars}
+        <line x1="40" y1="10" x2="40" y2="${chartH+10}" stroke="#e2e8f0" stroke-width="1"/>
+        <line x1="40" y1="${chartH+10}" x2="${svgW-10}" y2="${chartH+10}" stroke="#e2e8f0" stroke-width="1"/>
+      </svg>
+      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;justify-content:center;">
+        <span><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>Your Rate</span>
+        <span><span style="display:inline-block;width:12px;height:12px;background:#d4a017;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>Compset Avg</span>
+      </div>
+    </div>` : '';
+
+    const htmlEmail = `
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f1f5f9;">
+    <div style="font-size:26px;font-weight:800;color:#0d1b2e;letter-spacing:-0.3px;">Revenue <span style="color:#1a56db;">Insights</span></div>
+    <div style="font-size:12px;color:#718096;margin-top:4px;">Market Intelligence · ${escapeHtml(areaDisplay)} · ${todayStr}</div>
   </div>
-  <p style="font-size: 15px; line-height: 1.5;">Dear ${escapeHtml(hotelName)} team,</p>
-  <p>We analysed publicly available rates across <strong>${areaDisplay}</strong> (50+ nearby properties) and benchmarked your hotel.</p>
-  <div style="background: #f8fafc; border-radius: 16px; padding: 16px; margin: 16px 0;">
-    <table style="width:100%; border-collapse: collapse;">
-      <tr><td style="padding:6px 0;"><strong>🏨 Your average rate:</strong></td><td style="text-align:right;">${formatCurrency(insights.yourAvg)}</td></tr>
-      <tr><td style="padding:6px 0;"><strong>📊 Market average rate:</strong></td><td style="text-align:right;">${formatCurrency(insights.marketAvg)}</td></tr>
-      <tr><td style="padding:6px 0;"><strong>⚖️ Difference:</strong></td><td style="text-align:right;">${gapDirection}</td></tr>
-      <tr><td style="padding:6px 0;"><strong>📅 Market sold-out days:</strong></td><td style="text-align:right;">${insights.marketSoldOutDays} dates with high demand</td></tr>
+
+  <p style="font-size:15px;line-height:1.6;margin-bottom:14px;">Dear <strong>${escapeHtml(hotelName)}</strong> team,</p>
+  <p style="font-size:14px;line-height:1.6;color:#4a5568;margin-bottom:16px;">
+    We analysed publicly available rates across <strong>${escapeHtml(areaDisplay)}</strong>, benchmarking your property against <strong>${propCount > 1 ? propCount - 1 : 'your'} competing properties</strong> in the local market.
+  </p>
+
+  <!-- KPI table -->
+  <div style="background:#f7f9fc;border-radius:14px;padding:18px;margin:16px 0;border:1px solid #e1e8f0;">
+    <table style="width:100%;border-collapse:collapse;font-size:14px;">
+      <tr><td style="padding:7px 0;color:#4a5568;">🏨 Your average rate</td><td style="text-align:right;font-weight:700;color:#0d1b2e;">${formatCurrency(ins.yourAvg)}</td></tr>
+      <tr><td style="padding:7px 0;border-top:1px solid #e1e8f0;color:#4a5568;">📊 Compset average rate</td><td style="text-align:right;border-top:1px solid #e1e8f0;font-weight:700;color:#0d1b2e;">${formatCurrency(ins.marketAvg)}</td></tr>
+      <tr><td style="padding:7px 0;border-top:1px solid #e1e8f0;color:#4a5568;">⚖️ Rate differential</td><td style="text-align:right;border-top:1px solid #e1e8f0;font-weight:700;color:${ins.isUnderPriced?'#dc2626':'#16a34a'};">${gapDirection}</td></tr>
+      <tr><td style="padding:7px 0;border-top:1px solid #e1e8f0;color:#4a5568;">📅 Compset sold-out days</td><td style="text-align:right;border-top:1px solid #e1e8f0;font-weight:700;color:#0d1b2e;">${ins.marketSoldOutDays} dates</td></tr>
     </table>
   </div>
-  <div style="background: #fef3c7; border-radius: 12px; padding: 14px; margin: 16px 0;">
-    <div style="font-weight: 700;">🔥 High-demand windows (competitors sold out)</div>
-    <div style="margin-top: 6px;">${hotDatesStr}</div>
-    <div style="font-size: 13px; margin-top: 8px;">These dates show significant demand — raising rates on those nights can capture extra revenue.</div>
+
+  ${svgChart}
+
+  <!-- Demand dates -->
+  ${ins.highDemandDates.length ? `
+  <div style="background:#fffbeb;border-radius:12px;padding:16px;margin:16px 0;border-left:4px solid #d4a017;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:8px;">🔥 High-Demand Windows (Competitors Sold Out)</div>
+    <div style="margin-bottom:8px;">${ins.highDemandDates.map(d=>`<span style="background:#fde68a;color:#92400e;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;display:inline-block;margin:3px;">${formatDateShort(d)}</span>`).join('')}</div>
+    <div style="font-size:12px;color:#78350f;">Raising rates on these dates can capture additional revenue.</div>
+  </div>` : ''}
+
+  <!-- Opportunity -->
+  <div style="background:#eff6ff;border-radius:12px;padding:16px;margin:16px 0;border-left:4px solid #1a56db;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;">💰 Monthly Revenue Opportunity</div>
+    <div style="font-size:14px;line-height:1.6;">${opportunityMsg}</div>
   </div>
-  <div style="background: #e0f2fe; border-radius: 12px; padding: 14px; margin: 16px 0;">
-    <div style="font-weight: 700;">💰 Estimated monthly opportunity</div>
-    <div style="font-size: 32px; font-weight: 800;">${opportunityMsg}</div>
-    <div style="font-size: 13px;">Based on rate gap and typical monthly occupancy.</div>
+
+  <!-- Recommendation -->
+  <div style="border-left:4px solid #0d1b2e;padding-left:16px;margin:16px 0;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;">📌 Recommendation</div>
+    <div style="font-size:14px;color:#4a5568;line-height:1.65;">${ins.recommendationText}</div>
   </div>
-  <div style="border-left: 4px solid #3b82f6; padding-left: 14px; margin: 16px 0;">
-    <strong>📌 Recommendation</strong><br>${insights.recommendationText}
+
+  <!-- CTA -->
+  <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
+    <div style="color:white;font-size:14px;line-height:1.6;">
+      ✨ Want a <strong>full 30-day pricing calendar</strong> with custom rate recommendations for ${escapeHtml(hotelName)}?<br>
+      Simply reply <strong style="color:#f5c842;">"YES"</strong> — no obligation, just actionable insights.
+    </div>
   </div>
-  <div style="margin: 20px 0 16px; font-size: 14px;">
-    ✨ If you'd like a <strong>full daily pricing calendar</strong> + custom rate suggestions for the next 30 days, simply reply with <strong>"YES"</strong>. No obligation, just actionable insights.
-  </div>
-  <hr style="margin: 20px 0; border-color: #e2e8f0;">
-  <div style="font-size: 12px; color: #64748b;">
-    Mthobisi · Revenue Insights<br>
+
+  <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+
+  <div style="font-size:12px;color:#718096;line-height:1.7;">
+    Revenue Insights<br>
     info@revenueinsights.co.za
   </div>
 </div>`;
-        document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
-        window.currentEmailHtml = htmlEmail;
-    }
-    
-    // copy email
-    function copyEmailToClipboard() {
-        if(!window.currentEmailHtml) { alert("No email generated. Please select a hotel."); return; }
-        navigator.clipboard.writeText(window.currentEmailHtml).then(() => {
-            const btn = document.getElementById('copyEmailBtn');
-            const original = btn.innerText;
-            btn.innerText = "✅ Copied!";
-            setTimeout(() => btn.innerText = original, 2000);
-        }).catch(() => alert("Manual copy: select all email content"));
-    }
-    
-    function refreshHotelInsights() {
-        const hotel = document.getElementById('hotelSelect').value;
-        const area = document.getElementById('areaSelect').value;
-        currentArea = area;
-        if(!rawExcelData || !hotel) return;
-        updateUIForHotel(hotel, rawExcelData, area);
-    }
-    
-    // file handling
-    function loadFileAndPopulate(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = new Uint8Array(e.target.result);
-                const parsed = parseLighthouseExcel(data.buffer);
-                rawExcelData = parsed;
-                allHotelNames = parsed.allProperties;
-                const select = document.getElementById('hotelSelect');
-                select.innerHTML = '<option value="">— Select hotel —</option>' + allHotelNames.map(h => `<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
-                document.getElementById('fileInfo').style.display = 'block';
-                document.getElementById('fileName').innerText = file.name;
-                if(allHotelNames.length) {
-                    select.value = allHotelNames[0];
-                    refreshHotelInsights();
-                }
-            } catch(err) {
-                alert("Error parsing file: " + err.message);
-            }
-        };
-        reader.readAsArrayBuffer(file);
-    }
-    
-    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
-    
-    // events
-    document.getElementById('chooseFileBtn').addEventListener('click', () => document.getElementById('fileInput').click());
-    document.getElementById('fileInput').addEventListener('change', (e) => { if(e.target.files[0]) loadFileAndPopulate(e.target.files[0]); });
-    const dropzone = document.getElementById('dropzone');
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('drag-active'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
-    dropzone.addEventListener('drop', (e) => { e.preventDefault(); dropzone.classList.remove('drag-active'); const file = e.dataTransfer.files[0]; if(file) loadFileAndPopulate(file); });
-    document.getElementById('refreshInsightsBtn').addEventListener('click', refreshHotelInsights);
-    document.getElementById('copyEmailBtn').addEventListener('click', copyEmailToClipboard);
-    document.getElementById('markSentBtn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markSent(hotel); });
-    document.getElementById('markFollowup1Btn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markFollowup(hotel,1); });
-    document.getElementById('markFollowup2Btn').addEventListener('click', () => { const hotel = document.getElementById('hotelSelect').value; if(!hotel) return; markFollowup(hotel,2); });
-    document.getElementById('exportTrackerBtn').addEventListener('click', () => {
-        let csv = "Hotel,Area,Sent Date,Followup1 Sent,Followup2 Sent,Reply Received\n";
-        for(let [h, e] of Object.entries(campaignTracker)) {
-            csv += `"${h}","${e.area || ''}","${e.sentDate || ''}",${e.followup1Sent},${e.followup2Sent},${e.replyReceived}\n`;
+
+    document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
+    window.currentEmailHtml = htmlEmail;
+}
+
+function copyEmailToClipboard() {
+    if(!window.currentEmailHtml) { alert("No email generated. Please select a hotel."); return; }
+    navigator.clipboard.writeText(window.currentEmailHtml).then(() => {
+        const btn = document.getElementById('copyEmailBtn');
+        const orig = btn.innerText;
+        btn.innerText = "✅ Copied!";
+        setTimeout(() => btn.innerText = orig, 2000);
+    }).catch(() => alert("Manual copy: select all email content"));
+}
+
+function refreshHotelInsights() {
+    const hotel = document.getElementById('hotelSelect').value;
+    const area = document.getElementById('areaSelect').value;
+    currentArea = area;
+    if(!rawExcelData||!hotel) return;
+    updateUIForHotel(hotel, rawExcelData, area);
+}
+
+// ─── FILE HANDLING ──────────────────────────────────────────────────────
+function loadFileAndPopulate(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const parsed = parseLighthouseExcel(data.buffer);
+            rawExcelData = parsed;
+            allHotelNames = parsed.allProperties;
+            const select = document.getElementById('hotelSelect');
+            select.innerHTML = '<option value="">— Select property —</option>' + allHotelNames.map(h=>`<option value="${escapeHtml(h)}">${escapeHtml(h)}</option>`).join('');
+            document.getElementById('fileInfo').style.display='block';
+            document.getElementById('fileName').innerText = file.name;
+            const propCount = allHotelNames.length;
+            document.getElementById('propCountText').innerText = `${propCount} propert${propCount===1?'y':'ies'} detected`;
+            const pill = document.getElementById('propCountPill');
+            pill.style.display = 'inline-block';
+            pill.innerText = `${propCount} properties`;
+            if(allHotelNames.length) { select.value=allHotelNames[0]; refreshHotelInsights(); }
+        } catch(err) {
+            alert("Error parsing file: "+err.message);
         }
-        const blob = new Blob([csv], {type: 'text/csv'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'campaign_tracker.csv'; a.click(); URL.revokeObjectURL(a.href);
-    });
-    document.getElementById('resetTrackerBtn').addEventListener('click', () => { if(confirm('Delete all tracking data?')) { localStorage.removeItem('revinsights_campaign_tracker'); campaignTracker = {}; renderTrackerTable(); } });
-    loadTracker();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+// ─── EVENTS ─────────────────────────────────────────────────────────────
+document.getElementById('chooseFileBtn').addEventListener('click', ()=>document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', e=>{ if(e.target.files[0]) loadFileAndPopulate(e.target.files[0]); });
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', e=>{ e.preventDefault(); dropzone.classList.add('drag-active'); });
+dropzone.addEventListener('dragleave', ()=>dropzone.classList.remove('drag-active'));
+dropzone.addEventListener('drop', e=>{ e.preventDefault(); dropzone.classList.remove('drag-active'); const f=e.dataTransfer.files[0]; if(f) loadFileAndPopulate(f); });
+document.getElementById('refreshInsightsBtn').addEventListener('click', refreshHotelInsights);
+document.getElementById('copyEmailBtn').addEventListener('click', copyEmailToClipboard);
+document.getElementById('markSentBtn').addEventListener('click', ()=>{ const h=document.getElementById('hotelSelect').value; if(!h) return; markSent(h); });
+document.getElementById('markFollowup1Btn').addEventListener('click', ()=>{ const h=document.getElementById('hotelSelect').value; if(!h) return; markFollowup(h,1); });
+document.getElementById('markFollowup2Btn').addEventListener('click', ()=>{ const h=document.getElementById('hotelSelect').value; if(!h) return; markFollowup(h,2); });
+document.getElementById('exportTrackerBtn').addEventListener('click', ()=>{
+    let csv="Property,Area,Sent Date,Day3 Sent,Day7 Sent,Reply Received\n";
+    for(let [h,e] of Object.entries(campaignTracker)) {
+        csv+=`"${h}","${e.area||''}","${e.sentDate||''}",${e.followup1Sent},${e.followup2Sent},${e.replyReceived}\n`;
+    }
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='revenue_insights_tracker.csv'; a.click(); URL.revokeObjectURL(a.href);
+});
+document.getElementById('resetTrackerBtn').addEventListener('click', ()=>{ if(confirm('Delete all tracking data?')){ localStorage.removeItem('revinsights_campaign_tracker'); campaignTracker={}; renderTrackerTable(); } });
+
+loadTracker();
 </script>
 </body>
 </html>
