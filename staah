@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>STAAH Outreach | Sales Email Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0d1b2e;
+            --navy-mid: #162540;
+            --blue: #1a56db;
+            --blue-light: #3b82f6;
+            --teal: #0f6e56;
+            --teal-light: #1d9e75;
+            --gold: #d4a017;
+            --gold-light: #f5c842;
+            --surface: #f7f9fc;
+            --white: #ffffff;
+            --border: #e1e8f0;
+            --text-primary: #0d1b2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --success: #16a34a;
+            --warning: #b45309;
+            --danger: #dc2626;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 16px rgba(13,27,46,0.07);
+            --shadow-lg: 0 8px 32px rgba(13,27,46,0.12);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 32px 24px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.3px;
+        }
+
+        .app-title span {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .app-subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 26px 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        /* ─── GRID ─── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* ─── BUTTONS ─── */
+        button, .btn {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            border-radius: 40px;
+            padding: 10px 20px;
+        }
+
+        .btn-primary { background: var(--navy); color: var(--white); }
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); }
+
+        .btn-teal { background: var(--teal); color: var(--white); }
+        .btn-teal:hover { background: #0a5240; transform: translateY(-1px); }
+
+        .btn-secondary {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover { border-color: #94a3b8; background: var(--surface); }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .btn-ghost:hover { border-color: var(--teal-light); color: var(--teal); }
+
+        /* ─── FORM CONTROLS ─── */
+        select, input[type="text"] {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+            transition: border-color 0.15s;
+        }
+        select:focus, input:focus { outline: none; border-color: var(--teal); }
+
+        /* ─── BADGE ─── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #e6f5f0;
+            color: var(--teal);
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        /* ─── UPLOAD ─── */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafcff;
+            transition: all 0.2s;
+        }
+        .dropzone:hover, .drag-active { border-color: var(--teal); background: #f0faf7; }
+        .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
+        .dropzone-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* ─── TOGGLE GRID ─── */
+        .toggle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .toggle-btn {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-btn:hover { border-color: var(--teal-light); color: var(--teal); background: #f0faf7; }
+        .toggle-btn.active {
+            background: #e6f5f0;
+            border-color: var(--teal);
+            color: var(--teal);
+        }
+        .toggle-btn .toggle-icon { font-size: 15px; }
+        .toggle-btn .toggle-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--border);
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .toggle-btn.active .toggle-dot { background: var(--teal); }
+
+        /* ─── COMPANY LIST ─── */
+        .company-list-wrap {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+
+        .company-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.12s;
+        }
+        .company-item:last-child { border-bottom: none; }
+        .company-item:hover { background: #f7faf9; }
+        .company-item.selected { background: #e6f5f0; }
+
+        .c-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .c-dot-none { background: #cbd5e1; }
+        .c-dot-sent { background: var(--blue); }
+        .c-dot-replied { background: var(--success); }
+
+        .c-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+        .c-status-lbl { font-size: 11px; color: var(--text-muted); }
+
+        /* ─── TABLE ─── */
+        .track-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .track-table th {
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .track-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            vertical-align: middle;
+        }
+        .track-table tr:hover td { background: #fafcff; }
+
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-replied { background: #dcfce7; color: #15803d; }
+
+        /* ─── EMAIL PREVIEW ─── */
+        .email-preview {
+            background: #fafcff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            max-height: 560px;
+            overflow-y: auto;
+        }
+
+        /* ─── STEP DOT ─── */
+        .step-dot {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--navy);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        /* ─── INSIGHT BLOCK ─── */
+        .insight-block {
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            line-height: 1.65;
+        }
+        .insight-block.info { background: #f0faf7; border-left: 4px solid var(--teal-light); }
+        .insight-block.warning { background: #fffbeb; border-left: 4px solid var(--gold); }
+
+        /* ─── PILL ─── */
+        .prop-count-pill {
+            background: linear-gradient(135deg, var(--teal), var(--teal-light));
+            color: white;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* ─── SECTION LABEL ─── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) {
+            body { padding: 16px 14px; }
+            .toggle-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ─── MODAL OVERLAY ─── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(13,27,46,0.55);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: 28px 32px;
+            width: 90%;
+            max-width: 560px;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 6px; color: var(--navy); }
+        .modal-box .modal-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-box label { font-size: 13px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px; }
+        .modal-box input[type="text"], .modal-box textarea {
+            width: 100%; margin-bottom: 14px;
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            color: var(--text-primary);
+            background: var(--white);
+        }
+        .modal-box textarea { height: 120px; resize: vertical; }
+        .modal-box input:focus, .modal-box textarea:focus { outline: none; border-color: var(--teal); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- HEADER -->
+    <div class="app-header">
+        <div>
+            <div class="app-title">STAAH <span>Outreach</span></div>
+            <div class="app-subtitle">PDF-Powered Sales Email Builder · Campaign Tracker</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span id="toggleCountPill" class="prop-count-pill" style="display:none;"></span>
+            <button id="exportTrackerBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">📎 Export CSV</button>
+        </div>
+    </div>
+
+    <!-- STEP 1: SETUP -->
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="step-dot">1</span>
+                <span class="section-title">One-Time Setup — Upload STAAH PDF / Doc</span>
+            </div>
+            <span class="badge" id="setupBadge">🟢 One-time per product</span>
+        </div>
+
+        <div class="grid-2" style="gap:20px;">
+            <div>
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-icon">📄</div>
+                    <div class="dropzone-label">Drop your <strong>STAAH PDF or Word doc</strong> here, or click to browse</div>
+                    <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
+                    <button id="choosePdfBtn" style="margin-top:14px;background:var(--surface);color:var(--text-primary);border:1.5px solid var(--border);">Browse file</button>
+                </div>
+                <div id="pdfInfo" style="margin-top:10px;font-size:13px;color:var(--success);display:none;">
+                    ✅ Loaded: <strong><span id="pdfFileName"></span></strong>
+                </div>
+                <div class="insight-block info" style="margin-top:14px;">
+                    <strong>How it works:</strong><br>
+                    Upload your STAAH product PDF. Then configure up to 8 benefit toggles — each toggle holds a key paragraph you paste from the doc. When composing an email, activate the toggles you want and the email rebuilds instantly around those benefits.
+                </div>
+            </div>
+
+            <div>
+                <div class="section-label">Benefit Toggles (click ✏️ to configure)</div>
+                <div class="toggle-grid" id="toggleGrid">
+                    <!-- Rendered by JS -->
+                </div>
+                <button id="addToggleBtn" class="btn-ghost" style="width:100%;margin-top:4px;border-radius:var(--radius-sm);">+ Add toggle (up to 8)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2 & 3 -->
+    <div class="grid-2">
+
+        <!-- LEFT -->
+        <div>
+            <!-- Company selector -->
+            <div class="card" style="margin-bottom:20px;">
+                <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">2</span>
+                        <span class="section-title">Daily Use — Company List</span>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <input type="text" id="companyInput" placeholder="Type company name…" style="flex:1;" onkeydown="if(event.key==='Enter')addCompany()">
+                    <button onclick="addCompany()" class="btn-teal" style="background:var(--teal);padding:10px 16px;">+ Add</button>
+                </div>
+
+                <div class="section-label">Companies <span id="companyCountBadge" style="background:#e6f5f0;color:var(--teal);padding:2px 9px;border-radius:20px;font-size:11px;">0</span></div>
+
+                <div class="company-list-wrap" id="companyList">
+                    <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;font-style:italic;">No companies yet — add one above</div>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <div class="section-label" style="margin-bottom:8px;">Active toggles for email</div>
+                    <div class="toggle-grid" id="miniToggleGrid" style="grid-template-columns:1fr 1fr;"></div>
+                    <button onclick="refreshEmailPreview()" class="btn-teal" style="background:var(--teal);width:100%;margin-top:8px;">🔄 Rebuild Email</button>
+                </div>
+            </div>
+
+            <!-- Tracker -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="section-title">📋 Campaign Tracker</span>
+                    <div style="display:flex;gap:8px;">
+                        <button id="resetTrackerBtn" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;overflow-y:auto;max-height:280px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <table class="track-table" id="trackingTable" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Email Sent</th>
+                                <th>Day 3</th>
+                                <th>Day 7</th>
+                                <th>Reply</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trackingBody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Click <em>Mark Sent</em> right after sending to track follow-ups automatically.</div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">3</span>
+                        <span class="section-title">Email Preview</span>
+                    </div>
+                    <button id="copyEmailBtn" style="background:var(--navy);">📋 Copy Email HTML</button>
+                </div>
+
+                <div id="emailPreviewContainer" class="email-preview">
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                        <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+                        <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);margin-bottom:6px;">Select a company and activate toggles to generate email</div>
+                        <div style="font-size:12px;">The email rebuilds dynamically based on which STAAH benefits you toggle on.</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+                    <button id="markSentBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">✅ Mark Sent</button>
+                    <button id="markFollowup1Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📆 Day 3 Follow-up</button>
+                    <button id="markFollowup2Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📅 Day 7 Follow-up</button>
+                </div>
+
+                <div style="margin-top:12px;background:var(--surface);border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--text-secondary);border:1px solid var(--border);">
+                    💡 <strong>Pro tip:</strong> Paste into Zoho Mail or Gmail in HTML mode. Toggle benefits on/off and click Rebuild Email to focus the pitch.
+                </div>
+            </div>
+
+            <!-- Campaign Snapshot -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-header" style="margin-bottom:16px;">
+                    <span class="section-title">📊 Campaign Snapshot</span>
+                    <span style="font-size:12px;color:var(--text-muted);" id="snapshotUpdated"></span>
+                </div>
+                <div id="campaignSnapshot">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a company as sent to begin.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TOGGLE EDIT MODAL -->
+<div class="modal-overlay" id="toggleModal">
+    <div class="modal-box">
+        <h2 id="modalTitle">Configure Toggle</h2>
+        <div class="modal-sub">Paste the key benefit paragraph from your STAAH PDF into the content box below. This text will be embedded into emails when the toggle is active.</div>
+        <label>Toggle name (e.g. "Channel Manager")</label>
+        <input type="text" id="modalToggleName" placeholder="e.g. Channel Manager">
+        <label>Icon (emoji)</label>
+        <input type="text" id="modalToggleIcon" placeholder="e.g. 🔗" style="width:80px;">
+        <label>Benefit content (paste from STAAH PDF)</label>
+        <textarea id="modalToggleContent" placeholder="Paste the key paragraph or benefit description here. This will be formatted into the email body when this toggle is active."></textarea>
+        <div class="modal-actions">
+            <button onclick="closeToggleModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveToggle()" class="btn-teal" style="background:var(--teal);">Save Toggle</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────────
+let companies = JSON.parse(localStorage.getItem('staah_companies') || '[]');
+let campaignTracker = {};
+let currentCompany = null;
+let editingToggleIndex = null;
+
+// Default 8 toggles (pre-seeded with STAAH content — user can overwrite)
+const defaultToggles = [
+    { name: 'Channel Manager', icon: '🔗', content: "STAAH's Channel Manager connects your property to 400+ OTAs and booking channels in real time. Rate and availability updates push instantly across all platforms — no manual logins, no double-bookings. Properties using STAAH report saving 6–10 hours per week on distribution management.", active: true },
+    { name: 'Revenue Management', icon: '📈', content: "STAAH's dynamic pricing tools let you set automated rules that adjust rates based on occupancy thresholds, demand signals, and competitor movement. Properties using STAAH's revenue tools see an average 18% uplift in RevPAR within the first 90 days.", active: true },
+    { name: 'Booking Engine', icon: '🏨', content: "STAAH's commission-free direct booking engine integrates seamlessly with your website. Mobile-optimised, multi-currency, and multi-language — it converts lookers to bookers without paying OTA commission. On average, properties increase direct bookings by 25% in the first year.", active: false },
+    { name: 'Analytics & Reports', icon: '📊', content: "Real-time dashboards give you a clear view of pick-up pace, channel performance, rate positioning, and revenue forecasts — all in one screen. Stop pulling data from five different extranets and start making decisions from one source of truth.", active: false },
+    { name: 'OTA Connectivity', icon: '🌍', content: "STAAH integrates with all major OTAs including Booking.com, Expedia, Agoda, Airbnb, and 400+ others. Two-way XML connectivity ensures your rates and inventory are always in sync — and new OTA connections can be activated within 24 hours.", active: false },
+    { name: 'Promotions & Packages', icon: '🎁', content: "Build, manage and distribute rate packages — early bird, long stay, last minute — from one dashboard. STAAH's promotions engine pushes packages to all connected channels simultaneously, saving hours of manual setup per campaign.", active: false },
+    { name: 'Property Management', icon: '🛎️', content: "STAAH's cloud PMS handles reservations, front desk, housekeeping, and guest communication in one system. No hardware investment, no IT team needed — accessible from any browser, anywhere.", active: false },
+    { name: 'Onboarding & Support', icon: '🤝', content: "STAAH provides dedicated onboarding for every new property, with a local support team available 24/7. Average go-live time is under 48 hours. Most properties are fully operational and distributing across all channels within their first week.", active: false }
+];
+
+let toggles = JSON.parse(localStorage.getItem('staah_toggles') || 'null') || defaultToggles;
+
+// ─── INIT ───────────────────────────────────────────────────────────────
+function init() {
+    try { campaignTracker = JSON.parse(localStorage.getItem('staah_campaign_tracker') || '{}'); } catch(e) { campaignTracker = {}; }
+    renderToggleGrid();
+    renderMiniToggles();
+    renderCompanyList();
+    renderTrackerTable();
+    renderCampaignSnapshot();
+    updateToggleCountPill();
+}
+
+// ─── TOGGLES ────────────────────────────────────────────────────────────
+function saveToggles() {
+    localStorage.setItem('staah_toggles', JSON.stringify(toggles));
+}
+
+function renderToggleGrid() {
+    const grid = document.getElementById('toggleGrid');
+    grid.innerHTML = '';
+    toggles.forEach((t, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'toggle-btn' + (t.active ? ' active' : '');
+        btn.innerHTML = `
+            <span class="toggle-icon">${escapeHtml(t.icon)}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.name)}</span>
+            <button onclick="openToggleModal(${i})" title="Edit" style="background:none;border:none;cursor:pointer;padding:2px 4px;font-size:12px;border-radius:4px;color:var(--text-muted);">✏️</button>
+            <span class="toggle-dot"></span>
+        `;
+        btn.addEventListener('click', (e) => {
+            if(e.target.closest('button')) return;
+            toggles[i].active = !toggles[i].active;
+            saveToggles();
+            renderToggleGrid();
+            renderMiniToggles();
+            updateToggleCountPill();
+        });
+        grid.appendChild(btn);
+    });
+}
+
+function renderMiniToggles() {
+    const grid = document.getElementById('miniToggleGrid');
+    grid.innerHTML = '';
+    toggles.forEach((t, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'toggle-btn' + (t.active ? ' active' : '');
+        btn.style.fontSize = '11px';
+        btn.style.padding = '7px 10px';
+        btn.innerHTML = `<span>${escapeHtml(t.icon)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.name)}</span><span class="toggle-dot"></span>`;
+        btn.addEventListener('click', () => {
+            toggles[i].active = !toggles[i].active;
+            saveToggles();
+            renderToggleGrid();
+            renderMiniToggles();
+            updateToggleCountPill();
+        });
+        grid.appendChild(btn);
+    });
+}
+
+function updateToggleCountPill() {
+    const active = toggles.filter(t => t.active).length;
+    const pill = document.getElementById('toggleCountPill');
+    pill.style.display = 'inline-block';
+    pill.textContent = `${active} benefit${active !== 1 ? 's' : ''} active`;
+}
+
+document.getElementById('addToggleBtn').addEventListener('click', () => {
+    if(toggles.length >= 8) { alert('Maximum 8 toggles reached.'); return; }
+    openToggleModal(null);
+});
+
+function openToggleModal(index) {
+    editingToggleIndex = index;
+    const modal = document.getElementById('toggleModal');
+    const t = index !== null ? toggles[index] : { name: '', icon: '✨', content: '' };
+    document.getElementById('modalTitle').textContent = index !== null ? 'Edit Toggle' : 'Add Toggle';
+    document.getElementById('modalToggleName').value = t.name;
+    document.getElementById('modalToggleIcon').value = t.icon;
+    document.getElementById('modalToggleContent').value = t.content;
+    modal.classList.add('open');
+}
+
+function closeToggleModal() {
+    document.getElementById('toggleModal').classList.remove('open');
+    editingToggleIndex = null;
+}
+
+function saveToggle() {
+    const name = document.getElementById('modalToggleName').value.trim();
+    const icon = document.getElementById('modalToggleIcon').value.trim() || '✨';
+    const content = document.getElementById('modalToggleContent').value.trim();
+    if(!name) { alert('Please enter a toggle name.'); return; }
+    if(editingToggleIndex !== null) {
+        toggles[editingToggleIndex].name = name;
+        toggles[editingToggleIndex].icon = icon;
+        toggles[editingToggleIndex].content = content;
+    } else {
+        toggles.push({ name, icon, content, active: false });
+    }
+    saveToggles();
+    renderToggleGrid();
+    renderMiniToggles();
+    updateToggleCountPill();
+    closeToggleModal();
+}
+
+// ─── COMPANIES ──────────────────────────────────────────────────────────
+function saveCompanies() {
+    localStorage.setItem('staah_companies', JSON.stringify(companies));
+}
+
+function addCompany() {
+    const input = document.getElementById('companyInput');
+    const name = input.value.trim();
+    if(!name) return;
+    if(companies.includes(name)) { alert(`"${name}" is already in your list.`); return; }
+    companies.push(name);
+    saveCompanies();
+    input.value = '';
+    renderCompanyList();
+    selectCompany(name);
+}
+
+function removeCompany(name) {
+    companies = companies.filter(c => c !== name);
+    saveCompanies();
+    if(currentCompany === name) { currentCompany = null; clearEmailPreview(); }
+    renderCompanyList();
+}
+
+function selectCompany(name) {
+    currentCompany = name;
+    renderCompanyList();
+    refreshEmailPreview();
+}
+
+function renderCompanyList() {
+    const wrap = document.getElementById('companyList');
+    const countBadge = document.getElementById('companyCountBadge');
+    countBadge.textContent = companies.length;
+    if(!companies.length) {
+        wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;font-style:italic;">No companies yet — add one above</div>';
+        return;
+    }
+    wrap.innerHTML = '';
+    companies.forEach(name => {
+        const entry = campaignTracker[name] || {};
+        let dotClass = 'c-dot-none', statusLabel = 'Not sent';
+        if(entry.replyReceived) { dotClass = 'c-dot-replied'; statusLabel = 'Replied ✓'; }
+        else if(entry.sentDate) { dotClass = 'c-dot-sent'; statusLabel = `Sent ${entry.sentDate}`; }
+
+        const item = document.createElement('div');
+        item.className = 'company-item' + (currentCompany === name ? ' selected' : '');
+        item.innerHTML = `
+            <div class="c-dot ${dotClass}"></div>
+            <div class="c-name">${escapeHtml(name)}</div>
+            <div class="c-status-lbl">${statusLabel}</div>
+            <button onclick="event.stopPropagation();removeCompany('${escapeHtml(name).replace(/'/g,"\\'")}');" title="Remove" style="background:none;border:none;cursor:pointer;font-size:14px;color:#cbd5e1;padding:2px 6px;">✕</button>
+        `;
+        item.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') return; selectCompany(name); });
+        wrap.appendChild(item);
+    });
+}
+
+// ─── EMAIL GENERATOR ────────────────────────────────────────────────────
+function refreshEmailPreview() {
+    if(!currentCompany) { clearEmailPreview(); return; }
+    const activeToggles = toggles.filter(t => t.active && t.content);
+    generateEmailPreview(currentCompany, activeToggles);
+}
+
+function clearEmailPreview() {
+    document.getElementById('emailPreviewContainer').innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+            <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);margin-bottom:6px;">Select a company and activate toggles to generate email</div>
+            <div style="font-size:12px;">The email rebuilds dynamically based on which STAAH benefits you toggle on.</div>
+        </div>`;
+    window.currentEmailHtml = null;
+}
+
+function generateEmailPreview(companyName, activeToggles) {
+    const todayStr = new Date().toLocaleDateString('en-ZA', {year:'numeric', month:'long', day:'numeric'});
+    const activeNames = activeToggles.map(t => t.name).join(', ') || 'key features';
+
+    const benefitBlocks = activeToggles.length
+        ? activeToggles.map(t => `
+  <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:#0d1b2e;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</div>
+    <div style="font-size:13px;line-height:1.65;color:#4a5568;">${escapeHtml(t.content)}</div>
+  </div>`).join('')
+        : `<div style="background:#fff7ed;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #d4a017;font-size:13px;color:#78350f;">⚠️ No benefit toggles are active. Go back and turn on at least one toggle to populate the email.</div>`;
+
+    const badgeRow = activeToggles.length
+        ? `<div style="margin:14px 0;">${activeToggles.map(t => `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;display:inline-block;margin:3px;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</span>`).join('')}</div>`
+        : '';
+
+    const htmlEmail = `
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f1f5f9;">
+    <div style="font-size:26px;font-weight:800;color:#0d1b2e;letter-spacing:-0.3px;">STAAH <span style="color:#1d9e75;">Outreach</span></div>
+    <div style="font-size:12px;color:#718096;margin-top:4px;">Property Management Solutions · ${todayStr}</div>
+  </div>
+
+  <div style="background:#f7f9fc;border-radius:8px;padding:10px 14px;margin-bottom:18px;border:1px solid #e1e8f0;">
+    <span style="font-size:11px;color:#a0aec0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Subject: </span>
+    <span style="font-size:13px;color:#0d1b2e;font-weight:600;">Quick question about how ${escapeHtml(companyName)} manages its distribution</span>
+  </div>
+
+  <p style="font-size:15px;line-height:1.6;margin-bottom:14px;">Dear <strong>${escapeHtml(companyName)}</strong> team,</p>
+
+  <p style="font-size:14px;line-height:1.65;color:#4a5568;margin-bottom:16px;">
+    I came across your property and wanted to reach out directly. Many hospitality businesses we speak with are spending too many hours on manual rate updates, juggling multiple OTA extranets, and losing bookings they could be capturing — often without realising how much time and revenue is slipping away.
+  </p>
+
+  <p style="font-size:14px;line-height:1.65;color:#4a5568;margin-bottom:6px;">
+    I wanted to share how <strong>STAAH</strong> is solving exactly this for properties like yours:
+  </p>
+
+  ${benefitBlocks}
+
+  ${badgeRow}
+
+  <!-- CTA -->
+  <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
+    <div style="color:white;font-size:14px;line-height:1.6;">
+      ✨ Reply <strong style="color:#5dcaa5;">"YES"</strong> and I'll set up a <strong>free 20-minute walkthrough</strong> tailored to your property — no obligation, just a look at what's possible.
+    </div>
+  </div>
+
+  <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+
+  <div style="font-size:12px;color:#718096;line-height:1.9;">
+    STAAH Sales Team<br>
+    <span style="color:#a0aec0;font-size:11px;">Helping hotels & accommodation providers grow direct bookings and streamline distribution.</span>
+  </div>
+</div>`;
+
+    document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
+    window.currentEmailHtml = htmlEmail;
+}
+
+function copyEmailToClipboard() {
+    if(!window.currentEmailHtml) { alert('No email generated. Please select a company and activate at least one toggle.'); return; }
+    navigator.clipboard.writeText(window.currentEmailHtml).then(() => {
+        const btn = document.getElementById('copyEmailBtn');
+        const orig = btn.innerText;
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => btn.innerText = orig, 2000);
+    }).catch(() => alert('Manual copy: select all email content'));
+}
+
+// ─── TRACKER ────────────────────────────────────────────────────────────
+function saveTracker() {
+    localStorage.setItem('staah_campaign_tracker', JSON.stringify(campaignTracker));
+    renderTrackerTable();
+    renderCampaignSnapshot();
+    renderCompanyList();
+}
+
+function getTrackerEntry(company) {
+    if(!campaignTracker[company]) {
+        campaignTracker[company] = { sentDate: null, followup1Sent: false, followup2Sent: false, replyReceived: false };
+    }
+    return campaignTracker[company];
+}
+
+function markSent(company) {
+    let e = getTrackerEntry(company);
+    e.sentDate = new Date().toISOString().split('T')[0];
+    saveTracker();
+    alert(`✅ ${company} marked as sent on ${e.sentDate}`);
+}
+
+function markFollowup(company, type) {
+    let e = getTrackerEntry(company);
+    if(type === 1) e.followup1Sent = true;
+    if(type === 2) e.followup2Sent = true;
+    saveTracker();
+    alert(`📌 Follow-up ${type} recorded for ${company}`);
+}
+
+function markReply(company) {
+    let e = getTrackerEntry(company);
+    e.replyReceived = true;
+    saveTracker();
+    alert(`🎉 Reply noted for ${company}`);
+}
+
+function renderTrackerTable() {
+    const tbody = document.getElementById('trackingBody');
+    tbody.innerHTML = '';
+    const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies])].sort();
+    if(!allCompanies.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-style:italic;">No companies tracked yet</td></tr>`;
+        return;
+    }
+    for(let c of allCompanies) {
+        const e = campaignTracker[c] || {};
+        const sentDate = e.sentDate || '—';
+        const f1 = e.followup1Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const f2 = e.followup2Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const reply = e.replyReceived ? '<span class="status-badge status-replied">✔ Yes</span>' : '—';
+        tbody.innerHTML += `<tr>
+            <td><strong>${escapeHtml(c)}</strong></td>
+            <td style="font-size:12px;">${sentDate}</td>
+            <td>${f1}</td>
+            <td>${f2}</td>
+            <td>${reply}</td>
+            <td><button class="mark-reply-btn" data-company="${escapeHtml(c)}" style="font-size:11px;padding:5px 10px;background:var(--surface);color:var(--text-primary);border:1px solid var(--border);border-radius:20px;">📩 Reply</button></td>
+        </tr>`;
+    }
+    document.querySelectorAll('.mark-reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => markReply(btn.getAttribute('data-company')));
+    });
+}
+
+function renderCampaignSnapshot() {
+    const entries = Object.values(campaignTracker);
+    const el = document.getElementById('campaignSnapshot');
+    const upd = document.getElementById('snapshotUpdated');
+    if(!entries.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a company as sent to begin.</div>';
+        upd.textContent = '';
+        return;
+    }
+    const total = companies.length;
+    const sent = entries.filter(e => e.sentDate).length;
+    const followup1 = entries.filter(e => e.followup1Sent).length;
+    const followup2 = entries.filter(e => e.followup2Sent).length;
+    const replies = entries.filter(e => e.replyReceived).length;
+    const pending = entries.filter(e => !e.sentDate).length;
+    const replyRate = sent > 0 ? Math.round((replies / sent) * 100) : 0;
+
+    const stat = (icon, label, value, color) =>
+        `<div style="text-align:center;padding:14px 10px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div style="font-size:22px;margin-bottom:2px;">${icon}</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:${color||'var(--navy)'};">${value}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-top:3px;">${label}</div>
+        </div>`;
+
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📬','Total Companies', total, 'var(--navy)')}
+            ${stat('✅','Emails Sent', sent, 'var(--blue)')}
+            ${stat('💬','Replies', replies, '#16a34a')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📆','Day 3 Follow-ups', followup1, 'var(--gold)')}
+            ${stat('📅','Day 7 Follow-ups', followup2, 'var(--gold)')}
+            ${stat('⏳','Pending Send', pending, 'var(--text-muted)')}
+        </div>
+        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-secondary);">
+                <strong style="color:var(--navy);">Reply rate:</strong> ${replies} of ${sent} sent emails replied
+            </div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:${replyRate >= 20 ? '#16a34a' : replyRate >= 10 ? 'var(--gold)' : 'var(--navy)'};">
+                ${replyRate}%
+            </div>
+        </div>`;
+    upd.textContent = 'Updated ' + new Date().toLocaleTimeString('en-ZA', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ─── PDF UPLOAD (reads .txt for now; graceful for PDF) ───────────────────
+document.getElementById('choosePdfBtn').addEventListener('click', () => document.getElementById('pdfFileInput').click());
+document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    document.getElementById('pdfFileName').textContent = file.name;
+    document.getElementById('pdfInfo').style.display = 'block';
+    if(file.type === 'text/plain') {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            document.getElementById('modalToggleContent').value = ev.target.result.substring(0, 2000);
+        };
+        reader.readAsText(file);
+    } else {
+        document.getElementById('pdfInfo').innerHTML = `✅ Loaded: <strong>${escapeHtml(file.name)}</strong> — Copy the key paragraphs from your PDF and paste them into each toggle's content field.`;
+    }
+});
+
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-active'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
+dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('drag-active');
+    const f = e.dataTransfer.files[0];
+    if(f) { document.getElementById('pdfFileInput').files = e.dataTransfer.files; document.getElementById('pdfFileInput').dispatchEvent(new Event('change')); }
+});
+
+// ─── ACTION BUTTONS ─────────────────────────────────────────────────────
+document.getElementById('copyEmailBtn').addEventListener('click', copyEmailToClipboard);
+
+document.getElementById('markSentBtn').addEventListener('click', () => {
+    if(!currentCompany) { alert('Select a company first.'); return; }
+    markSent(currentCompany);
+});
+document.getElementById('markFollowup1Btn').addEventListener('click', () => {
+    if(!currentCompany) { alert('Select a company first.'); return; }
+    markFollowup(currentCompany, 1);
+});
+document.getElementById('markFollowup2Btn').addEventListener('click', () => {
+    if(!currentCompany) { alert('Select a company first.'); return; }
+    markFollowup(currentCompany, 2);
+});
+
+document.getElementById('exportTrackerBtn').addEventListener('click', () => {
+    let csv = 'Company,Sent Date,Day3 Sent,Day7 Sent,Reply Received\n';
+    for(let [c, e] of Object.entries(campaignTracker)) {
+        csv += `"${c}","${e.sentDate||''}",${e.followup1Sent},${e.followup2Sent},${e.replyReceived}\n`;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = 'staah_outreach_tracker.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('resetTrackerBtn').addEventListener('click', () => {
+    if(confirm('Delete all tracking data?')) {
+        localStorage.removeItem('staah_campaign_tracker');
+        campaignTracker = {};
+        renderTrackerTable();
+        renderCampaignSnapshot();
+        renderCompanyList();
+    }
+});
+
+// Close modal on overlay click
+document.getElementById('toggleModal').addEventListener('click', function(e) {
+    if(e.target === this) closeToggleModal();
+});
+
+// ─── UTILS ──────────────────────────────────────────────────────────────
+function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]);
+}
+
+// ─── BOOT ───────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
