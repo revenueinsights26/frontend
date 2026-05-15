@@ -745,7 +745,7 @@ function formatCurrency(amt) { return `R ${Math.round(amt).toLocaleString()}`; }
 function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]); }
 
 // ─── UI UPDATE ──────────────────────────────────────────────────────────
-function updateUIForHotel(hotelName, parsed, area) {
+async function updateUIForHotel(hotelName, parsed, area) {
     if(!parsed||!hotelName) return;
     const ins = computeHotelInsights(hotelName, parsed, area);
     currentHotelData = ins;
@@ -776,7 +776,7 @@ function updateUIForHotel(hotelName, parsed, area) {
     renderRateChart(ins);
 
     // Email
-    generateEmailPreview(hotelName, ins, area);
+    await generateEmailPreview(hotelName, ins, area);
 }
 
 // ─── CHART ──────────────────────────────────────────────────────────────
@@ -838,8 +838,142 @@ function renderRateChart(ins) {
     });
 }
 
+// ─── CHART → PNG FOR EMAIL ──────────────────────────────────────────────
+function buildChartImageTag(ins) {
+    return new Promise(resolve => {
+        const chartData = ins.chartLabels.map((label, i) => ({
+            label,
+            your: ins.chartYourRates[i],
+            market: ins.chartMarketRates[i]
+        }));
+        const validData = chartData.filter(d => d.your !== null || d.market !== null);
+        if (!validData.length) { resolve(''); return; }
+
+        const W = 560, H = 220;
+        const padL = 56, padR = 16, padT = 20, padB = 48;
+        const chartW = W - padL - padR;
+        const chartH = H - padT - padB;
+        const n = validData.length;
+        const groupW = Math.floor(chartW / n);
+        const barW = Math.max(10, Math.floor(groupW * 0.35));
+
+        const allVals = validData.flatMap(d => [d.your||0, d.market||0]).filter(v => v > 0);
+        const maxVal = allVals.length ? Math.max(...allVals) * 1.18 : 2000;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        const ctx = canvas.getContext('2d');
+
+        // Background
+        ctx.fillStyle = '#f8fafc';
+        ctx.fillRect(0, 0, W, H);
+
+        // Title
+        ctx.fillStyle = '#0d1b2e';
+        ctx.font = 'bold 13px "Segoe UI", Arial, sans-serif';
+        ctx.fillText('Rate vs Compset Average — Next 7 Days', padL, 14);
+
+        // Y-axis gridlines & labels
+        const ySteps = 4;
+        ctx.strokeStyle = '#e2e8f0';
+        ctx.lineWidth = 1;
+        ctx.fillStyle = '#718096';
+        ctx.font = '10px "Segoe UI", Arial, sans-serif';
+        for (let s = 0; s <= ySteps; s++) {
+            const val = Math.round((maxVal / ySteps) * s);
+            const y = padT + chartH - Math.round((val / maxVal) * chartH);
+            ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(padL + chartW, y); ctx.stroke();
+            ctx.fillStyle = '#718096';
+            ctx.textAlign = 'right';
+            ctx.fillText('R ' + val.toLocaleString(), padL - 4, y + 3);
+        }
+
+        // Bars & line points
+        const lineYour = [], lineMarket = [];
+        validData.forEach((d, i) => {
+            const cx = padL + i * groupW + groupW / 2;
+
+            // Your Rate bar
+            if (d.your) {
+                const bh = Math.round((d.your / maxVal) * chartH);
+                const bx = cx - barW - 2;
+                const by = padT + chartH - bh;
+                ctx.fillStyle = '#1a56db';
+                roundRect(ctx, bx, by, barW, bh, 4);
+                ctx.fill();
+                lineYour.push({ x: bx + barW / 2, y: by });
+            } else { lineYour.push(null); }
+
+            // Market bar
+            if (d.market) {
+                const bh2 = Math.round((d.market / maxVal) * chartH);
+                const bx2 = cx + 2;
+                const by2 = padT + chartH - bh2;
+                ctx.fillStyle = 'rgba(212,160,23,0.75)';
+                roundRect(ctx, bx2, by2, barW, bh2, 4);
+                ctx.fill();
+                lineMarket.push({ x: bx2 + barW / 2, y: by2 });
+            } else { lineMarket.push(null); }
+
+            // X label
+            ctx.fillStyle = '#4a5568';
+            ctx.font = '9px "Segoe UI", Arial, sans-serif';
+            ctx.textAlign = 'center';
+            const parts = d.label.split(' ');
+            ctx.fillText(parts.slice(0,2).join(' '), cx, padT + chartH + 14);
+            if (parts[2]) ctx.fillText(parts[2], cx, padT + chartH + 24);
+        });
+
+        // Market line overlay
+        ctx.strokeStyle = '#d4a017';
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.beginPath();
+        let started = false;
+        lineMarket.forEach(pt => {
+            if (!pt) return;
+            if (!started) { ctx.moveTo(pt.x, pt.y); started = true; }
+            else ctx.lineTo(pt.x, pt.y);
+        });
+        ctx.stroke();
+        lineMarket.forEach(pt => {
+            if (!pt) return;
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#d4a017';
+            ctx.fill();
+        });
+
+        // Legend
+        const ly = H - 10;
+        ctx.font = '11px "Segoe UI", Arial, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = '#1a56db'; ctx.fillRect(padL, ly - 9, 12, 12);
+        ctx.fillStyle = '#333'; ctx.fillText('Your Rate', padL + 16, ly);
+        ctx.fillStyle = 'rgba(212,160,23,0.85)'; ctx.fillRect(padL + 90, ly - 9, 12, 12);
+        ctx.fillStyle = '#333'; ctx.fillText('Compset Avg', padL + 106, ly);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        resolve(`<div style="margin:16px 0;background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0;">
+  <img src="${dataUrl}" width="528" style="display:block;width:100%;max-width:528px;margin:0 auto;border:0;" alt="Rate vs Compset Average Chart"/>
+</div>`);
+    });
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+}
+
 // ─── EMAIL GENERATOR ───────────────────────────────────────────────────
-function generateEmailPreview(hotelName, ins, area) {
+async function generateEmailPreview(hotelName, ins, area) {
     const areaDisplay = area || "South Africa";
     const todayStr = new Date().toLocaleDateString('en-ZA',{year:'numeric',month:'long',day:'numeric'});
     const hotDatesStr = ins.highDemandDates.map(d=>formatDateShort(d)).join(', ') || "several high-demand days identified";
@@ -850,44 +984,8 @@ function generateEmailPreview(hotelName, ins, area) {
 
     const propCount = ins.totalProperties || rawExcelData?.allProperties?.length || 0;
 
-    // Build inline bar chart for email (SVG-based — works in email clients)
-    const chartData = ins.chartLabels.map((label, i) => ({
-        label,
-        your: ins.chartYourRates[i],
-        market: ins.chartMarketRates[i]
-    }));
-    const validData = chartData.filter(d => d.your !== null || d.market !== null);
-    const allVals = validData.flatMap(d=>[d.your||0, d.market||0]).filter(v=>v>0);
-    const maxVal = allVals.length ? Math.max(...allVals)*1.15 : 2000;
-    const barW = 30, gap = 12, groupW = barW*2+gap+10, chartH = 140, svgW = validData.length*(groupW+8)+60;
-
-    let svgBars = '';
-    validData.forEach((d,i) => {
-        const x = 40 + i*(groupW+8);
-        if(d.your) {
-            const h = Math.round((d.your/maxVal)*chartH);
-            svgBars += `<rect x="${x}" y="${chartH-h+10}" width="${barW}" height="${h}" fill="#1a56db" rx="4"/>
-                <text x="${x+barW/2}" y="${chartH+26}" text-anchor="middle" font-size="9" fill="#4a5568">${d.label.split(' ').slice(0,2).join(' ')}</text>`;
-        }
-        if(d.market) {
-            const h2 = Math.round((d.market/maxVal)*chartH);
-            svgBars += `<rect x="${x+barW+4}" y="${chartH-h2+10}" width="${barW}" height="${h2}" fill="#d4a017" rx="4" opacity="0.85"/>`;
-        }
-    });
-
-    const svgChart = validData.length > 0 ? `
-    <div style="margin:16px 0;background:#f8fafc;border-radius:12px;padding:16px;border:1px solid #e2e8f0;">
-      <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#0d1b2e;">📊 Rate vs Compset Average — Next 7 Days</div>
-      <svg viewBox="0 0 ${svgW} ${chartH+40}" width="100%" style="max-width:520px;display:block;margin:0 auto;">
-        ${svgBars}
-        <line x1="40" y1="10" x2="40" y2="${chartH+10}" stroke="#e2e8f0" stroke-width="1"/>
-        <line x1="40" y1="${chartH+10}" x2="${svgW-10}" y2="${chartH+10}" stroke="#e2e8f0" stroke-width="1"/>
-      </svg>
-      <div style="display:flex;gap:16px;margin-top:6px;font-size:11px;justify-content:center;">
-        <span><span style="display:inline-block;width:12px;height:12px;background:#1a56db;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>Your Rate</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:#d4a017;border-radius:2px;vertical-align:middle;margin-right:4px;"></span>Compset Avg</span>
-      </div>
-    </div>` : '';
+    // Build chart as base64 PNG (works in ALL email clients including Zoho)
+    const svgChart = await buildChartImageTag(ins);
 
     const htmlEmail = `
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
@@ -960,6 +1058,8 @@ function generateEmailPreview(hotelName, ins, area) {
     document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
     window.currentEmailHtml = htmlEmail;
 }
+
+
 
 function copyEmailToClipboard() {
     if(!window.currentEmailHtml) { alert("No email generated. Please select a hotel."); return; }
