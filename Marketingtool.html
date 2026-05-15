@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Outreach Builder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy: #0d1b2e;
+            --navy-mid: #162540;
+            --blue: #1a56db;
+            --blue-light: #3b82f6;
+            --teal: #0f6e56;
+            --teal-light: #1d9e75;
+            --gold: #d4a017;
+            --gold-light: #f5c842;
+            --surface: #f7f9fc;
+            --white: #ffffff;
+            --border: #e1e8f0;
+            --text-primary: #0d1b2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --success: #16a34a;
+            --warning: #b45309;
+            --danger: #dc2626;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 16px rgba(13,27,46,0.07);
+            --shadow-lg: 0 8px 32px rgba(13,27,46,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 32px 24px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* ─── HEADER ─── */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.3px;
+        }
+        .app-title span {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .app-subtitle { color: var(--text-secondary); font-size: 13px; font-weight: 400; margin-top: 4px; }
+
+        /* ─── CARDS ─── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 26px 28px;
+            box-shadow: var(--shadow);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--navy); }
+
+        /* ─── GRID ─── */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* ─── BUTTONS ─── */
+        button, .btn {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            border-radius: 40px;
+            padding: 10px 20px;
+        }
+        .btn-primary { background: var(--navy); color: var(--white); }
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); }
+        .btn-teal { background: var(--teal); color: var(--white); }
+        .btn-teal:hover { background: #0a5240; transform: translateY(-1px); }
+        .btn-secondary { background: var(--white); border: 1.5px solid var(--border); color: var(--text-primary); }
+        .btn-secondary:hover { border-color: #94a3b8; background: var(--surface); }
+        .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); }
+        .btn-ghost:hover { border-color: var(--teal-light); color: var(--teal); }
+
+        /* ─── FORM CONTROLS ─── */
+        select, input[type="text"] {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+            transition: border-color 0.15s;
+        }
+        select:focus, input:focus { outline: none; border-color: var(--teal); }
+
+        /* ─── BADGE ─── */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #e6f5f0; color: var(--teal);
+            padding: 4px 12px; border-radius: 40px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+        }
+
+        /* ─── DROPZONE ─── */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafcff;
+            transition: all 0.2s;
+        }
+        .dropzone:hover, .drag-active { border-color: var(--teal); background: #f0faf7; }
+        .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
+        .dropzone-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* ─── TOGGLE GRID ─── */
+        .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .toggle-btn {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-btn:hover { border-color: var(--teal-light); color: var(--teal); background: #f0faf7; }
+        .toggle-btn.active { background: #e6f5f0; border-color: var(--teal); color: var(--teal); }
+        .toggle-btn .toggle-icon { font-size: 15px; }
+        .toggle-btn .toggle-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); margin-left: auto; flex-shrink: 0; }
+        .toggle-btn.active .toggle-dot { background: var(--teal); }
+
+        /* ─── COMPANY LIST ─── */
+        .company-list-wrap { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .company-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+            cursor: pointer; transition: background 0.12s;
+        }
+        .company-item:last-child { border-bottom: none; }
+        .company-item:hover { background: #f7faf9; }
+        .company-item.selected { background: #e6f5f0; }
+        .c-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .c-dot-none { background: #cbd5e1; }
+        .c-dot-sent { background: var(--blue); }
+        .c-dot-replied { background: var(--success); }
+        .c-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+        .c-status-lbl { font-size: 11px; color: var(--text-muted); }
+
+        /* ─── TABLE ─── */
+        .track-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .track-table th {
+            background: var(--surface); color: var(--text-muted);
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 10px 12px; text-align: left;
+            position: sticky; top: 0; z-index: 1;
+        }
+        .track-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .track-table tr:hover td { background: #fafcff; }
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .status-sent { background: #dbeafe; color: #1e40af; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-replied { background: #dcfce7; color: #15803d; }
+
+        /* ─── EMAIL PREVIEW ─── */
+        .email-preview {
+            background: #fafcff; border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 20px;
+            max-height: 560px; overflow-y: auto;
+        }
+
+        /* ─── STEP DOT ─── */
+        .step-dot {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--navy); color: white;
+            font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+        }
+
+        /* ─── INSIGHT BLOCK ─── */
+        .insight-block { border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 12px; font-size: 13px; line-height: 1.65; }
+        .insight-block.info { background: #f0faf7; border-left: 4px solid var(--teal-light); }
+        .insight-block.warning { background: #fffbeb; border-left: 4px solid var(--gold); }
+
+        /* ─── PILL ─── */
+        .prop-count-pill { background: linear-gradient(135deg, var(--teal), var(--teal-light)); color: white; padding: 4px 14px; border-radius: 40px; font-size: 12px; font-weight: 700; }
+
+        /* ─── SECTION LABEL ─── */
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 10px; }
+
+        /* ─── RESPONSIVE ─── */
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { body { padding: 16px 14px; } .toggle-grid { grid-template-columns: 1fr; } }
+
+        /* ─── MODAL OVERLAY ─── */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,46,0.55); z-index: 100; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: var(--white); border-radius: var(--radius-lg); padding: 28px 32px; width: 90%; max-width: 580px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
+        .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 6px; color: var(--navy); }
+        .modal-box .modal-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; }
+        .modal-box label { font-size: 13px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 6px; }
+        .modal-box input[type="text"], .modal-box textarea, .modal-box select {
+            width: 100%; margin-bottom: 14px;
+            padding: 10px 14px; border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text-primary); background: var(--white);
+        }
+        .modal-box textarea { height: 120px; resize: vertical; }
+        .modal-box input:focus, .modal-box textarea:focus, .modal-box select:focus { outline: none; border-color: var(--teal); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+
+        /* ─── BRAND SETUP BANNER ─── */
+        .brand-setup-banner {
+            background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .brand-setup-banner .brand-icon { font-size: 32px; }
+        .brand-setup-banner .brand-info { flex: 1; }
+        .brand-setup-banner .brand-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: white; }
+        .brand-setup-banner .brand-meta { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+        .brand-setup-banner .brand-industry-pill { background: rgba(29,158,117,0.3); color: #5dcaa5; padding: 4px 14px; border-radius: 40px; font-size: 12px; font-weight: 700; border: 1px solid rgba(29,158,117,0.4); }
+
+        /* ─── INDUSTRY PRESET GRID ─── */
+        .industry-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+        .industry-card {
+            border: 2px solid var(--border); border-radius: var(--radius-md);
+            padding: 12px 14px; cursor: pointer; transition: all 0.18s;
+            text-align: center; background: var(--surface);
+        }
+        .industry-card:hover { border-color: var(--teal-light); background: #f0faf7; }
+        .industry-card.selected { border-color: var(--teal); background: #e6f5f0; }
+        .industry-card .ind-icon { font-size: 24px; margin-bottom: 6px; }
+        .industry-card .ind-name { font-size: 12px; font-weight: 700; color: var(--navy); }
+        .industry-card .ind-desc { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+        /* ─── FIRST RUN SETUP ─── */
+        #firstRunSetup { display: none; }
+        #firstRunSetup.active { display: block; }
+        #mainApp { display: none; }
+        #mainApp.active { display: block; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════════
+     FIRST RUN SETUP
+     ═══════════════════════════════════════════════════════════ -->
+<div id="firstRunSetup">
+    <div style="max-width:680px;margin:60px auto;">
+        <div style="text-align:center;margin-bottom:40px;">
+            <div style="font-size:48px;margin-bottom:16px;">🚀</div>
+            <div class="app-title" style="font-size:36px;text-align:center;">Outreach <span>Builder</span></div>
+            <div class="app-subtitle" style="text-align:center;font-size:15px;margin-top:8px;">Let's set up your workspace in 60 seconds</div>
+        </div>
+
+        <div class="card">
+            <div class="section-title" style="margin-bottom:6px;">Step 1 — Your Company</div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px;">This name will appear in your email builder header and all outreach emails as the sender's brand.</p>
+            <div style="display:flex;gap:10px;margin-bottom:20px;">
+                <input type="text" id="setupCompanyName" placeholder="e.g. STAAH, Salesforce, Acme Corp…" style="flex:1;">
+                <input type="text" id="setupCompanyTagline" placeholder="Tagline (optional)" style="flex:1;">
+            </div>
+
+            <div class="section-title" style="margin-bottom:6px;">Step 2 — Your Industry</div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px;">Pick your industry and we'll pre-load 8 relevant benefit toggles. You can customise every one of them.</p>
+
+            <div class="industry-grid" id="industryGrid">
+                <!-- rendered by JS -->
+            </div>
+
+            <div id="industryPreview" style="display:none;margin-bottom:16px;">
+                <div class="insight-block info">
+                    <strong>📋 Pre-loaded toggles for this industry:</strong>
+                    <div id="previewToggleList" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+                </div>
+            </div>
+
+            <button onclick="completeSetup()" class="btn-teal" style="background:var(--teal);width:100%;padding:14px;font-size:15px;border-radius:var(--radius-md);">
+                ✅ Create My Workspace →
+            </button>
+            <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:10px;">You can change everything later in Settings</p>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MAIN APP
+     ═══════════════════════════════════════════════════════════ -->
+<div id="mainApp">
+
+    <!-- HEADER -->
+    <div class="app-header">
+        <div>
+            <div class="app-title" id="appTitle">Loading… <span>Outreach</span></div>
+            <div class="app-subtitle" id="appSubtitle">PDF-Powered Sales Email Builder · Campaign Tracker</div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <span id="toggleCountPill" class="prop-count-pill" style="display:none;"></span>
+            <button onclick="openSettingsModal()" class="btn-ghost" style="padding:8px 16px;font-size:12px;">⚙️ Settings</button>
+            <button id="exportTrackerBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">📎 Export CSV</button>
+        </div>
+    </div>
+
+    <!-- BRAND BANNER -->
+    <div class="brand-setup-banner" id="brandBanner">
+        <div class="brand-icon" id="bannerIcon">🏢</div>
+        <div class="brand-info">
+            <div class="brand-name" id="bannerName">Company</div>
+            <div class="brand-meta" id="bannerTagline">Sales Email Builder · Campaign Tracker</div>
+        </div>
+        <div id="bannerIndustryPill" class="brand-industry-pill">Industry</div>
+    </div>
+
+    <!-- STEP 1: SETUP -->
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span class="step-dot">1</span>
+                <span class="section-title">One-Time Setup — Upload Product PDF / Doc</span>
+            </div>
+            <span class="badge" id="setupBadge">🟢 One-time per product</span>
+        </div>
+
+        <div class="grid-2" style="gap:20px;">
+            <div>
+                <div class="dropzone" id="dropzone">
+                    <div class="dropzone-icon">📄</div>
+                    <div class="dropzone-label">Drop your <strong>product PDF or Word doc</strong> here, or click to browse</div>
+                    <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
+                    <button id="choosePdfBtn" style="margin-top:14px;background:var(--surface);color:var(--text-primary);border:1.5px solid var(--border);">Browse file</button>
+                </div>
+                <div id="pdfInfo" style="margin-top:10px;font-size:13px;color:var(--success);display:none;">
+                    ✅ Loaded: <strong><span id="pdfFileName"></span></strong>
+                </div>
+                <div class="insight-block info" style="margin-top:14px;">
+                    <strong>How it works:</strong><br>
+                    Upload your product PDF. Then configure up to 8 benefit toggles — each holds a key paragraph from your doc. When composing an email, activate the toggles you want and the email rebuilds instantly around those benefits.
+                </div>
+            </div>
+
+            <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <div class="section-label" style="margin:0;">Benefit Toggles (click ✏️ to configure)</div>
+                    <button onclick="openIndustryPresetsModal()" class="btn-ghost" style="font-size:11px;padding:5px 12px;border-radius:20px;">🏭 Change Presets</button>
+                </div>
+                <div class="toggle-grid" id="toggleGrid"><!-- Rendered by JS --></div>
+                <button id="addToggleBtn" class="btn-ghost" style="width:100%;margin-top:4px;border-radius:var(--radius-sm);">+ Add toggle (up to 8)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2 & 3 -->
+    <div class="grid-2">
+
+        <!-- LEFT -->
+        <div>
+            <div class="card" style="margin-bottom:20px;">
+                <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">2</span>
+                        <span class="section-title">Daily Use — Company List</span>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:8px;margin-bottom:12px;">
+                    <input type="text" id="companyInput" placeholder="Type prospect company name…" style="flex:1;" onkeydown="if(event.key==='Enter')addCompany()">
+                    <button onclick="addCompany()" class="btn-teal" style="background:var(--teal);padding:10px 16px;">+ Add</button>
+                </div>
+
+                <div class="section-label">Prospects <span id="companyCountBadge" style="background:#e6f5f0;color:var(--teal);padding:2px 9px;border-radius:20px;font-size:11px;">0</span></div>
+
+                <div class="company-list-wrap" id="companyList">
+                    <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;font-style:italic;">No prospects yet — add one above</div>
+                </div>
+
+                <div style="margin-top:12px;">
+                    <div class="section-label" style="margin-bottom:8px;">Active toggles for email</div>
+                    <div class="toggle-grid" id="miniToggleGrid" style="grid-template-columns:1fr 1fr;"></div>
+                    <button onclick="refreshEmailPreview()" class="btn-teal" style="background:var(--teal);width:100%;margin-top:8px;">🔄 Rebuild Email</button>
+                </div>
+            </div>
+
+            <!-- Tracker -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="section-title">📋 Campaign Tracker</span>
+                    <div style="display:flex;gap:8px;">
+                        <button id="resetTrackerBtn" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;overflow-y:auto;max-height:280px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <table class="track-table" id="trackingTable" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Email Sent</th>
+                                <th>Day 3</th>
+                                <th>Day 7</th>
+                                <th>Reply</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trackingBody"></tbody>
+                    </table>
+                </div>
+                <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">Click <em>Mark Sent</em> right after sending to track follow-ups automatically.</div>
+            </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div>
+            <div class="card">
+                <div class="card-header">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span class="step-dot">3</span>
+                        <span class="section-title">Email Preview</span>
+                    </div>
+                    <button id="copyEmailBtn" style="background:var(--navy);">📋 Copy Email HTML</button>
+                </div>
+
+                <div id="emailPreviewContainer" class="email-preview">
+                    <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                        <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+                        <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);margin-bottom:6px;">Select a prospect and activate toggles to generate email</div>
+                        <div style="font-size:12px;">The email rebuilds dynamically based on which benefits you toggle on.</div>
+                    </div>
+                </div>
+
+                <div style="margin-top:14px;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+                    <button id="markSentBtn" class="btn-secondary" style="background:white;color:var(--text-primary);">✅ Mark Sent</button>
+                    <button id="markFollowup1Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📆 Day 3 Follow-up</button>
+                    <button id="markFollowup2Btn" class="btn-secondary" style="background:white;color:var(--text-primary);">📅 Day 7 Follow-up</button>
+                </div>
+
+                <div style="margin-top:12px;background:var(--surface);border-radius:var(--radius-sm);padding:11px 14px;font-size:12px;color:var(--text-secondary);border:1px solid var(--border);">
+                    💡 <strong>Pro tip:</strong> Paste into Zoho Mail or Gmail in HTML mode. Toggle benefits on/off and click Rebuild Email to focus the pitch.
+                </div>
+            </div>
+
+            <!-- Campaign Snapshot -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-header" style="margin-bottom:16px;">
+                    <span class="section-title">📊 Campaign Snapshot</span>
+                    <span style="font-size:12px;color:var(--text-muted);" id="snapshotUpdated"></span>
+                </div>
+                <div id="campaignSnapshot">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a company as sent to begin.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- end mainApp -->
+
+</div><!-- end container -->
+
+<!-- TOGGLE EDIT MODAL -->
+<div class="modal-overlay" id="toggleModal">
+    <div class="modal-box">
+        <h2 id="modalTitle">Configure Toggle</h2>
+        <div class="modal-sub">Paste the key benefit paragraph from your product PDF into the content box below. This text will be embedded into emails when the toggle is active.</div>
+        <label>Toggle name (e.g. "Channel Manager")</label>
+        <input type="text" id="modalToggleName" placeholder="e.g. Channel Manager">
+        <label>Icon (emoji)</label>
+        <input type="text" id="modalToggleIcon" placeholder="e.g. 🔗" style="width:80px;">
+        <label>Benefit content (paste from your PDF)</label>
+        <textarea id="modalToggleContent" placeholder="Paste the key paragraph or benefit description here. This will be formatted into the email body when this toggle is active."></textarea>
+        <div class="modal-actions">
+            <button onclick="closeToggleModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveToggle()" class="btn-teal" style="background:var(--teal);">Save Toggle</button>
+        </div>
+    </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal-box">
+        <h2>⚙️ Settings</h2>
+        <div class="modal-sub">Update your company branding. Changes apply to the header and all generated emails immediately.</div>
+        <label>Company / Brand Name</label>
+        <input type="text" id="settingsCompanyName" placeholder="e.g. STAAH">
+        <label>Tagline (optional)</label>
+        <input type="text" id="settingsTagline" placeholder="e.g. Property Management Solutions">
+        <label>Brand Emoji / Icon</label>
+        <input type="text" id="settingsIcon" placeholder="e.g. 🏨" style="width:80px;">
+        <div class="modal-actions">
+            <button onclick="closeSettingsModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveSettings()" class="btn-teal" style="background:var(--teal);">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- INDUSTRY PRESETS MODAL -->
+<div class="modal-overlay" id="industryPresetsModal">
+    <div class="modal-box">
+        <h2>🏭 Change Industry Presets</h2>
+        <div class="modal-sub">Select an industry to replace all current toggles with industry-specific benefit templates. <strong>This will overwrite your current toggles.</strong></div>
+        <div class="industry-grid" id="modalIndustryGrid" style="margin-bottom:16px;"></div>
+        <div id="modalIndustryPreview" style="display:none;margin-bottom:16px;">
+            <div class="insight-block info">
+                <strong>Will load these toggles:</strong>
+                <div id="modalPreviewToggleList" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button onclick="closeIndustryPresetsModal()" class="btn-ghost">Cancel</button>
+            <button onclick="applyIndustryPresets()" id="applyPresetsBtn" class="btn-teal" style="background:var(--teal);" disabled>Apply Presets</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY PRESETS
+// ═══════════════════════════════════════════════════════════════
+const INDUSTRIES = [
+    {
+        id: 'hospitality',
+        name: 'Hospitality',
+        icon: '🏨',
+        desc: 'Hotels, lodges, B&Bs',
+        toggles: [
+            { name: 'Channel Manager', icon: '🔗', content: "Our Channel Manager connects your property to 400+ OTAs and booking channels in real time. Rate and availability updates push instantly across all platforms — no manual logins, no double-bookings. Properties using our system report saving 6–10 hours per week on distribution management.", active: true },
+            { name: 'Revenue Management', icon: '📈', content: "Our dynamic pricing tools let you set automated rules that adjust rates based on occupancy thresholds, demand signals, and competitor movement. Properties using our revenue tools see an average 18% uplift in RevPAR within the first 90 days.", active: true },
+            { name: 'Booking Engine', icon: '🏨', content: "Our commission-free direct booking engine integrates seamlessly with your website. Mobile-optimised, multi-currency, and multi-language — it converts lookers to bookers without paying OTA commission. On average, properties increase direct bookings by 25% in the first year.", active: false },
+            { name: 'Analytics & Reports', icon: '📊', content: "Real-time dashboards give you a clear view of pick-up pace, channel performance, rate positioning, and revenue forecasts — all in one screen. Stop pulling data from five different extranets and start making decisions from one source of truth.", active: false },
+            { name: 'OTA Connectivity', icon: '🌍', content: "We integrate with all major OTAs including Booking.com, Expedia, Agoda, Airbnb, and 400+ others. Two-way XML connectivity ensures your rates and inventory are always in sync — and new OTA connections can be activated within 24 hours.", active: false },
+            { name: 'Promotions & Packages', icon: '🎁', content: "Build, manage and distribute rate packages — early bird, long stay, last minute — from one dashboard. Our promotions engine pushes packages to all connected channels simultaneously, saving hours of manual setup per campaign.", active: false },
+            { name: 'Property Management', icon: '🛎️', content: "Our cloud PMS handles reservations, front desk, housekeeping, and guest communication in one system. No hardware investment, no IT team needed — accessible from any browser, anywhere.", active: false },
+            { name: 'Onboarding & Support', icon: '🤝', content: "We provide dedicated onboarding for every new property, with a local support team available 24/7. Average go-live time is under 48 hours. Most properties are fully operational and distributing across all channels within their first week.", active: false }
+        ]
+    },
+    {
+        id: 'saas',
+        name: 'SaaS / Tech',
+        icon: '💻',
+        desc: 'Software, platforms, tools',
+        toggles: [
+            { name: 'Easy Integration', icon: '🔌', content: "Our REST API and pre-built connectors mean your team can integrate in hours, not weeks. We support all major platforms out of the box — and our engineering team provides white-glove onboarding for complex setups.", active: true },
+            { name: 'Scalability', icon: '📈', content: "Built on enterprise-grade infrastructure, our platform scales effortlessly from 10 to 10,000 users without any migration pain. Zero downtime upgrades, 99.99% SLA, and global CDN delivery included on all plans.", active: true },
+            { name: 'Security & Compliance', icon: '🔒', content: "SOC 2 Type II certified, GDPR compliant, and ISO 27001 audited. All data is encrypted at rest and in transit. Role-based access controls, SSO/SAML support, and full audit logs included as standard.", active: false },
+            { name: 'Analytics Dashboard', icon: '📊', content: "Surface the metrics that matter with real-time dashboards, custom reports, and exportable data. Our analytics suite gives your team instant visibility into usage, performance, and ROI — no SQL required.", active: false },
+            { name: 'Automation', icon: '⚙️', content: "Eliminate manual workflows with our visual automation builder. Set triggers, conditions, and actions across your entire stack — saving your team hundreds of hours per quarter on repetitive tasks.", active: false },
+            { name: 'Collaboration', icon: '👥', content: "Built for teams from day one. Real-time co-editing, threaded comments, task assignment, and version history — so your entire team stays aligned without ever leaving the platform.", active: false },
+            { name: 'Customer Support', icon: '💬', content: "Live chat, email, and phone support available 24/5 for all paid plans. Our average first response time is under 4 minutes. Every enterprise customer gets a dedicated Customer Success Manager.", active: false },
+            { name: 'Free Trial / POC', icon: '🆓', content: "Try the full platform free for 14 days — no credit card required. We also offer proof-of-concept engagements for enterprise teams, including a dedicated solutions engineer to configure the platform to your exact workflow.", active: false }
+        ]
+    },
+    {
+        id: 'realestate',
+        name: 'Real Estate',
+        icon: '🏢',
+        desc: 'Agencies, developers, PropTech',
+        toggles: [
+            { name: 'Listing Management', icon: '🏠', content: "Manage all your listings from one central dashboard. Publish to 50+ property portals simultaneously, update photos and pricing in seconds, and track listing performance across every platform in real time.", active: true },
+            { name: 'Lead Capture & CRM', icon: '🎯', content: "Every enquiry from every portal lands in one inbox, automatically tagged by source, urgency, and property. Our built-in CRM tracks every touchpoint so your agents never miss a follow-up.", active: true },
+            { name: 'Virtual Tours', icon: '🔭', content: "3D virtual tours and interactive floor plans help your listings stand out and qualify buyers before they step foot on site. Properties with virtual tours receive 3x more qualified enquiries than those without.", active: false },
+            { name: 'Digital Contracts', icon: '📝', content: "From offer to signature in minutes. Our digital contract workflow supports e-signatures, conditional clauses, and automated notifications — cutting transaction time by an average of 40%.", active: false },
+            { name: 'Market Analytics', icon: '📊', content: "Real-time suburb data, comparable sales, rental yield calculators, and demand heat maps — all built in. Give your clients better advice and win more mandates with data-backed market intelligence.", active: false },
+            { name: 'Automated Follow-up', icon: '🔄', content: "Never let a lead go cold. Our automated nurture sequences send personalised follow-ups, property alerts, and market updates on your behalf — keeping your pipeline warm without extra admin.", active: false },
+            { name: 'Reporting for Sellers', icon: '📋', content: "Automated vendor reports delivered weekly — showing listing views, enquiry volume, portal performance, and price positioning. Keep sellers informed and reduce inbound calls to your team.", active: false },
+            { name: 'Onboarding', icon: '🤝', content: "Your agency can be fully onboarded and live within 3 business days. We migrate your existing listings, import your contacts, and train your team — with dedicated support for the first 30 days.", active: false }
+        ]
+    },
+    {
+        id: 'retail',
+        name: 'Retail / eComm',
+        icon: '🛒',
+        desc: 'Online stores, brands, D2C',
+        toggles: [
+            { name: 'Omnichannel Selling', icon: '🛒', content: "Sell seamlessly across your website, marketplaces (Takealot, Amazon, Checkers), and social channels — all from one inventory system. Real-time stock sync prevents overselling across every channel.", active: true },
+            { name: 'Inventory Management', icon: '📦', content: "Automated reorder triggers, multi-warehouse support, and supplier integration mean you never run out of stock or tie up cash in dead inventory. Average stock accuracy improvement: 94%.", active: true },
+            { name: 'Customer Analytics', icon: '📊', content: "Know exactly who your best customers are, what they buy, and when they churn. Our RFM segmentation and lifetime value modelling helps you spend marketing budget where it drives the most return.", active: false },
+            { name: 'Loyalty & Retention', icon: '❤️', content: "A built-in loyalty programme that rewards repeat purchases, referrals, and reviews — without the cost of a third-party platform. Customers enrolled in our loyalty programme spend 2.4x more on average.", active: false },
+            { name: 'Marketing Automation', icon: '📧', content: "Abandoned cart recovery, post-purchase sequences, replenishment reminders, and win-back campaigns — all automated and personalised using live purchase data.", active: false },
+            { name: 'Fulfilment Integration', icon: '🚚', content: "Connect directly to your fulfilment partner or courier network. Automated dispatch notifications, real-time tracking, and return management included — reducing post-purchase support tickets by up to 60%.", active: false },
+            { name: 'Product Reviews', icon: '⭐', content: "Automated review requests sent at the perfect moment post-delivery. Verified reviews published to your store, Google, and Takealot simultaneously — building social proof without manual effort.", active: false },
+            { name: 'Support & Onboarding', icon: '🤝', content: "Dedicated onboarding specialist, live chat support, and a help centre with 200+ articles. Most stores are fully live within 48 hours. Migration from any existing platform is handled at no cost.", active: false }
+        ]
+    },
+    {
+        id: 'finance',
+        name: 'Finance / FinTech',
+        icon: '💰',
+        desc: 'Banking, insurance, lending',
+        toggles: [
+            { name: 'Instant Onboarding', icon: '⚡', content: "Digital onboarding that takes under 5 minutes — ID verification, KYC, and account creation in one seamless flow. Our automated compliance checks reduce onboarding drop-off by 60% compared to legacy processes.", active: true },
+            { name: 'Real-Time Payments', icon: '💸', content: "Instant payment processing with support for EFT, card, and mobile wallets. Funds settle in real time, 24/7/365 — no batch processing delays, no cut-off times.", active: true },
+            { name: 'Compliance & Reporting', icon: '🔒', content: "Automated regulatory reporting for FICA, FSCA, and SARB requirements. Audit trails, transaction monitoring, and suspicious activity flagging built in — reducing compliance overhead by 70%.", active: false },
+            { name: 'Risk & Fraud Detection', icon: '🛡️', content: "Machine-learning fraud detection that analyses every transaction in milliseconds. Our models are trained on South African transaction patterns — reducing false positives by 80% compared to global rule-based systems.", active: false },
+            { name: 'Business Intelligence', icon: '📊', content: "Dashboards that surface the metrics your leadership team actually needs — portfolio performance, exposure concentration, collection rates, and trend analysis — updated in real time.", active: false },
+            { name: 'API-First Architecture', icon: '🔌', content: "Every feature available via REST API. Integrate directly into your existing core banking system, CRM, or broker platform in days. We provide sandbox access, documentation, and a dedicated integration engineer.", active: false },
+            { name: 'White-Label Ready', icon: '🏷️', content: "Fully brandable interface — your colours, your fonts, your domain. Deploy under your own brand with zero visible third-party infrastructure. Ideal for banks, insurers, and broker networks.", active: false },
+            { name: 'Dedicated Support', icon: '🤝', content: "Relationship-based support with a named account manager for every client. SLA-backed response times, quarterly business reviews, and direct escalation paths to our engineering team.", active: false }
+        ]
+    },
+    {
+        id: 'health',
+        name: 'Health / Wellness',
+        icon: '🏥',
+        desc: 'Clinics, gyms, wellness brands',
+        toggles: [
+            { name: 'Online Booking', icon: '📅', content: "Patients and clients can book, reschedule, and cancel appointments 24/7 via your website or app — without calling reception. Automated reminders reduce no-shows by an average of 38%.", active: true },
+            { name: 'Patient Records', icon: '📋', content: "Secure, cloud-based patient records accessible from any device. POPIA compliant. Every consultation, prescription, and test result stored, searchable, and shareable with authorised practitioners in seconds.", active: true },
+            { name: 'Billing & Claims', icon: '💳', content: "Automated medical aid claim submission and real-time tariff checking. Reduces claim rejection rates and speeds up cash flow — most practices see payment times cut from 28 days to under 10.", active: false },
+            { name: 'Telehealth', icon: '📱', content: "Integrated video consultations — no third-party app required. Patients join via a secure link from any device. Session notes auto-populate into the patient record on completion.", active: false },
+            { name: 'Communication Tools', icon: '💬', content: "Automated appointment reminders, result notifications, and follow-up messages via SMS and WhatsApp. Patients feel cared for, and your front desk handles 40% fewer inbound calls.", active: false },
+            { name: 'Analytics & Insights', icon: '📊', content: "Track patient retention, appointment volume, revenue per practitioner, and referral sources in real time. Identify your most profitable services and time slots with a single glance at your dashboard.", active: false },
+            { name: 'Multi-Practitioner', icon: '👥', content: "One platform for your entire team. Individual practitioner calendars, role-based access, cross-referral tracking, and consolidated reporting — whether you have 2 or 200 practitioners.", active: false },
+            { name: 'Onboarding & Training', icon: '🤝', content: "Dedicated setup specialist, live training sessions for your team, and unlimited support for the first 60 days. Most practices are fully live within a week. Data migration from your current system included.", active: false }
+        ]
+    }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let companies = JSON.parse(localStorage.getItem('ob_companies') || '[]');
+let campaignTracker = {};
+let currentCompany = null;
+let editingToggleIndex = null;
+let selectedIndustryId = null;
+let selectedModalIndustryId = null;
+
+let brandConfig = JSON.parse(localStorage.getItem('ob_brand') || 'null');
+let toggles = JSON.parse(localStorage.getItem('ob_toggles') || 'null');
+
+// ═══════════════════════════════════════════════════════════════
+// FIRST RUN CHECK
+// ═══════════════════════════════════════════════════════════════
+function checkFirstRun() {
+    if(!brandConfig) {
+        document.getElementById('firstRunSetup').classList.add('active');
+        renderSetupIndustryGrid();
+    } else {
+        document.getElementById('mainApp').classList.add('active');
+        init();
+    }
+}
+
+function renderSetupIndustryGrid() {
+    const grid = document.getElementById('industryGrid');
+    grid.innerHTML = INDUSTRIES.map(ind => `
+        <div class="industry-card" id="setup_ind_${ind.id}" onclick="selectSetupIndustry('${ind.id}')">
+            <div class="ind-icon">${ind.icon}</div>
+            <div class="ind-name">${ind.name}</div>
+            <div class="ind-desc">${ind.desc}</div>
+        </div>
+    `).join('');
+}
+
+function selectSetupIndustry(id) {
+    selectedIndustryId = id;
+    document.querySelectorAll('#industryGrid .industry-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('setup_ind_' + id).classList.add('selected');
+
+    const ind = INDUSTRIES.find(i => i.id === id);
+    const preview = document.getElementById('industryPreview');
+    const list = document.getElementById('previewToggleList');
+    preview.style.display = 'block';
+    list.innerHTML = ind.toggles.map(t =>
+        `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;display:inline-block;">${t.icon} ${t.name}</span>`
+    ).join('');
+}
+
+function completeSetup() {
+    const name = document.getElementById('setupCompanyName').value.trim();
+    if(!name) { alert('Please enter your company name.'); document.getElementById('setupCompanyName').focus(); return; }
+    if(!selectedIndustryId) { alert('Please select your industry.'); return; }
+
+    const ind = INDUSTRIES.find(i => i.id === selectedIndustryId);
+    const tagline = document.getElementById('setupCompanyTagline').value.trim() || (ind.desc + ' · Sales Email Builder');
+
+    brandConfig = { name, tagline, icon: ind.icon, industry: ind.name, industryId: ind.id };
+    toggles = JSON.parse(JSON.stringify(ind.toggles)); // deep copy
+
+    localStorage.setItem('ob_brand', JSON.stringify(brandConfig));
+    localStorage.setItem('ob_toggles', JSON.stringify(toggles));
+
+    document.getElementById('firstRunSetup').classList.remove('active');
+    document.getElementById('mainApp').classList.add('active');
+    init();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+function init() {
+    try { campaignTracker = JSON.parse(localStorage.getItem('ob_tracker') || '{}'); } catch(e) { campaignTracker = {}; }
+    applyBranding();
+    renderToggleGrid();
+    renderMiniToggles();
+    renderCompanyList();
+    renderTrackerTable();
+    renderCampaignSnapshot();
+    updateToggleCountPill();
+}
+
+function applyBranding() {
+    if(!brandConfig) return;
+    document.title = brandConfig.name + ' Outreach Builder';
+
+    // Header
+    document.getElementById('appTitle').innerHTML = `${escapeHtml(brandConfig.name)} <span>Outreach</span>`;
+    document.getElementById('appSubtitle').textContent = brandConfig.tagline || 'Sales Email Builder · Campaign Tracker';
+
+    // Banner
+    document.getElementById('bannerIcon').textContent = brandConfig.icon || '🏢';
+    document.getElementById('bannerName').textContent = brandConfig.name;
+    document.getElementById('bannerTagline').textContent = brandConfig.tagline || 'Sales Email Builder';
+    document.getElementById('bannerIndustryPill').textContent = brandConfig.industry || 'General';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════════
+function openSettingsModal() {
+    document.getElementById('settingsCompanyName').value = brandConfig?.name || '';
+    document.getElementById('settingsTagline').value = brandConfig?.tagline || '';
+    document.getElementById('settingsIcon').value = brandConfig?.icon || '';
+    document.getElementById('settingsModal').classList.add('open');
+}
+function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
+function saveSettings() {
+    const name = document.getElementById('settingsCompanyName').value.trim();
+    if(!name) { alert('Company name is required.'); return; }
+    brandConfig.name = name;
+    brandConfig.tagline = document.getElementById('settingsTagline').value.trim();
+    brandConfig.icon = document.getElementById('settingsIcon').value.trim() || '🏢';
+    localStorage.setItem('ob_brand', JSON.stringify(brandConfig));
+    applyBranding();
+    refreshEmailPreview();
+    closeSettingsModal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INDUSTRY PRESETS MODAL
+// ═══════════════════════════════════════════════════════════════
+function openIndustryPresetsModal() {
+    selectedModalIndustryId = null;
+    document.getElementById('applyPresetsBtn').disabled = true;
+    document.getElementById('modalIndustryPreview').style.display = 'none';
+    renderModalIndustryGrid();
+    document.getElementById('industryPresetsModal').classList.add('open');
+}
+function closeIndustryPresetsModal() {
+    document.getElementById('industryPresetsModal').classList.remove('open');
+    selectedModalIndustryId = null;
+}
+function renderModalIndustryGrid() {
+    const grid = document.getElementById('modalIndustryGrid');
+    grid.innerHTML = INDUSTRIES.map(ind => `
+        <div class="industry-card" id="modal_ind_${ind.id}" onclick="selectModalIndustry('${ind.id}')">
+            <div class="ind-icon">${ind.icon}</div>
+            <div class="ind-name">${ind.name}</div>
+            <div class="ind-desc">${ind.desc}</div>
+        </div>
+    `).join('');
+}
+function selectModalIndustry(id) {
+    selectedModalIndustryId = id;
+    document.querySelectorAll('#modalIndustryGrid .industry-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('modal_ind_' + id).classList.add('selected');
+
+    const ind = INDUSTRIES.find(i => i.id === id);
+    const preview = document.getElementById('modalIndustryPreview');
+    const list = document.getElementById('modalPreviewToggleList');
+    preview.style.display = 'block';
+    list.innerHTML = ind.toggles.map(t =>
+        `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;display:inline-block;">${t.icon} ${t.name}</span>`
+    ).join('');
+    document.getElementById('applyPresetsBtn').disabled = false;
+}
+function applyIndustryPresets() {
+    if(!selectedModalIndustryId) return;
+    if(!confirm('This will replace all current toggles. Continue?')) return;
+    const ind = INDUSTRIES.find(i => i.id === selectedModalIndustryId);
+    toggles = JSON.parse(JSON.stringify(ind.toggles));
+    brandConfig.industry = ind.name;
+    brandConfig.industryId = ind.id;
+    localStorage.setItem('ob_toggles', JSON.stringify(toggles));
+    localStorage.setItem('ob_brand', JSON.stringify(brandConfig));
+    applyBranding();
+    renderToggleGrid();
+    renderMiniToggles();
+    updateToggleCountPill();
+    refreshEmailPreview();
+    closeIndustryPresetsModal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOGGLES
+// ═══════════════════════════════════════════════════════════════
+function saveToggles() { localStorage.setItem('ob_toggles', JSON.stringify(toggles)); }
+
+function updateToggleCountPill() {
+    const active = toggles.filter(t => t.active).length;
+    const pill = document.getElementById('toggleCountPill');
+    pill.style.display = 'inline-block';
+    pill.textContent = `${active} benefit${active !== 1 ? 's' : ''} active`;
+}
+
+document.getElementById('addToggleBtn').addEventListener('click', () => {
+    if(toggles.length >= 8) { alert('Maximum 8 toggles reached.'); return; }
+    openToggleModal(null);
+});
+
+function openToggleModal(index) {
+    editingToggleIndex = index;
+    const t = index !== null ? toggles[index] : { name: '', icon: '✨', content: '' };
+    document.getElementById('modalTitle').textContent = index !== null ? 'Edit Toggle' : 'Add Toggle';
+    document.getElementById('modalToggleName').value = t.name;
+    document.getElementById('modalToggleIcon').value = t.icon;
+    document.getElementById('modalToggleContent').value = t.content;
+    document.getElementById('toggleModal').classList.add('open');
+}
+function closeToggleModal() { document.getElementById('toggleModal').classList.remove('open'); editingToggleIndex = null; }
+
+function saveToggle() {
+    const name = document.getElementById('modalToggleName').value.trim();
+    const icon = document.getElementById('modalToggleIcon').value.trim() || '✨';
+    const content = document.getElementById('modalToggleContent').value.trim();
+    if(!name) { alert('Please enter a toggle name.'); return; }
+    if(editingToggleIndex !== null) {
+        toggles[editingToggleIndex].name = name;
+        toggles[editingToggleIndex].icon = icon;
+        toggles[editingToggleIndex].content = content;
+    } else {
+        toggles.push({ name, icon, content, active: false });
+    }
+    saveToggles();
+    renderToggleGrid();
+    renderMiniToggles();
+    updateToggleCountPill();
+    closeToggleModal();
+}
+
+function renderToggleGrid() {
+    const grid = document.getElementById('toggleGrid');
+    grid.innerHTML = '';
+    toggles.forEach((t, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'toggle-btn' + (t.active ? ' active' : '');
+        btn.innerHTML = `
+            <span class="toggle-icon">${escapeHtml(t.icon)}</span>
+            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.name)}</span>
+            <button onclick="openToggleModal(${i})" title="Edit" style="background:none;border:none;cursor:pointer;padding:2px 4px;font-size:12px;border-radius:4px;color:var(--text-muted);">✏️</button>
+            <span class="toggle-dot"></span>
+        `;
+        btn.addEventListener('click', (e) => {
+            if(e.target.closest('button')) return;
+            toggles[i].active = !toggles[i].active;
+            saveToggles();
+            renderToggleGrid();
+            renderMiniToggles();
+            updateToggleCountPill();
+        });
+        grid.appendChild(btn);
+    });
+}
+
+function renderMiniToggles() {
+    const grid = document.getElementById('miniToggleGrid');
+    grid.innerHTML = '';
+    toggles.forEach((t, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'toggle-btn' + (t.active ? ' active' : '');
+        btn.style.fontSize = '11px';
+        btn.style.padding = '7px 10px';
+        btn.innerHTML = `<span>${escapeHtml(t.icon)}</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.name)}</span><span class="toggle-dot"></span>`;
+        btn.addEventListener('click', () => {
+            toggles[i].active = !toggles[i].active;
+            saveToggles();
+            renderToggleGrid();
+            renderMiniToggles();
+            updateToggleCountPill();
+        });
+        grid.appendChild(btn);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// COMPANIES
+// ═══════════════════════════════════════════════════════════════
+function saveCompanies() { localStorage.setItem('ob_companies', JSON.stringify(companies)); }
+
+function addCompany() {
+    const input = document.getElementById('companyInput');
+    const name = input.value.trim();
+    if(!name) return;
+    if(companies.includes(name)) { alert(`"${name}" is already in your list.`); return; }
+    companies.push(name);
+    saveCompanies();
+    input.value = '';
+    renderCompanyList();
+    selectCompany(name);
+}
+
+function removeCompany(name) {
+    companies = companies.filter(c => c !== name);
+    saveCompanies();
+    if(currentCompany === name) { currentCompany = null; clearEmailPreview(); }
+    renderCompanyList();
+}
+
+function selectCompany(name) {
+    currentCompany = name;
+    renderCompanyList();
+    refreshEmailPreview();
+}
+
+function renderCompanyList() {
+    const wrap = document.getElementById('companyList');
+    const countBadge = document.getElementById('companyCountBadge');
+    countBadge.textContent = companies.length;
+    if(!companies.length) {
+        wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px;font-style:italic;">No prospects yet — add one above</div>';
+        return;
+    }
+    wrap.innerHTML = '';
+    companies.forEach(name => {
+        const entry = campaignTracker[name] || {};
+        let dotClass = 'c-dot-none', statusLabel = 'Not sent';
+        if(entry.replyReceived) { dotClass = 'c-dot-replied'; statusLabel = 'Replied ✓'; }
+        else if(entry.sentDate) { dotClass = 'c-dot-sent'; statusLabel = `Sent ${entry.sentDate}`; }
+        const item = document.createElement('div');
+        item.className = 'company-item' + (currentCompany === name ? ' selected' : '');
+        item.innerHTML = `
+            <div class="c-dot ${dotClass}"></div>
+            <div class="c-name">${escapeHtml(name)}</div>
+            <div class="c-status-lbl">${statusLabel}</div>
+            <button onclick="event.stopPropagation();removeCompany('${escapeHtml(name).replace(/'/g,"\\'")}');" title="Remove" style="background:none;border:none;cursor:pointer;font-size:14px;color:#cbd5e1;padding:2px 6px;">✕</button>
+        `;
+        item.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') return; selectCompany(name); });
+        wrap.appendChild(item);
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMAIL GENERATOR
+// ═══════════════════════════════════════════════════════════════
+function refreshEmailPreview() {
+    if(!currentCompany) { clearEmailPreview(); return; }
+    const activeToggles = toggles.filter(t => t.active && t.content);
+    generateEmailPreview(currentCompany, activeToggles);
+}
+
+function clearEmailPreview() {
+    document.getElementById('emailPreviewContainer').innerHTML = `
+        <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+            <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;color:var(--navy);margin-bottom:6px;">Select a prospect and activate toggles to generate email</div>
+            <div style="font-size:12px;">The email rebuilds dynamically based on which benefits you toggle on.</div>
+        </div>`;
+    window.currentEmailHtml = null;
+}
+
+function generateEmailPreview(prospectName, activeToggles) {
+    const senderName = brandConfig?.name || 'Our Company';
+    const todayStr = new Date().toLocaleDateString('en-ZA', {year:'numeric', month:'long', day:'numeric'});
+
+    const benefitBlocks = activeToggles.length
+        ? activeToggles.map(t => `
+  <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:#0d1b2e;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</div>
+    <div style="font-size:13px;line-height:1.65;color:#4a5568;">${escapeHtml(t.content)}</div>
+  </div>`).join('')
+        : `<div style="background:#fff7ed;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #d4a017;font-size:13px;color:#78350f;">⚠️ No benefit toggles are active. Go back and turn on at least one toggle to populate the email.</div>`;
+
+    const badgeRow = activeToggles.length
+        ? `<div style="margin:14px 0;">${activeToggles.map(t => `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;font-weight:700;padding:3px 10px;display:inline-block;margin:3px;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</span>`).join('')}</div>`
+        : '';
+
+    const htmlEmail = `
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
+
+  <!-- Header -->
+  <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f1f5f9;">
+    <div style="font-size:26px;font-weight:800;color:#0d1b2e;letter-spacing:-0.3px;">${escapeHtml(brandConfig?.icon || '')} ${escapeHtml(senderName)} <span style="color:#1d9e75;">Outreach</span></div>
+    <div style="font-size:12px;color:#718096;margin-top:4px;">${escapeHtml(brandConfig?.tagline || 'Sales Team')} · ${todayStr}</div>
+  </div>
+
+  <div style="background:#f7f9fc;border-radius:8px;padding:10px 14px;margin-bottom:18px;border:1px solid #e1e8f0;">
+    <span style="font-size:11px;color:#a0aec0;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">Subject: </span>
+    <span style="font-size:13px;color:#0d1b2e;font-weight:600;">Quick question about how ${escapeHtml(prospectName)} manages its operations</span>
+  </div>
+
+  <p style="font-size:15px;line-height:1.6;margin-bottom:14px;">Dear <strong>${escapeHtml(prospectName)}</strong> team,</p>
+
+  <p style="font-size:14px;line-height:1.65;color:#4a5568;margin-bottom:16px;">
+    I came across your business and wanted to reach out directly. Many of the companies we work with were spending too many hours on manual processes, managing disconnected systems, and missing opportunities — often without realising how much time and revenue was slipping away.
+  </p>
+
+  <p style="font-size:14px;line-height:1.65;color:#4a5568;margin-bottom:6px;">
+    I wanted to share how <strong>${escapeHtml(senderName)}</strong> is solving exactly this for businesses like yours:
+  </p>
+
+  ${benefitBlocks}
+  ${badgeRow}
+
+  <!-- CTA -->
+  <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
+    <div style="color:white;font-size:14px;line-height:1.6;">
+      ✨ Reply <strong style="color:#5dcaa5;">"YES"</strong> and I'll set up a <strong>free 20-minute walkthrough</strong> tailored to your business — no obligation, just a look at what's possible.
+    </div>
+  </div>
+
+  <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+
+  <div style="font-size:12px;color:#718096;line-height:1.9;">
+    ${escapeHtml(senderName)} Sales Team<br>
+    <span style="color:#a0aec0;font-size:11px;">${escapeHtml(brandConfig?.tagline || '')}</span>
+  </div>
+</div>`;
+
+    document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
+    window.currentEmailHtml = htmlEmail;
+}
+
+function copyEmailToClipboard() {
+    if(!window.currentEmailHtml) { alert('No email generated. Please select a prospect and activate at least one toggle.'); return; }
+    navigator.clipboard.writeText(window.currentEmailHtml).then(() => {
+        const btn = document.getElementById('copyEmailBtn');
+        const orig = btn.innerText;
+        btn.innerText = '✅ Copied!';
+        setTimeout(() => btn.innerText = orig, 2000);
+    }).catch(() => alert('Manual copy: select all email content'));
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRACKER
+// ═══════════════════════════════════════════════════════════════
+function saveTracker() {
+    localStorage.setItem('ob_tracker', JSON.stringify(campaignTracker));
+    renderTrackerTable();
+    renderCampaignSnapshot();
+    renderCompanyList();
+}
+
+function getTrackerEntry(company) {
+    if(!campaignTracker[company]) campaignTracker[company] = { sentDate: null, followup1Sent: false, followup2Sent: false, replyReceived: false };
+    return campaignTracker[company];
+}
+
+function markSent(company) {
+    let e = getTrackerEntry(company);
+    e.sentDate = new Date().toISOString().split('T')[0];
+    saveTracker();
+    alert(`✅ ${company} marked as sent on ${e.sentDate}`);
+}
+
+function markFollowup(company, type) {
+    let e = getTrackerEntry(company);
+    if(type === 1) e.followup1Sent = true;
+    if(type === 2) e.followup2Sent = true;
+    saveTracker();
+    alert(`📌 Follow-up ${type} recorded for ${company}`);
+}
+
+function markReply(company) {
+    let e = getTrackerEntry(company);
+    e.replyReceived = true;
+    saveTracker();
+    alert(`🎉 Reply noted for ${company}`);
+}
+
+function renderTrackerTable() {
+    const tbody = document.getElementById('trackingBody');
+    tbody.innerHTML = '';
+    const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies])].sort();
+    if(!allCompanies.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:20px;font-style:italic;">No companies tracked yet</td></tr>`;
+        return;
+    }
+    for(let c of allCompanies) {
+        const e = campaignTracker[c] || {};
+        const sentDate = e.sentDate || '—';
+        const f1 = e.followup1Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const f2 = e.followup2Sent ? '<span class="status-badge status-replied">✅ Done</span>' : '<span class="status-badge status-pending">⏳</span>';
+        const reply = e.replyReceived ? '<span class="status-badge status-replied">✔ Yes</span>' : '—';
+        tbody.innerHTML += `<tr>
+            <td><strong>${escapeHtml(c)}</strong></td>
+            <td style="font-size:12px;">${sentDate}</td>
+            <td>${f1}</td>
+            <td>${f2}</td>
+            <td>${reply}</td>
+            <td><button class="mark-reply-btn" data-company="${escapeHtml(c)}" style="font-size:11px;padding:5px 10px;background:var(--surface);color:var(--text-primary);border:1px solid var(--border);border-radius:20px;">📩 Reply</button></td>
+        </tr>`;
+    }
+    document.querySelectorAll('.mark-reply-btn').forEach(btn => {
+        btn.addEventListener('click', () => markReply(btn.getAttribute('data-company')));
+    });
+}
+
+function renderCampaignSnapshot() {
+    const entries = Object.values(campaignTracker);
+    const el = document.getElementById('campaignSnapshot');
+    const upd = document.getElementById('snapshotUpdated');
+    if(!entries.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a company as sent to begin.</div>';
+        upd.textContent = '';
+        return;
+    }
+    const total = companies.length;
+    const sent = entries.filter(e => e.sentDate).length;
+    const followup1 = entries.filter(e => e.followup1Sent).length;
+    const followup2 = entries.filter(e => e.followup2Sent).length;
+    const replies = entries.filter(e => e.replyReceived).length;
+    const pending = entries.filter(e => !e.sentDate).length;
+    const replyRate = sent > 0 ? Math.round((replies / sent) * 100) : 0;
+
+    const stat = (icon, label, value, color) =>
+        `<div style="text-align:center;padding:14px 10px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div style="font-size:22px;margin-bottom:2px;">${icon}</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:${color||'var(--navy)'};">${value}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-top:3px;">${label}</div>
+        </div>`;
+
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📬','Total Prospects', total, 'var(--navy)')}
+            ${stat('✅','Emails Sent', sent, 'var(--blue)')}
+            ${stat('💬','Replies', replies, '#16a34a')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📆','Day 3 Follow-ups', followup1, 'var(--gold)')}
+            ${stat('📅','Day 7 Follow-ups', followup2, 'var(--gold)')}
+            ${stat('⏳','Pending Send', pending, 'var(--text-muted)')}
+        </div>
+        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-secondary);">
+                <strong style="color:var(--navy);">Reply rate:</strong> ${replies} of ${sent} sent emails replied
+            </div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:${replyRate >= 20 ? '#16a34a' : replyRate >= 10 ? 'var(--gold)' : 'var(--navy)'};">
+                ${replyRate}%
+            </div>
+        </div>`;
+    upd.textContent = 'Updated ' + new Date().toLocaleTimeString('en-ZA', {hour:'2-digit', minute:'2-digit'});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PDF UPLOAD
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('choosePdfBtn').addEventListener('click', () => document.getElementById('pdfFileInput').click());
+document.getElementById('pdfFileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    document.getElementById('pdfFileName').textContent = file.name;
+    document.getElementById('pdfInfo').style.display = 'block';
+    if(file.type === 'text/plain') {
+        const reader = new FileReader();
+        reader.onload = (ev) => { document.getElementById('modalToggleContent').value = ev.target.result.substring(0, 2000); };
+        reader.readAsText(file);
+    } else {
+        document.getElementById('pdfInfo').innerHTML = `✅ Loaded: <strong>${escapeHtml(file.name)}</strong> — Copy the key paragraphs from your PDF and paste them into each toggle's content field.`;
+    }
+});
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-active'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
+dropzone.addEventListener('drop', e => {
+    e.preventDefault(); dropzone.classList.remove('drag-active');
+    const f = e.dataTransfer.files[0];
+    if(f) { document.getElementById('pdfFileInput').files = e.dataTransfer.files; document.getElementById('pdfFileInput').dispatchEvent(new Event('change')); }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ACTION BUTTONS
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('copyEmailBtn').addEventListener('click', copyEmailToClipboard);
+document.getElementById('markSentBtn').addEventListener('click', () => { if(!currentCompany) { alert('Select a prospect first.'); return; } markSent(currentCompany); });
+document.getElementById('markFollowup1Btn').addEventListener('click', () => { if(!currentCompany) { alert('Select a prospect first.'); return; } markFollowup(currentCompany, 1); });
+document.getElementById('markFollowup2Btn').addEventListener('click', () => { if(!currentCompany) { alert('Select a prospect first.'); return; } markFollowup(currentCompany, 2); });
+
+document.getElementById('exportTrackerBtn').addEventListener('click', () => {
+    let csv = 'Company,Sent Date,Day3 Sent,Day7 Sent,Reply Received\n';
+    for(let [c, e] of Object.entries(campaignTracker)) {
+        csv += `"${c}","${e.sentDate||''}",${e.followup1Sent},${e.followup2Sent},${e.replyReceived}\n`;
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = (brandConfig?.name || 'outreach') + '_tracker.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+});
+
+document.getElementById('resetTrackerBtn').addEventListener('click', () => {
+    if(confirm('Delete all tracking data?')) {
+        localStorage.removeItem('ob_tracker');
+        campaignTracker = {};
+        renderTrackerTable();
+        renderCampaignSnapshot();
+        renderCompanyList();
+    }
+});
+
+document.getElementById('toggleModal').addEventListener('click', function(e) { if(e.target === this) closeToggleModal(); });
+document.getElementById('settingsModal').addEventListener('click', function(e) { if(e.target === this) closeSettingsModal(); });
+document.getElementById('industryPresetsModal').addEventListener('click', function(e) { if(e.target === this) closeIndustryPresetsModal(); });
+
+// ═══════════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════════
+function escapeHtml(str) {
+    if(!str) return '';
+    return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'})[m]);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════════════════
+checkFirstRun();
+</script>
+</body>
+</html>
