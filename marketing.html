@@ -267,6 +267,9 @@
             letter-spacing: 0.5px;
             padding: 10px 12px;
             text-align: left;
+            position: sticky;
+            top: 0;
+            z-index: 1;
         }
         .track-table td {
             padding: 10px 12px;
@@ -492,8 +495,8 @@
                         <button id="resetTrackerBtn" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
                     </div>
                 </div>
-                <div style="overflow-x:auto;">
-                    <table class="track-table" id="trackingTable">
+                <div style="overflow-x:auto;overflow-y:auto;max-height:280px;border-radius:var(--radius-sm);border:1px solid var(--border);">
+                    <table class="track-table" id="trackingTable" style="width:100%;">
                         <thead>
                             <tr>
                                 <th>Property</th>
@@ -541,6 +544,18 @@
                     💡 <strong>Pro tip:</strong> Paste into Zoho Mail or Gmail in HTML mode. No external links — optimised for deliverability.
                 </div>
             </div>
+
+            <!-- Campaign Stats Snapshot -->
+            <div class="card" style="margin-top:20px;">
+                <div class="card-header" style="margin-bottom:16px;">
+                    <span class="section-title">📊 Campaign Snapshot</span>
+                    <span style="font-size:12px;color:var(--text-muted);" id="snapshotUpdated"></span>
+                </div>
+                <div id="campaignSnapshot">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a property as sent to begin.</div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -558,10 +573,58 @@ let rateChartInstance = null;
 function loadTracker() {
     try { campaignTracker = JSON.parse(localStorage.getItem("revinsights_campaign_tracker") || "{}"); } catch(e) { campaignTracker = {}; }
     renderTrackerTable();
+    renderCampaignSnapshot();
 }
 function saveTracker() {
     localStorage.setItem("revinsights_campaign_tracker", JSON.stringify(campaignTracker));
     renderTrackerTable();
+    renderCampaignSnapshot();
+}
+
+function renderCampaignSnapshot() {
+    const entries = Object.values(campaignTracker);
+    const el = document.getElementById('campaignSnapshot');
+    const upd = document.getElementById('snapshotUpdated');
+    if (!entries.length) {
+        el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">No emails tracked yet. Mark a property as sent to begin.</div>';
+        upd.textContent = '';
+        return;
+    }
+    const total       = entries.length;
+    const sent        = entries.filter(e => e.sentDate).length;
+    const followup1   = entries.filter(e => e.followup1Sent).length;
+    const followup2   = entries.filter(e => e.followup2Sent).length;
+    const replies     = entries.filter(e => e.replyReceived).length;
+    const pending     = entries.filter(e => !e.sentDate).length;
+    const replyRate   = sent > 0 ? Math.round((replies / sent) * 100) : 0;
+
+    const stat = (icon, label, value, color) =>
+        `<div style="text-align:center;padding:14px 10px;background:var(--white);border-radius:var(--radius-sm);border:1px solid var(--border);">
+            <div style="font-size:22px;margin-bottom:2px;">${icon}</div>
+            <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:${color||'var(--navy)'};">${value}</div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-top:3px;">${label}</div>
+        </div>`;
+
+    el.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📬','Total Tracked', total, 'var(--navy)')}
+            ${stat('✅','Emails Sent', sent, '#1a56db')}
+            ${stat('💬','Replies', replies, '#16a34a')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+            ${stat('📆','Day 3 Follow-ups', followup1, '#d4a017')}
+            ${stat('📅','Day 7 Follow-ups', followup2, '#d4a017')}
+            ${stat('⏳','Pending Send', pending, '#718096')}
+        </div>
+        <div style="background:var(--surface);border-radius:var(--radius-sm);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);">
+            <div style="font-size:13px;color:var(--text-secondary);">
+                <strong style="color:var(--navy);">Reply rate:</strong> ${replies} of ${sent} sent emails replied
+            </div>
+            <div style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:${replyRate >= 20 ? '#16a34a' : replyRate >= 10 ? '#d4a017' : 'var(--navy)'};">
+                ${replyRate}%
+            </div>
+        </div>`;
+    upd.textContent = 'Updated ' + new Date().toLocaleTimeString('en-ZA', {hour:'2-digit', minute:'2-digit'});
 }
 function getTrackerEntry(hotelName) {
     if(!campaignTracker[hotelName]) {
@@ -1124,7 +1187,7 @@ document.getElementById('exportTrackerBtn').addEventListener('click', ()=>{
     }
     const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download='revenue_insights_tracker.csv'; a.click(); URL.revokeObjectURL(a.href);
 });
-document.getElementById('resetTrackerBtn').addEventListener('click', ()=>{ if(confirm('Delete all tracking data?')){ localStorage.removeItem('revinsights_campaign_tracker'); campaignTracker={}; renderTrackerTable(); } });
+document.getElementById('resetTrackerBtn').addEventListener('click', ()=>{ if(confirm('Delete all tracking data?')){ localStorage.removeItem('revinsights_campaign_tracker'); campaignTracker={}; renderTrackerTable(); renderCampaignSnapshot(); } });
 
 loadTracker();
 </script>
