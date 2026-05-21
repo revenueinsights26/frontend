@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Outreach Builder · Marketing Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        :root {
+            --navy: #0d1b2e;
+            --navy-mid: #162540;
+            --blue: #1a56db;
+            --blue-light: #3b82f6;
+            --teal: #0f6e56;
+            --teal-light: #1d9e75;
+            --gold: #d4a017;
+            --gold-light: #f5c842;
+            --surface: #f7f9fc;
+            --white: #ffffff;
+            --border: #e1e8f0;
+            --text-primary: #0d1b2e;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --success: #16a34a;
+            --warning: #b45309;
+            --danger: #dc2626;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 16px rgba(13,27,46,0.07);
+            --shadow-lg: 0 8px 32px rgba(13,27,46,0.12);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', system-ui, sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            padding: 32px 24px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .container { max-width: 1440px; margin: 0 auto; }
+
+        /* Header */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .app-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: var(--navy);
+            letter-spacing: -0.3px;
+        }
+        .app-title span {
+            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .app-subtitle { color: var(--text-secondary); font-size: 13px; font-weight: 400; margin-top: 4px; }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            padding: 26px 28px;
+            box-shadow: var(--shadow);
+        }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--navy); }
+
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+        /* Buttons */
+        button, .btn {
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            border-radius: 40px;
+            padding: 10px 20px;
+        }
+        .btn-primary { background: var(--navy); color: var(--white); }
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); }
+        .btn-teal { background: var(--teal); color: var(--white); }
+        .btn-teal:hover { background: #0a5240; transform: translateY(-1px); }
+        .btn-secondary { background: var(--white); border: 1.5px solid var(--border); color: var(--text-primary); }
+        .btn-secondary:hover { border-color: #94a3b8; background: var(--surface); }
+        .btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--text-secondary); }
+        .btn-ghost:hover { border-color: var(--teal-light); color: var(--teal); }
+
+        /* Form Controls */
+        select, input[type="text"], input[type="email"], input[type="number"], textarea {
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            font-size: 13px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary);
+            transition: border-color 0.15s;
+            width: 100%;
+        }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--teal); }
+
+        /* Badge */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: #e6f5f0; color: var(--teal);
+            padding: 4px 12px; border-radius: 40px;
+            font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 36px;
+            text-align: center;
+            cursor: pointer;
+            background: #fafcff;
+            transition: all 0.2s;
+        }
+        .dropzone:hover, .drag-active { border-color: var(--teal); background: #f0faf7; }
+        .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
+        .dropzone-label { color: var(--text-secondary); font-size: 14px; }
+
+        /* Toggle Grid */
+        .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+        .toggle-btn {
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: left;
+            transition: all 0.18s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .toggle-btn:hover { border-color: var(--teal-light); color: var(--teal); background: #f0faf7; }
+        .toggle-btn.active { background: #e6f5f0; border-color: var(--teal); color: var(--teal); }
+        .toggle-btn .toggle-icon { font-size: 15px; }
+        .toggle-btn .toggle-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); margin-left: auto; flex-shrink: 0; }
+        .toggle-btn.active .toggle-dot { background: var(--teal); }
+
+        /* Company List */
+        .company-list-wrap { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .company-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
+            cursor: pointer; transition: background 0.12s;
+        }
+        .company-item:last-child { border-bottom: none; }
+        .company-item:hover { background: #f7faf9; }
+        .company-item.selected { background: #e6f5f0; }
+        .c-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+        .c-dot-none { background: #cbd5e1; }
+        .c-dot-sent { background: var(--blue); }
+        .c-dot-replied { background: var(--success); }
+        .c-name { font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+        .c-status-lbl { font-size: 11px; color: var(--text-muted); }
+
+        /* Table */
+        .track-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .track-table th {
+            background: var(--surface); color: var(--text-muted);
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; padding: 10px 12px; text-align: left;
+            position: sticky; top: 0; z-index: 1;
+        }
+        .track-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        .track-table tr:hover td { background: #fafcff; }
+
+        /* Email Preview */
+        .email-preview {
+            background: #fafcff; border: 1px solid var(--border);
+            border-radius: var(--radius-md); padding: 20px;
+            max-height: 560px; overflow-y: auto;
+        }
+
+        /* Step Dot */
+        .step-dot {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: var(--navy); color: white;
+            font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0;
+        }
+
+        /* Insight Block */
+        .insight-block { border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 12px; font-size: 13px; line-height: 1.65; }
+        .insight-block.info { background: #f0faf7; border-left: 4px solid var(--teal-light); }
+        .insight-block.warning { background: #fffbeb; border-left: 4px solid var(--gold); }
+        .insight-block.danger { background: #fef2f2; border-left: 4px solid var(--danger); }
+
+        /* Usage Bar */
+        .usage-bar {
+            background: #e2e8f0;
+            border-radius: 20px;
+            height: 8px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .usage-fill {
+            background: var(--teal);
+            height: 100%;
+            border-radius: 20px;
+            transition: width 0.3s;
+        }
+        .usage-fill.warning { background: var(--gold); }
+        .usage-fill.danger { background: var(--danger); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(13,27,46,0.55);
+            z-index: 100; align-items: center; justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: var(--white); border-radius: var(--radius-lg); padding: 28px 32px;
+            width: 90%; max-width: 600px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;
+        }
+        .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 6px; color: var(--navy); }
+        .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+
+        /* Upgrade Banner */
+        .upgrade-banner {
+            background: linear-gradient(135deg, #fef3c7, #fffbeb);
+            border: 1px solid #fcd34d;
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .upgrade-banner .upgrade-text { font-size: 13px; color: #92400e; }
+        .upgrade-banner .upgrade-text strong { font-size: 15px; }
+
+        /* Responsive */
+        @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { body { padding: 16px 14px; } .toggle-grid { grid-template-columns: 1fr; } }
+
+        /* Brand Banner */
+        .brand-banner {
+            background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .brand-icon { font-size: 32px; }
+        .brand-info { flex: 1; }
+        .brand-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: white; }
+        .brand-meta { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- Loading State -->
+    <div id="loadingState" style="text-align:center;padding:80px;">
+        <div style="font-size:48px;margin-bottom:16px;">📧</div>
+        <div>Loading your dashboard...</div>
+    </div>
+
+    <!-- Main Dashboard (hidden until loaded) -->
+    <div id="mainDashboard" style="display:none;">
+
+        <!-- Header -->
+        <div class="app-header">
+            <div>
+                <div class="app-title" id="appTitle">Loading... <span>Outreach</span></div>
+                <div class="app-subtitle" id="appSubtitle">Sales Email Builder · Campaign Tracker</div>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                <span id="toggleCountPill" class="badge"></span>
+                <button onclick="openSettingsModal()" class="btn-ghost" style="padding:8px 16px;">⚙️ Settings</button>
+                <button id="exportTrackerBtn" class="btn-secondary">📎 Export CSV</button>
+            </div>
+        </div>
+
+        <!-- Trial/Usage Banner -->
+        <div id="usageBanner" class="upgrade-banner"></div>
+
+        <!-- Brand Banner -->
+        <div class="brand-banner" id="brandBanner">
+            <div class="brand-icon" id="bannerIcon">🚀</div>
+            <div class="brand-info">
+                <div class="brand-name" id="bannerName">Your Company</div>
+                <div class="brand-meta" id="bannerTagline">Sales Email Builder</div>
+            </div>
+        </div>
+
+        <!-- Step 1: Setup -->
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span class="step-dot">1</span>
+                    <span class="section-title">Upload Your Product PDF / Doc</span>
+                </div>
+                <span class="badge">Extract benefits from your PDF</span>
+            </div>
+
+            <div class="grid-2" style="gap:20px;">
+                <div>
+                    <div class="dropzone" id="dropzone">
+                        <div class="dropzone-icon">📄</div>
+                        <div class="dropzone-label">Drop your <strong>PDF or Word doc</strong> here, or click to browse</div>
+                        <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
+                        <button id="choosePdfBtn" type="button" style="margin-top:14px;background:var(--surface);color:var(--text-primary);border:1.5px solid var(--border);">Browse file</button>
+                    </div>
+                    <div id="pdfInfo" style="margin-top:10px;font-size:13px;color:var(--success);display:none;">
+                        ✅ Loaded: <strong><span id="pdfFileName"></span></strong>
+                    </div>
+                    <div class="insight-block info" style="margin-top:14px;">
+                        <strong>How it works:</strong><br>
+                        Upload your product PDF. Then configure the benefit toggles below — each holds a key paragraph from your doc. When composing an email, activate the toggles you want and the email rebuilds instantly.
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <div class="section-label" style="margin:0;">Benefit Toggles (click ✏️ to configure)</div>
+                    </div>
+                    <div class="toggle-grid" id="toggleGrid"></div>
+                    <button id="addToggleBtn" class="btn-ghost" style="width:100%;margin-top:4px;">+ Add toggle (up to 8)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 & 3: Two Column Layout -->
+        <div class="grid-2">
+            <!-- Left Column: Companies -->
+            <div>
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="step-dot">2</span>
+                            <span class="section-title">Prospect Companies</span>
+                        </div>
+                        <button onclick="openUploadCsvModal()" class="btn-ghost" style="padding:6px 12px;font-size:11px;">📁 Upload CSV</button>
+                    </div>
+
+                    <div style="display:flex;gap:8px;margin-bottom:12px;">
+                        <input type="text" id="companyInput" placeholder="Type company name…" style="flex:1;">
+                        <input type="email" id="emailInput" placeholder="Email (optional)" style="flex:1;">
+                        <button onclick="addCompany()" class="btn-teal" style="background:var(--teal);padding:10px 16px;">+ Add</button>
+                    </div>
+
+                    <div class="section-label">Prospects <span id="companyCountBadge" class="badge">0</span></div>
+                    <div class="company-list-wrap" id="companyList"></div>
+
+                    <div style="margin-top:12px;">
+                        <div class="section-label" style="margin-bottom:8px;">Active toggles for email</div>
+                        <div class="toggle-grid" id="miniToggleGrid" style="grid-template-columns:1fr 1fr;"></div>
+                        <button onclick="refreshEmailPreview()" class="btn-teal" style="background:var(--teal);width:100%;margin-top:8px;">🔄 Rebuild Email</button>
+                    </div>
+                </div>
+
+                <!-- Campaign Tracker -->
+                <div class="card">
+                    <div class="card-header">
+                        <span class="section-title">📋 Campaign Tracker</span>
+                        <button onclick="resetTracker()" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
+                    </div>
+                    <div style="overflow-x:auto;max-height:280px;">
+                        <table class="track-table" id="trackingTable">
+                            <thead>
+                                <tr><th>Company</th><th>Email</th><th>Sent</th><th>Opened</th><th>Clicked</th><th>Reply</th><th>Action</th></tr>
+                            </thead>
+                            <tbody id="trackingBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Email Preview -->
+            <div>
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="step-dot">3</span>
+                            <span class="section-title">Email Preview</span>
+                        </div>
+                        <button id="copyEmailBtn" class="btn-primary">📋 Copy Email HTML</button>
+                    </div>
+                    <div id="emailPreviewContainer" class="email-preview"></div>
+                    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+                        <button id="markSentBtn" class="btn-secondary">✅ Mark Sent & Track</button>
+                        <button id="markFollowup1Btn" class="btn-secondary">📆 Day 3 Follow-up</button>
+                        <button id="markFollowup2Btn" class="btn-secondary">📅 Day 7 Follow-up</button>
+                        <button id="markReplyBtn" class="btn-secondary">💬 Mark Reply</button>
+                    </div>
+                    <div class="insight-block info" style="margin-top:12px;">
+                        💡 <strong>Pro tip:</strong> Paste into Gmail or Outlook in HTML mode. Tracking pixels and click links are automatically embedded.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toggle Edit Modal -->
+<div id="toggleModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2 id="modalTitle">Configure Toggle</h2>
+        <div class="modal-sub">Paste the key benefit paragraph from your product PDF into the content box below.</div>
+        <label>Toggle name</label>
+        <input type="text" id="modalToggleName" placeholder="e.g. Channel Manager">
+        <label>Icon (emoji)</label>
+        <input type="text" id="modalToggleIcon" placeholder="e.g. 🔗" style="width:100px;">
+        <label>Benefit content</label>
+        <textarea id="modalToggleContent" rows="5" placeholder="Paste the key paragraph or benefit description here..."></textarea>
+        <div class="modal-actions">
+            <button onclick="closeToggleModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveToggle()" class="btn-teal">Save Toggle</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>⚙️ Settings</h2>
+        <div class="modal-sub">Update your brand details. Changes apply immediately.</div>
+        <label>Brand Name</label>
+        <input type="text" id="settingsBrandName" placeholder="Your company name">
+        <label>Tagline</label>
+        <input type="text" id="settingsTagline" placeholder="e.g. Sales Team">
+        <label>Brand Icon (emoji)</label>
+        <input type="text" id="settingsIcon" placeholder="🚀" style="width:100px;">
+        <div class="modal-actions">
+            <button onclick="closeSettingsModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveSettings()" class="btn-teal">Save</button>
+        </div>
+    </div>
+</div>
+
+<!-- Upload CSV Modal -->
+<div id="uploadCsvModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>📁 Upload Companies CSV</h2>
+        <div class="modal-sub">CSV should have columns: <strong>company_name</strong> and <strong>email</strong> (optional)</div>
+        <input type="file" id="csvFileInput" accept=".csv">
+        <div class="modal-actions" style="margin-top:20px;">
+            <button onclick="closeUploadCsvModal()" class="btn-ghost">Cancel</button>
+            <button onclick="uploadCSV()" class="btn-teal">Upload</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // Get token from URL
+    // ============================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    const USER_TOKEN = urlParams.get('token');
+    
+    if (!USER_TOKEN) {
+        document.getElementById('loadingState').innerHTML = `
+            <div style="text-align:center;padding:80px;">
+                <div style="font-size:48px;margin-bottom:16px;">🔒</div>
+                <div>No access token found.</div>
+                <div style="font-size:13px;margin-top:8px;">Please contact your administrator for your unique dashboard link.</div>
+            </div>
+        `;
+        throw new Error('No token provided');
+    }
+    
+    const API = 'https://backend-x5sw.onrender.com';
+    
+    // State
+    let userData = null;
+    let toggles = [];
+    let brand = null;
+    let companies = [];
+    let campaignTracker = {};
+    let currentCompany = null;
+    let editingToggleIndex = null;
+    let currentEmailHtml = null;
+    let lastTrackingId = null;
+    
+    // ============================================================
+    // Load user data from backend
+    // ============================================================
+    async function loadUserData() {
+        try {
+            const response = await fetch(`${API}/marketing/user/data`, {
+                headers: { 'X-User-Token': USER_TOKEN }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                if (response.status === 401 || response.status === 403) {
+                    showError('Invalid or expired access. Please contact your administrator.');
+                    return false;
+                }
+                throw new Error(error.detail || 'Failed to load data');
+            }
+            
+            const data = await response.json();
+            userData = data.user;
+            toggles = data.toggles || [];
+            brand = data.brand || { brand_name: userData.company_name || 'Your Company', tagline: 'Sales Email Builder', brand_icon: '🚀' };
+            companies = data.companies || [];
+            
+            // Load local campaign tracker (or create from backend data)
+            const savedTracker = localStorage.getItem(`ob_tracker_${userData.user_id}`);
+            if (savedTracker) {
+                campaignTracker = JSON.parse(savedTracker);
+            } else {
+                // Initialize from backend emails
+                campaignTracker = {};
+                if (data.recent_emails) {
+                    for (const email of data.recent_emails) {
+                        if (!campaignTracker[email.prospect_company]) {
+                            campaignTracker[email.prospect_company] = {
+                                sentDate: email.sent_at?.split('T')[0],
+                                opened: !!email.opened_at,
+                                clicked: !!email.clicked_at,
+                                replyReceived: email.reply_received === 1,
+                                followup1Sent: false,
+                                followup2Sent: false,
+                                trackingId: email.tracking_id
+                            };
+                        }
+                    }
+                }
+            }
+            
+            return true;
+        } catch (err) {
+            console.error(err);
+            showError(err.message);
+            return false;
+        }
+    }
+    
+    // ============================================================
+    // Save user data to backend
+    // ============================================================
+    async function saveUserData() {
+        try {
+            await fetch(`${API}/marketing/user/save`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
+                body: JSON.stringify({ toggles, brand, companies })
+            });
+        } catch (err) {
+            console.error('Failed to save:', err);
+        }
+    }
+    
+    function saveTracker() {
+        localStorage.setItem(`ob_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
+        renderTrackerTable();
+        renderCompanyList();
+    }
+    
+    // ============================================================
+    // UI Helpers
+    // ============================================================
+    function showError(msg) {
+        document.getElementById('loadingState').innerHTML = `
+            <div style="text-align:center;padding:80px;">
+                <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+                <div>${escapeHtml(msg)}</div>
+                <button onclick="location.reload()" class="btn-teal" style="margin-top:20px;">Try Again</button>
+            </div>
+        `;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-ZA');
+        } catch { return dateStr; }
+    }
+    
+    // ============================================================
+    // Usage & Trial UI
+    // ============================================================
+    function updateUsageUI() {
+        if (!userData) return;
+        
+        const remaining = userData.email_limit - userData.emails_used;
+        const percent = (userData.emails_used / userData.email_limit) * 100;
+        const fillClass = percent > 90 ? 'danger' : (percent > 70 ? 'warning' : '');
+        
+        const banner = document.getElementById('usageBanner');
+        const isTrialValid = userData.trial_active;
+        const daysLeft = userData.trial_days_remaining;
+        
+        if (!isTrialValid && userData.emails_used >= userData.email_limit) {
+            banner.innerHTML = `
+                <div class="upgrade-text">
+                    <strong>⚠️ Trial expired & email limit reached!</strong><br>
+                    You've used ${userData.emails_used}/${userData.email_limit} emails.
+                </div>
+                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>
+            `;
+        } else if (!isTrialValid) {
+            banner.innerHTML = `
+                <div class="upgrade-text">
+                    <strong>⚠️ Your trial has expired.</strong><br>
+                    You have ${remaining} email${remaining !== 1 ? 's' : ''} remaining from your limit.
+                </div>
+                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>
+            `;
+        } else if (remaining <= 5 && remaining > 0) {
+            banner.innerHTML = `
+                <div class="upgrade-text">
+                    <strong>📊 Low on emails!</strong><br>
+                    You have ${remaining} email${remaining !== 1 ? 's' : ''} remaining (${userData.emails_used}/${userData.email_limit} used). Trial ends in ${daysLeft} days.
+                </div>
+                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade →</button>
+            `;
+        } else {
+            banner.innerHTML = `
+                <div class="upgrade-text">
+                    <strong>${isTrialValid ? `✨ Free trial · ${daysLeft} days remaining` : 'Paid plan'}</strong><br>
+                    You've used ${userData.emails_used} of ${userData.email_limit} emails this month.
+                </div>
+                <div style="width:200px;">
+                    <div class="usage-bar"><div class="usage-fill ${fillClass}" style="width:${Math.min(100, percent)}%"></div></div>
+                </div>
+            `;
+        }
+        
+        document.getElementById('toggleCountPill').innerHTML = `${toggles.filter(t => t.is_active).length} benefit${toggles.filter(t => t.is_active).length !== 1 ? 's' : ''} active`;
+    }
+    
+    function showUpgradeModal() {
+        alert("📧 To upgrade:\n\n1. Send proof of payment to: upgrades@yourdomain.com\n2. Amount: R349/month\n3. We'll activate your account within 24 hours\n\nBank details will be provided upon request.");
+    }
+    
+    // ============================================================
+    // Branding
+    // ============================================================
+    function applyBranding() {
+        if (!brand) return;
+        document.getElementById('appTitle').innerHTML = `${escapeHtml(brand.brand_name || 'Your Company')} <span>Outreach</span>`;
+        document.getElementById('appSubtitle').innerHTML = escapeHtml(brand.tagline || 'Sales Email Builder');
+        document.getElementById('bannerIcon').innerHTML = brand.brand_icon || '🚀';
+        document.getElementById('bannerName').innerHTML = escapeHtml(brand.brand_name || 'Your Company');
+        document.getElementById('bannerTagline').innerHTML = escapeHtml(brand.tagline || 'Sales Email Builder');
+    }
+    
+    // ============================================================
+    // Toggles
+    // ============================================================
+    function renderToggleGrid() {
+        const grid = document.getElementById('toggleGrid');
+        grid.innerHTML = '';
+        toggles.forEach((t, i) => {
+            const btn = document.createElement('div');
+            btn.className = `toggle-btn${t.is_active ? ' active' : ''}`;
+            btn.innerHTML = `
+                <span class="toggle-icon">${escapeHtml(t.icon || '✨')}</span>
+                <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.name)}</span>
+                <button onclick="event.stopPropagation();openToggleModal(${i})" style="background:none;border:none;cursor:pointer;padding:2px 6px;">✏️</button>
+                <span class="toggle-dot"></span>
+            `;
+            btn.addEventListener('click', (e) => {
+                if (e.target.closest('button')) return;
+                toggles[i].is_active = !toggles[i].is_active;
+                saveUserData();
+                renderToggleGrid();
+                renderMiniToggles();
+                updateUsageUI();
+            });
+            grid.appendChild(btn);
+        });
+    }
+    
+    function renderMiniToggles() {
+        const grid = document.getElementById('miniToggleGrid');
+        grid.innerHTML = '';
+        toggles.forEach((t, i) => {
+            const btn = document.createElement('div');
+            btn.className = `toggle-btn${t.is_active ? ' active' : ''}`;
+            btn.style.fontSize = '11px';
+            btn.style.padding = '7px 10px';
+            btn.innerHTML = `<span>${escapeHtml(t.icon || '✨')}</span><span style="flex:1;">${escapeHtml(t.name)}</span><span class="toggle-dot"></span>`;
+            btn.addEventListener('click', () => {
+                toggles[i].is_active = !toggles[i].is_active;
+                saveUserData();
+                renderToggleGrid();
+                renderMiniToggles();
+                updateUsageUI();
+            });
+            grid.appendChild(btn);
+        });
+    }
+    
+    function openToggleModal(index) {
+        editingToggleIndex = index;
+        const t = toggles[index];
+        document.getElementById('modalTitle').innerText = 'Edit Toggle';
+        document.getElementById('modalToggleName').value = t.name || '';
+        document.getElementById('modalToggleIcon').value = t.icon || '✨';
+        document.getElementById('modalToggleContent').value = t.content || '';
+        document.getElementById('toggleModal').classList.add('open');
+    }
+    
+    function closeToggleModal() {
+        document.getElementById('toggleModal').classList.remove('open');
+        editingToggleIndex = null;
+    }
+    
+    function saveToggle() {
+        const name = document.getElementById('modalToggleName').value.trim();
+        const icon = document.getElementById('modalToggleIcon').value.trim() || '✨';
+        const content = document.getElementById('modalToggleContent').value.trim();
+        if (!name) { alert('Please enter a toggle name.'); return; }
+        
+        toggles[editingToggleIndex].name = name;
+        toggles[editingToggleIndex].icon = icon;
+        toggles[editingToggleIndex].content = content;
+        
+        saveUserData();
+        renderToggleGrid();
+        renderMiniToggles();
+        closeToggleModal();
+        refreshEmailPreview();
+    }
+    
+    document.getElementById('addToggleBtn').addEventListener('click', () => {
+        if (toggles.length >= 8) { alert('Maximum 8 toggles reached.'); return; }
+        toggles.push({ toggle_index: toggles.length, name: 'New Benefit', icon: '✨', content: 'Describe your benefit here...', is_active: false });
+        saveUserData();
+        renderToggleGrid();
+        renderMiniToggles();
+    });
+    
+    // ============================================================
+    // Companies
+    // ============================================================
+    function renderCompanyList() {
+        const wrap = document.getElementById('companyList');
+        const countBadge = document.getElementById('companyCountBadge');
+        countBadge.innerText = companies.length;
+        
+        if (!companies.length) {
+            wrap.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No prospects yet — add one above or upload CSV</div>';
+            return;
+        }
+        
+        wrap.innerHTML = '';
+        companies.forEach(comp => {
+            const entry = campaignTracker[comp.company_name] || {};
+            let dotClass = 'c-dot-none', statusLabel = 'Not sent';
+            if (entry.replyReceived) { dotClass = 'c-dot-replied'; statusLabel = 'Replied ✓'; }
+            else if (entry.sentDate) { dotClass = 'c-dot-sent'; statusLabel = `Sent ${entry.sentDate}`; }
+            
+            const item = document.createElement('div');
+            item.className = `company-item${currentCompany === comp.company_name ? ' selected' : ''}`;
+            item.innerHTML = `
+                <div class="c-dot ${dotClass}"></div>
+                <div class="c-name">${escapeHtml(comp.company_name)}</div>
+                <div class="c-status-lbl">${statusLabel}</div>
+                <button onclick="event.stopPropagation();removeCompany('${escapeHtml(comp.company_name).replace(/'/g, "\\'")}');" style="background:none;border:none;cursor:pointer;font-size:14px;color:#cbd5e1;">✕</button>
+            `;
+            item.addEventListener('click', () => selectCompany(comp.company_name));
+            wrap.appendChild(item);
+        });
+    }
+    
+    function addCompany() {
+        const name = document.getElementById('companyInput').value.trim();
+        const email = document.getElementById('emailInput').value.trim();
+        if (!name) return;
+        if (companies.find(c => c.company_name === name)) { alert('Company already in list'); return; }
+        companies.push({ company_name: name, email_address: email || null });
+        saveUserData();
+        document.getElementById('companyInput').value = '';
+        document.getElementById('emailInput').value = '';
+        renderCompanyList();
+        selectCompany(name);
+    }
+    
+    function removeCompany(name) {
+        companies = companies.filter(c => c.company_name !== name);
+        saveUserData();
+        if (currentCompany === name) {
+            currentCompany = null;
+            clearEmailPreview();
+        }
+        renderCompanyList();
+        renderTrackerTable();
+    }
+    
+    function selectCompany(name) {
+        currentCompany = name;
+        renderCompanyList();
+        refreshEmailPreview();
+    }
+    
+    // ============================================================
+    // Email Generation with Tracking
+    // ============================================================
+    function clearEmailPreview() {
+        document.getElementById('emailPreviewContainer').innerHTML = `
+            <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                <div style="font-size:36px;margin-bottom:12px;">✉️</div>
+                <div style="font-family:'Playfair Display',serif;font-size:16px;">Select a prospect and activate toggles</div>
+            </div>`;
+        currentEmailHtml = null;
+        lastTrackingId = null;
+    }
+    
+    async function refreshEmailPreview() {
+        if (!currentCompany) { clearEmailPreview(); return; }
+        
+        const activeToggles = toggles.filter(t => t.is_active && t.content);
+        if (activeToggles.length === 0) {
+            document.getElementById('emailPreviewContainer').innerHTML = `
+                <div class="insight-block warning">⚠️ No benefit toggles are active. Turn on at least one toggle to generate an email.</div>`;
+            return;
+        }
+        
+        const company = companies.find(c => c.company_name === currentCompany);
+        const prospectEmail = company?.email_address || '';
+        
+        // First, get a tracking ID by logging a "send" (but we're just previewing)
+        // For preview, we'll generate a placeholder tracking ID
+        const trackingId = `preview_${Date.now()}`;
+        lastTrackingId = trackingId;
+        
+        const senderName = brand?.brand_name || 'Our Company';
+        const todayStr = new Date().toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        const benefitBlocks = activeToggles.map(t => `
+            <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
+                <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</div>
+                <div style="font-size:13px;line-height:1.65;">${escapeHtml(t.content)}</div>
+            </div>
+        `).join('');
+        
+        const badgeRow = `<div style="margin:14px 0;">${activeToggles.map(t => `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;padding:3px 10px;margin:3px;display:inline-block;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</span>`).join('')}</div>`;
+        
+        // Tracking pixel (1x1 transparent GIF)
+        const trackingPixel = `<img src="${API}/marketing/track/open/${trackingId}" width="1" height="1" style="display:none;" alt="">`;
+        
+        const htmlEmail = `
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
+    <div style="text-align:center;margin-bottom:24px;padding-bottom:20px;border-bottom:2px solid #f1f5f9;">
+        <div style="font-size:26px;font-weight:800;color:#0d1b2e;">${escapeHtml(brand?.brand_icon || '')} ${escapeHtml(senderName)} <span style="color:#1d9e75;">Outreach</span></div>
+        <div style="font-size:12px;color:#718096;">${escapeHtml(brand?.tagline || 'Sales Team')} · ${todayStr}</div>
+    </div>
+    <div style="background:#f7f9fc;border-radius:8px;padding:10px 14px;margin-bottom:18px;">
+        <span style="font-size:11px;color:#a0aec0;">Subject: </span>
+        <span style="font-size:13px;color:#0d1b2e;">Quick question about how ${escapeHtml(currentCompany)} manages its operations</span>
+    </div>
+    <p>Dear <strong>${escapeHtml(currentCompany)}</strong> team,</p>
+    <p>I came across your business and wanted to reach out directly. Many of the companies we work with were spending too many hours on manual processes — often without realising how much time and revenue was slipping away.</p>
+    <p>I wanted to share how <strong>${escapeHtml(senderName)}</strong> is solving exactly this for businesses like yours:</p>
+    ${benefitBlocks}
+    ${badgeRow}
+    <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
+        <div style="color:white;font-size:14px;">
+            ✨ Reply <strong style="color:#5dcaa5;">"YES"</strong> and I'll set up a <strong>free 20-minute walkthrough</strong> tailored to your business.
+        </div>
+    </div>
+    <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+    <div style="font-size:12px;color:#718096;">
+        ${escapeHtml(senderName)} Sales Team<br>
+        <span style="color:#a0aec0;">${escapeHtml(brand?.tagline || '')}</span>
+    </div>
+    ${trackingPixel}
+</div>`;
+        
+        document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
+        currentEmailHtml = htmlEmail;
+    }
+    
+    async function markSentAndTrack() {
+        if (!currentCompany) { alert('Select a prospect first.'); return; }
+        
+        // Check if user has email limit remaining
+        if (userData.emails_used >= userData.email_limit) {
+            alert(`❌ Email limit reached (${userData.email_limit}/${userData.email_limit}). Please upgrade to continue.`);
+            showUpgradeModal();
+            return;
+        }
+        
+        if (!userData.trial_active && userData.emails_used >= userData.email_limit) {
+            alert('Trial expired and email limit reached. Please upgrade.');
+            showUpgradeModal();
+            return;
+        }
+        
+        const company = companies.find(c => c.company_name === currentCompany);
+        const prospectEmail = company?.email_address || '';
+        
+        try {
+            const response = await fetch(`${API}/marketing/track/send`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
+                body: JSON.stringify({ company_name: currentCompany, email: prospectEmail })
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                if (response.status === 403) {
+                    alert(error.detail);
+                    showUpgradeModal();
+                    return;
+                }
+                throw new Error(error.detail);
+            }
+            
+            const data = await response.json();
+            
+            // Update local tracker
+            if (!campaignTracker[currentCompany]) campaignTracker[currentCompany] = {};
+            campaignTracker[currentCompany].sentDate = new Date().toISOString().split('T')[0];
+            campaignTracker[currentCompany].trackingId = data.tracking_id;
+            campaignTracker[currentCompany].opened = false;
+            campaignTracker[currentCompany].clicked = false;
+            
+            saveTracker();
+            
+            // Update user data locally
+            userData.emails_used += 1;
+            updateUsageUI();
+            
+            alert(`✅ Email marked as sent!\n\nEmails remaining: ${data.emails_remaining}\nTracking pixel automatically included.`);
+            
+            // Regenerate email with real tracking ID
+            await refreshEmailPreview();
+            
+        } catch (err) {
+            alert(`Error: ${err.message}`);
+        }
+    }
+    
+    function markFollowup(company, day) {
+        if (!campaignTracker[company]) campaignTracker[company] = {};
+        if (day === 1) campaignTracker[company].followup1Sent = true;
+        if (day === 2) campaignTracker[company].followup2Sent = true;
+        saveTracker();
+        alert(`📌 Day ${day === 1 ? '3' : '7'} follow-up recorded for ${company}`);
+    }
+    
+    function markReply(company) {
+        if (!campaignTracker[company]) campaignTracker[company] = {};
+        campaignTracker[company].replyReceived = true;
+        saveTracker();
+        alert(`🎉 Reply recorded for ${company}!`);
+    }
+    
+    // ============================================================
+    // Tracker Table
+    // ============================================================
+    function renderTrackerTable() {
+        const tbody = document.getElementById('trackingBody');
+        const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies.map(c => c.company_name)])].sort();
+        
+        if (!allCompanies.length) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = '';
+        for (const comp of allCompanies) {
+            const e = campaignTracker[comp] || {};
+            const companyObj = companies.find(c => c.company_name === comp);
+            const email = companyObj?.email_address || '-';
+            
+            tbody.innerHTML += `<tr>
+                <td><strong>${escapeHtml(comp)}</strong></td>
+                <td style="font-size:11px;">${escapeHtml(email)}</td>
+                <td>${e.sentDate || '-'}</td>
+                <td>${e.opened ? '✅' : '⏳'}</td>
+                <td>${e.clicked ? '✅' : '⏳'}</td>
+                <td>${e.replyReceived ? '✅' : '-'}</td>
+                <td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td>
+            </tr>`;
+        }
+    }
+    
+    function resetTracker() {
+        if (confirm('Delete all tracking data for this account?')) {
+            campaignTracker = {};
+            saveTracker();
+            renderTrackerTable();
+            renderCompanyList();
+        }
+    }
+    
+    // ============================================================
+    // CSV Upload
+    // ============================================================
+    function openUploadCsvModal() {
+        document.getElementById('uploadCsvModal').classList.add('open');
+    }
+    
+    function closeUploadCsvModal() {
+        document.getElementById('uploadCsvModal').classList.remove('open');
+    }
+    
+    async function uploadCSV() {
+        const file = document.getElementById('csvFileInput').files[0];
+        if (!file) { alert('Please select a CSV file'); return; }
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        try {
+            const response = await fetch(`${API}/marketing/user/companies/upload`, {
+                method: 'POST',
+                headers: { 'X-User-Token': USER_TOKEN },
+                body: formData
+            });
+            
+            const data = await response.json();
+            if (response.ok) {
+                alert(`✅ ${data.companies_added} companies uploaded successfully!`);
+                closeUploadCsvModal();
+                await loadUserData();
+                renderCompanyList();
+            } else {
+                alert(`Error: ${data.detail}`);
+            }
+        } catch (err) {
+            alert(`Upload failed: ${err.message}`);
+        }
+    }
+    
+    // ============================================================
+    // Settings
+    // ============================================================
+    function openSettingsModal() {
+        document.getElementById('settingsBrandName').value = brand?.brand_name || '';
+        document.getElementById('settingsTagline').value = brand?.tagline || '';
+        document.getElementById('settingsIcon').value = brand?.brand_icon || '🚀';
+        document.getElementById('settingsModal').classList.add('open');
+    }
+    
+    function closeSettingsModal() {
+        document.getElementById('settingsModal').classList.remove('open');
+    }
+    
+    async function saveSettings() {
+        brand.brand_name = document.getElementById('settingsBrandName').value.trim() || 'Your Company';
+        brand.tagline = document.getElementById('settingsTagline').value.trim() || 'Sales Team';
+        brand.brand_icon = document.getElementById('settingsIcon').value.trim() || '🚀';
+        await saveUserData();
+        applyBranding();
+        refreshEmailPreview();
+        closeSettingsModal();
+    }
+    
+    // ============================================================
+    // PDF Upload (using PDF.js)
+    // ============================================================
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    
+    async function extractPdfText(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map(item => item.str).join(' ');
+            fullText += pageText + '\n\n';
+        }
+        return fullText;
+    }
+    
+    document.getElementById('choosePdfBtn').addEventListener('click', () => document.getElementById('pdfFileInput').click());
+    document.getElementById('pdfFileInput').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        document.getElementById('pdfFileName').innerText = file.name;
+        document.getElementById('pdfInfo').style.display = 'block';
+        
+        try {
+            let extractedText = '';
+            if (file.type === 'application/pdf') {
+                extractedText = await extractPdfText(file);
+                document.getElementById('pdfInfo').innerHTML = `✅ PDF loaded: <strong>${escapeHtml(file.name)}</strong><br><span style="font-size:11px;">${extractedText.length} characters extracted. Copy relevant paragraphs into toggle content fields above.</span>`;
+            } else {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    extractedText = ev.target.result;
+                    document.getElementById('pdfInfo').innerHTML = `✅ File loaded: <strong>${escapeHtml(file.name)}</strong><br><span style="font-size:11px;">${extractedText.length} characters. Copy relevant paragraphs into toggle content fields.</span>`;
+                };
+                reader.readAsText(file);
+            }
+        } catch (err) {
+            document.getElementById('pdfInfo').innerHTML = `❌ Error reading PDF: ${err.message}`;
+        }
+    });
+    
+    // Dropzone
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-active'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-active');
+        const f = e.dataTransfer.files[0];
+        if (f) {
+            document.getElementById('pdfFileInput').files = e.dataTransfer.files;
+            document.getElementById('pdfFileInput').dispatchEvent(new Event('change'));
+        }
+    });
+    dropzone.addEventListener('click', () => document.getElementById('pdfFileInput').click());
+    
+    // ============================================================
+    // Button Handlers
+    // ============================================================
+    document.getElementById('copyEmailBtn').addEventListener('click', () => {
+        if (!currentEmailHtml) { alert('Generate an email first'); return; }
+        navigator.clipboard.writeText(currentEmailHtml);
+        alert('Email HTML copied!');
+    });
+    
+    document.getElementById('markSentBtn').addEventListener('click', markSentAndTrack);
+    document.getElementById('markFollowup1Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 1); else alert('Select a prospect'); });
+    document.getElementById('markFollowup2Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 2); else alert('Select a prospect'); });
+    document.getElementById('markReplyBtn').addEventListener('click', () => { if (currentCompany) markReply(currentCompany); else alert('Select a prospect'); });
+    document.getElementById('exportTrackerBtn').addEventListener('click', () => {
+        let csv = 'Company,Email,Sent Date,Opened,Clicked,Reply Received,Followup1,Followup2\n';
+        for (const [comp, data] of Object.entries(campaignTracker)) {
+            const companyObj = companies.find(c => c.company_name === comp);
+            csv += `"${comp}","${companyObj?.email_address || ''}","${data.sentDate || ''}",${data.opened ? 'Yes' : 'No'},${data.clicked ? 'Yes' : 'No'},${data.replyReceived ? 'Yes' : 'No'},${data.followup1Sent ? 'Yes' : 'No'},${data.followup2Sent ? 'Yes' : 'No'}\n`;
+        }
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${brand?.brand_name || 'outreach'}_tracker.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
+    
+    // ============================================================
+    // Initialization
+    // ============================================================
+    async function init() {
+        const success = await loadUserData();
+        if (!success) return;
+        
+        applyBranding();
+        renderToggleGrid();
+        renderMiniToggles();
+        renderCompanyList();
+        renderTrackerTable();
+        updateUsageUI();
+        
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('mainDashboard').style.display = 'block';
+    }
+    
+    init();
+</script>
+</body>
+</html>
