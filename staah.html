@@ -347,6 +347,33 @@
             .toggle-grid { grid-template-columns: 1fr; }
             .stats-mini { grid-template-columns: repeat(2, 1fr); }
         }
+
+        .debug-console {
+            background: #1e1e2e;
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            max-height: 150px;
+            overflow-y: auto;
+            display: none;
+        }
+        .debug-console.show { display: block; }
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--navy);
+            color: white;
+            border: none;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 11px;
+            cursor: pointer;
+            z-index: 1000;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 </head>
@@ -497,6 +524,9 @@
     </div>
 </div>
 
+<button class="debug-toggle" onclick="toggleDebug()">🐛 Debug</button>
+<div id="debugConsole" class="debug-console"></div>
+
 <!-- Modals -->
 <div id="toggleModal" class="modal-overlay"><div class="modal-box"><h2 id="modalTitle">Configure Toggle</h2><div class="modal-sub">Paste the key benefit paragraph from your STAAH PDF into the content box below.</div><label>Toggle name</label><input type="text" id="modalToggleName" placeholder="e.g. Channel Manager"><label>Icon (emoji)</label><input type="text" id="modalToggleIcon" placeholder="e.g. 🔗" style="width:100px;"><label>Benefit content</label><textarea id="modalToggleContent" rows="5" placeholder="Paste the key paragraph or benefit description here..."></textarea><div class="modal-actions"><button onclick="closeToggleModal()" class="btn-ghost">Cancel</button><button onclick="saveToggle()" class="btn-teal">Save Toggle</button></div></div></div>
 
@@ -516,6 +546,20 @@
     const urlParams = new URLSearchParams(window.location.search);
     const USER_TOKEN = urlParams.get('token');
     
+    function logDebug(msg, data) {
+        const debugDiv = document.getElementById('debugConsole');
+        const timestamp = new Date().toLocaleTimeString();
+        const logLine = `[${timestamp}] ${msg}${data ? ': ' + JSON.stringify(data, null, 2) : ''}`;
+        debugDiv.innerHTML += logLine + '\n';
+        debugDiv.scrollTop = debugDiv.scrollHeight;
+        console.log(msg, data || '');
+    }
+    
+    function toggleDebug() {
+        const debugDiv = document.getElementById('debugConsole');
+        debugDiv.classList.toggle('show');
+    }
+    
     if (!USER_TOKEN) {
         document.getElementById('loadingState').innerHTML = `
             <div style="text-align:center;padding:80px;">
@@ -525,6 +569,8 @@
             </div>`;
         throw new Error('No token provided');
     }
+    
+    logDebug('Token found:', USER_TOKEN.substring(0, 20) + '...');
     
     // State
     let userData = null;
@@ -543,7 +589,6 @@
         ctas: []
     };
     
-    // Load variations from localStorage or use defaults
     function loadVariations() {
         const saved = localStorage.getItem('staah_email_variations');
         if (saved) {
@@ -604,7 +649,7 @@
     }
     
     function getRandomItem(arr) {
-        if (!arr.length) return '';
+        if (!arr || !arr.length) return '';
         return arr[Math.floor(Math.random() * arr.length)];
     }
     
@@ -624,28 +669,41 @@
     // API CALLS
     // ============================================================
     async function loadUserData() {
+        logDebug('Loading user data from API...');
         try {
             const response = await fetch(`${API}/marketing/user/data`, {
                 headers: { 'X-User-Token': USER_TOKEN }
             });
+            
+            logDebug('API Response status:', response.status);
+            
             if (!response.ok) {
                 const error = await response.json();
+                logDebug('API Error:', error);
                 throw new Error(error.detail || 'Failed to load');
             }
+            
             const data = await response.json();
+            logDebug('API Response data received:', { 
+                hasUser: !!data.user, 
+                togglesCount: data.toggles?.length,
+                companiesCount: data.companies?.length,
+                emailsCount: data.recent_emails?.length
+            });
+            
             userData = data.user;
             toggles = data.toggles || [];
             const brand = data.brand || {};
             companies = data.companies || [];
             
-            document.getElementById('appSubtitle').innerHTML = `${brand.tagline || 'Sales Email Builder'} · ${userData.emails_remaining} emails remaining`;
-            document.getElementById('emailCounterBadge').innerHTML = `📊 ${userData.emails_used}/${userData.email_limit} emails used`;
+            document.getElementById('appSubtitle').innerHTML = `${brand.tagline || 'Sales Email Builder'} · ${userData?.emails_remaining || 0} emails remaining`;
+            document.getElementById('emailCounterBadge').innerHTML = `📊 ${userData?.emails_used || 0}/${userData?.email_limit || 20} emails used`;
             
-            // CRITICAL FIX: Load tracking data from backend emails
+            // Load tracking data from backend emails
             campaignTracker = {};
             
-            // First, load from recent_emails (backend tracking data)
             if (data.recent_emails && data.recent_emails.length) {
+                logDebug('Processing recent emails:', data.recent_emails.length);
                 for (const email of data.recent_emails) {
                     if (!campaignTracker[email.prospect_company]) {
                         campaignTracker[email.prospect_company] = {
@@ -657,8 +715,9 @@
                             followup2Sent: false,
                             trackingId: email.tracking_id
                         };
+                        if (email.opened_at) logDebug(`Opened detected for ${email.prospect_company}:`, email.opened_at);
+                        if (email.clicked_at) logDebug(`Clicked detected for ${email.prospect_company}:`, email.clicked_at);
                     } else {
-                        // Update existing entry with open/click status
                         if (email.opened_at) campaignTracker[email.prospect_company].opened = true;
                         if (email.clicked_at) campaignTracker[email.prospect_company].clicked = true;
                         if (email.reply_received === 1) campaignTracker[email.prospect_company].replyReceived = true;
@@ -666,7 +725,7 @@
                 }
             }
             
-            // Then, load from localStorage for manual entries (sent dates, followups)
+            // Load from localStorage for manual entries
             const savedTracker = localStorage.getItem(`staah_tracker_${userData.user_id}`);
             if (savedTracker) {
                 const localTracker = JSON.parse(savedTracker);
@@ -674,28 +733,27 @@
                     if (!campaignTracker[company]) {
                         campaignTracker[company] = localData;
                     } else {
-                        // Preserve backend open/click data, but keep manual followups and sent dates
                         if (!campaignTracker[company].sentDate && localData.sentDate) campaignTracker[company].sentDate = localData.sentDate;
                         if (!campaignTracker[company].followup1Sent && localData.followup1Sent) campaignTracker[company].followup1Sent = localData.followup1Sent;
                         if (!campaignTracker[company].followup2Sent && localData.followup2Sent) campaignTracker[company].followup2Sent = localData.followup2Sent;
-                        if (!campaignTracker[company].replyReceived && localData.replyReceived) campaignTracker[company].replyReceived = localData.replyReceived;
                     }
                 }
             }
             
-            // Save merged tracker back to localStorage
             localStorage.setItem(`staah_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
+            logDebug('Campaign tracker updated, entries:', Object.keys(campaignTracker).length);
             
             return true;
         } catch (err) {
+            logDebug('ERROR loading user data:', err.message);
             console.error(err);
             showError(err.message);
             return false;
         }
     }
     
-    // Function to refresh stats from backend (called by button or automatically)
     async function refreshStatsFromBackend() {
+        logDebug('Refreshing stats from backend...');
         try {
             const response = await fetch(`${API}/marketing/user/data`, {
                 headers: { 'X-User-Token': USER_TOKEN }
@@ -703,58 +761,41 @@
             if (!response.ok) throw new Error('Failed to refresh');
             const data = await response.json();
             
-            // Update campaignTracker with latest open/click data
             if (data.recent_emails && data.recent_emails.length) {
                 for (const email of data.recent_emails) {
                     if (campaignTracker[email.prospect_company]) {
-                        if (email.opened_at) campaignTracker[email.prospect_company].opened = true;
-                        if (email.clicked_at) campaignTracker[email.prospect_company].clicked = true;
-                        if (email.reply_received === 1) campaignTracker[email.prospect_company].replyReceived = true;
-                    } else {
-                        campaignTracker[email.prospect_company] = {
-                            sentDate: email.sent_at ? email.sent_at.split('T')[0] : null,
-                            opened: !!email.opened_at,
-                            clicked: !!email.clicked_at,
-                            replyReceived: email.reply_received === 1,
-                            followup1Sent: false,
-                            followup2Sent: false,
-                            trackingId: email.tracking_id
-                        };
+                        if (email.opened_at && !campaignTracker[email.prospect_company].opened) {
+                            campaignTracker[email.prospect_company].opened = true;
+                            logDebug(`New open detected for ${email.prospect_company}`);
+                        }
+                        if (email.clicked_at && !campaignTracker[email.prospect_company].clicked) {
+                            campaignTracker[email.prospect_company].clicked = true;
+                            logDebug(`New click detected for ${email.prospect_company}`);
+                        }
                     }
                 }
             }
             
-            // Update user data (email counts)
-            userData = data.user;
-            updateUsageUI();
+            if (data.user) {
+                userData = data.user;
+                updateUsageUI();
+            }
             
-            // Save to localStorage
             localStorage.setItem(`staah_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
             
-            // Refresh UI
             renderTrackerTable();
             renderCompanyList();
             updateStats();
             
-            // Show success message
             const refreshBtn = document.getElementById('refreshStatsBtn');
             const originalText = refreshBtn.innerText;
             refreshBtn.innerText = '✅ Updated!';
             setTimeout(() => { refreshBtn.innerText = originalText; }, 2000);
             
         } catch (err) {
-            console.error('Refresh failed:', err);
+            logDebug('Refresh failed:', err.message);
             alert('Failed to refresh stats. Please try again.');
         }
-    }
-    
-    // Auto-refresh stats every 30 seconds
-    let refreshInterval = null;
-    function startAutoRefresh() {
-        if (refreshInterval) clearInterval(refreshInterval);
-        refreshInterval = setInterval(() => {
-            refreshStatsFromBackend();
-        }, 30000); // Refresh every 30 seconds
     }
     
     function showError(msg) {
@@ -773,13 +814,16 @@
                 headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
                 body: JSON.stringify({ toggles, companies })
             });
+            logDebug('User data saved');
         } catch (err) {
-            console.error('Save failed:', err);
+            logDebug('Save failed:', err.message);
         }
     }
     
     function saveTracker() {
-        localStorage.setItem(`staah_tracker_${userData?.user_id}`, JSON.stringify(campaignTracker));
+        if (userData) {
+            localStorage.setItem(`staah_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
+        }
         renderTrackerTable();
         renderCompanyList();
         updateStats();
@@ -795,12 +839,12 @@
         document.getElementById('statOpened').innerText = opened;
         document.getElementById('statClicked').innerText = clicked;
         document.getElementById('statReplies').innerText = replies;
+        logDebug(`Stats updated: Sent=${sent}, Opened=${opened}, Clicked=${clicked}, Replies=${replies}`);
     }
     
     function updateUsageUI() {
         if (!userData) return;
         const remaining = userData.email_limit - userData.emails_used;
-        const percent = (userData.emails_used / userData.email_limit) * 100;
         const banner = document.getElementById('upgradeBanner');
         const isTrialValid = userData.trial_active;
         const daysLeft = userData.trial_days_remaining;
@@ -832,6 +876,10 @@
     function renderToggleGrid() {
         const grid = document.getElementById('toggleGrid');
         grid.innerHTML = '';
+        if (!toggles || !toggles.length) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:20px;">No toggles configured. Click + to add benefits.</div>';
+            return;
+        }
         toggles.forEach((t, i) => {
             const btn = document.createElement('div');
             btn.className = `toggle-btn${t.is_active ? ' active' : ''}`;
@@ -845,6 +893,10 @@
     function renderMiniToggles() {
         const grid = document.getElementById('miniToggleGrid');
         grid.innerHTML = '';
+        if (!toggles || !toggles.length) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--text-muted);padding:10px;">No toggles yet</div>';
+            return;
+        }
         toggles.forEach((t, i) => {
             const btn = document.createElement('div');
             btn.className = `toggle-btn${t.is_active ? ' active' : ''}`;
@@ -857,6 +909,7 @@
     }
     
     function updateToggleCountPill() {
+        if (!toggles) return;
         const active = toggles.filter(t => t.is_active).length;
         const pill = document.getElementById('toggleCountPill');
         pill.style.display = 'inline-block';
@@ -927,6 +980,7 @@
         document.getElementById('emailInput').value = '';
         renderCompanyList();
         selectCompany(name);
+        logDebug('Company added:', name);
     }
     
     function removeCompany(name) {
@@ -934,12 +988,14 @@
         saveCompanies();
         if (currentCompany === name) { currentCompany = null; clearEmailPreview(); }
         renderCompanyList();
+        logDebug('Company removed:', name);
     }
     
     function selectCompany(name) {
         currentCompany = name;
         renderCompanyList();
         refreshEmailPreview();
+        logDebug('Company selected:', name);
     }
     
     function openCompanyDetailModal() {
@@ -971,6 +1027,7 @@
         }
         closeCompanyDetailModal();
         refreshEmailPreview();
+        logDebug('Company details saved for:', currentCompany);
     }
     
     function renderCompanyList() {
@@ -1065,9 +1122,10 @@
             saveTracker();
             userData.emails_used += 1;
             updateUsageUI();
+            logDebug('Email marked as sent for:', currentCompany, 'Tracking ID:', data.tracking_id);
             alert(`✅ Email marked as sent!\n\nEmails remaining: ${data.emails_remaining}`);
             await refreshEmailPreview();
-        } catch (err) { alert(`Error: ${err.message}`); }
+        } catch (err) { logDebug('Error marking sent:', err.message); alert(`Error: ${err.message}`); }
     }
     
     function markFollowup(company, day) {
@@ -1088,16 +1146,15 @@
     function renderTrackerTable() {
         const tbody = document.getElementById('trackingBody');
         const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies.map(c => c.company_name)])].sort();
-        if (!allCompanies.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>'; return; }
+        if (!allCompanies.length) { tbody.innerHTML = '<table><td colspan="6" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>'; return; }
         tbody.innerHTML = '';
         for (const comp of allCompanies) {
             const e = campaignTracker[comp] || {};
             tbody.innerHTML += `<tr>
                 <td><strong>${escapeHtml(comp)}</strong></td>
                 <td>${e.sentDate || '-'}</td>
-                <td>${e.opened ? '✅' : '⏳'}</td>
-                <td>${e.clicked ? '✅' : '⏳'}</td>
-                <td>${e.replyReceived ? '✅' : '-'}</td>
+                <td>${e.opened ? '✅' : '⏳'}</td><td>${e.clicked ? '✅' : '⏳'}
+                                <td>${e.replyReceived ? '✅' : '-'}</td>
                 <td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td>
             </tr>`;
         }
@@ -1196,7 +1253,6 @@
         URL.revokeObjectURL(a.href);
     });
     
-    // Add refresh button handler
     document.getElementById('refreshStatsBtn').addEventListener('click', refreshStatsFromBackend);
     
     // ============================================================
@@ -1205,6 +1261,7 @@
     function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
     
     async function init() {
+        logDebug('Initializing dashboard...');
         loadVariations();
         const success = await loadUserData();
         if (!success) return;
@@ -1214,9 +1271,14 @@
         renderTrackerTable();
         updateUsageUI();
         updateStats();
-        startAutoRefresh(); // Start automatic refresh every 30 seconds
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
+        logDebug('Dashboard initialized successfully');
+        
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            refreshStatsFromBackend();
+        }, 30000);
     }
     
     init();
