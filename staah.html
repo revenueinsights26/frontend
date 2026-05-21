@@ -368,6 +368,7 @@
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
                 <span id="emailCounterBadge" class="badge">📊 Loading...</span>
                 <span id="toggleCountPill" class="badge" style="display:none;"></span>
+                <button id="refreshStatsBtn" class="btn-secondary" style="background:var(--teal);color:white;">🔄 Refresh Stats</button>
                 <button id="exportTrackerBtn" class="btn-secondary">📎 Export CSV</button>
             </div>
         </div>
@@ -604,7 +605,7 @@
     
     function getRandomItem(arr) {
         if (!arr.length) return '';
-        return arr[Math.floor(Math.random() * arr.length)];
+        return arr[Math.floor(Math.random() arr.length)];
     }
     
     function personalizeText(text, companyDetails) {
@@ -640,33 +641,120 @@
             document.getElementById('appSubtitle').innerHTML = `${brand.tagline || 'Sales Email Builder'} · ${userData.emails_remaining} emails remaining`;
             document.getElementById('emailCounterBadge').innerHTML = `📊 ${userData.emails_used}/${userData.email_limit} emails used`;
             
-            const savedTracker = localStorage.getItem(`staah_tracker_${userData.user_id}`);
-            if (savedTracker) {
-                campaignTracker = JSON.parse(savedTracker);
-            } else {
-                campaignTracker = {};
-                if (data.recent_emails) {
-                    data.recent_emails.forEach(email => {
-                        if (!campaignTracker[email.prospect_company]) {
-                            campaignTracker[email.prospect_company] = {
-                                sentDate: email.sent_at?.split('T')[0],
-                                opened: !!email.opened_at,
-                                clicked: !!email.clicked_at,
-                                replyReceived: email.reply_received === 1,
-                                followup1Sent: false,
-                                followup2Sent: false,
-                                trackingId: email.tracking_id
-                            };
-                        }
-                    });
+            // CRITICAL FIX: Load tracking data from backend emails
+            campaignTracker = {};
+            
+            // First, load from recent_emails (backend tracking data)
+            if (data.recent_emails && data.recent_emails.length) {
+                for (const email of data.recent_emails) {
+                    if (!campaignTracker[email.prospect_company]) {
+                        campaignTracker[email.prospect_company] = {
+                            sentDate: email.sent_at ? email.sent_at.split('T')[0] : null,
+                            opened: !!email.opened_at,
+                            clicked: !!email.clicked_at,
+                            replyReceived: email.reply_received === 1,
+                            followup1Sent: false,
+                            followup2Sent: false,
+                            trackingId: email.tracking_id
+                        };
+                    } else {
+                        // Update existing entry with open/click status
+                        if (email.opened_at) campaignTracker[email.prospect_company].opened = true;
+                        if (email.clicked_at) campaignTracker[email.prospect_company].clicked = true;
+                        if (email.reply_received === 1) campaignTracker[email.prospect_company].replyReceived = true;
+                    }
                 }
             }
+            
+            // Then, load from localStorage for manual entries (sent dates, followups)
+            const savedTracker = localStorage.getItem(`staah_tracker_${userData.user_id}`);
+            if (savedTracker) {
+                const localTracker = JSON.parse(savedTracker);
+                for (const [company, localData] of Object.entries(localTracker)) {
+                    if (!campaignTracker[company]) {
+                        campaignTracker[company] = localData;
+                    } else {
+                        // Preserve backend open/click data, but keep manual followups and sent dates
+                        if (!campaignTracker[company].sentDate && localData.sentDate) campaignTracker[company].sentDate = localData.sentDate;
+                        if (!campaignTracker[company].followup1Sent && localData.followup1Sent) campaignTracker[company].followup1Sent = localData.followup1Sent;
+                        if (!campaignTracker[company].followup2Sent && localData.followup2Sent) campaignTracker[company].followup2Sent = localData.followup2Sent;
+                        if (!campaignTracker[company].replyReceived && localData.replyReceived) campaignTracker[company].replyReceived = localData.replyReceived;
+                    }
+                }
+            }
+            
+            // Save merged tracker back to localStorage
+            localStorage.setItem(`staah_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
+            
             return true;
         } catch (err) {
             console.error(err);
             showError(err.message);
             return false;
         }
+    }
+    
+    // Function to refresh stats from backend (called by button or automatically)
+    async function refreshStatsFromBackend() {
+        try {
+            const response = await fetch(`${API}/marketing/user/data`, {
+                headers: { 'X-User-Token': USER_TOKEN }
+            });
+            if (!response.ok) throw new Error('Failed to refresh');
+            const data = await response.json();
+            
+            // Update campaignTracker with latest open/click data
+            if (data.recent_emails && data.recent_emails.length) {
+                for (const email of data.recent_emails) {
+                    if (campaignTracker[email.prospect_company]) {
+                        if (email.opened_at) campaignTracker[email.prospect_company].opened = true;
+                        if (email.clicked_at) campaignTracker[email.prospect_company].clicked = true;
+                        if (email.reply_received === 1) campaignTracker[email.prospect_company].replyReceived = true;
+                    } else {
+                        campaignTracker[email.prospect_company] = {
+                            sentDate: email.sent_at ? email.sent_at.split('T')[0] : null,
+                            opened: !!email.opened_at,
+                            clicked: !!email.clicked_at,
+                            replyReceived: email.reply_received === 1,
+                            followup1Sent: false,
+                            followup2Sent: false,
+                            trackingId: email.tracking_id
+                        };
+                    }
+                }
+            }
+            
+            // Update user data (email counts)
+            userData = data.user;
+            updateUsageUI();
+            
+            // Save to localStorage
+            localStorage.setItem(`staah_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
+            
+            // Refresh UI
+            renderTrackerTable();
+            renderCompanyList();
+            updateStats();
+            
+            // Show success message
+            const refreshBtn = document.getElementById('refreshStatsBtn');
+            const originalText = refreshBtn.innerText;
+            refreshBtn.innerText = '✅ Updated!';
+            setTimeout(() => { refreshBtn.innerText = originalText; }, 2000);
+            
+        } catch (err) {
+            console.error('Refresh failed:', err);
+            alert('Failed to refresh stats. Please try again.');
+        }
+    }
+    
+    // Auto-refresh stats every 30 seconds
+    let refreshInterval = null;
+    function startAutoRefresh() {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(() => {
+            refreshStatsFromBackend();
+        }, 30000); // Refresh every 30 seconds
     }
     
     function showError(msg) {
@@ -700,9 +788,9 @@
     function updateStats() {
         const entries = Object.values(campaignTracker);
         const sent = entries.filter(e => e.sentDate).length;
-        const opened = entries.filter(e => e.opened).length;
-        const clicked = entries.filter(e => e.clicked).length;
-        const replies = entries.filter(e => e.replyReceived).length;
+        const opened = entries.filter(e => e.opened === true).length;
+        const clicked = entries.filter(e => e.clicked === true).length;
+        const replies = entries.filter(e => e.replyReceived === true).length;
         document.getElementById('statSent').innerText = sent;
         document.getElementById('statOpened').innerText = opened;
         document.getElementById('statClicked').innerText = clicked;
@@ -898,6 +986,7 @@
             const entry = campaignTracker[comp.company_name] || {};
             let dotClass = 'c-dot-none', statusLabel = 'Not sent';
             if (entry.replyReceived) { dotClass = 'c-dot-replied'; statusLabel = 'Replied ✓'; }
+            else if (entry.clicked) { dotClass = 'c-dot-opened'; statusLabel = 'Clicked'; }
             else if (entry.opened) { dotClass = 'c-dot-opened'; statusLabel = 'Opened'; }
             else if (entry.sentDate) { dotClass = 'c-dot-sent'; statusLabel = `Sent ${entry.sentDate}`; }
             const item = document.createElement('div');
@@ -1003,7 +1092,14 @@
         tbody.innerHTML = '';
         for (const comp of allCompanies) {
             const e = campaignTracker[comp] || {};
-            tbody.innerHTML += `<tr><td><strong>${escapeHtml(comp)}</strong></td><td>${e.sentDate || '-'}</td><td>${e.opened ? '✅' : '⏳'}</td><td>${e.clicked ? '✅' : '⏳'}</td><td>${e.replyReceived ? '✅' : '-'}</td><td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td></tr>`;
+            tbody.innerHTML += `<tr>
+                <td><strong>${escapeHtml(comp)}</strong></td>
+                <td>${e.sentDate || '-'}</td>
+                <td>${e.opened ? '✅' : '⏳'}</td>
+                <td>${e.clicked ? '✅' : '⏳'}</td>
+                <td>${e.replyReceived ? '✅' : '-'}</td>
+                <td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td>
+            </tr>`;
         }
     }
     
@@ -1100,6 +1196,9 @@
         URL.revokeObjectURL(a.href);
     });
     
+    // Add refresh button handler
+    document.getElementById('refreshStatsBtn').addEventListener('click', refreshStatsFromBackend);
+    
     // ============================================================
     // INITIALIZATION
     // ============================================================
@@ -1115,6 +1214,7 @@
         renderTrackerTable();
         updateUsageUI();
         updateStats();
+        startAutoRefresh(); // Start automatic refresh every 30 seconds
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('mainContent').style.display = 'block';
     }
