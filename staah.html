@@ -1055,12 +1055,12 @@
     }
     
     // ============================================================
-    // EMAIL GENERATION WITH TRACKING & VARIATIONS
+    // EMAIL GENERATION WITH TRACKING & VARIATIONS (FIXED)
     // ============================================================
     function clearEmailPreview() {
         document.getElementById('emailPreviewContainer').innerHTML = `<div style="text-align:center;padding:40px;"><div style="font-size:36px;">✉️</div><div>Select a company and activate toggles</div></div>`;
         currentEmailHtml = null;
-        currentTrackingId = null;
+        // Don't clear currentTrackingId here - keep it for regenerated emails
     }
     
     async function refreshEmailPreview() {
@@ -1072,8 +1072,10 @@
         }
         
         const companyDetails = getCompanyDetails(currentCompany);
-        const trackingId = `preview_${Date.now()}`;
-        currentTrackingId = trackingId;
+        
+        // CRITICAL FIX: Use real tracking ID if available, otherwise use preview
+        const trackingId = currentTrackingId || `preview_${Date.now()}`;
+        logDebug(`Generating email with tracking ID: ${trackingId}`);
         
         const opening = personalizeText(getRandomItem(emailVariations.openings), companyDetails);
         const subject = personalizeText(getRandomItem(emailVariations.subjects), companyDetails);
@@ -1114,6 +1116,11 @@
             }
             
             const data = await response.json();
+            
+            // CRITICAL FIX: Set the currentTrackingId to the REAL tracking ID from the database
+            currentTrackingId = data.tracking_id;
+            logDebug('Real tracking ID received:', currentTrackingId);
+            
             if (!campaignTracker[currentCompany]) campaignTracker[currentCompany] = {};
             campaignTracker[currentCompany].sentDate = new Date().toISOString().split('T')[0];
             campaignTracker[currentCompany].trackingId = data.tracking_id;
@@ -1123,8 +1130,11 @@
             userData.emails_used += 1;
             updateUsageUI();
             logDebug('Email marked as sent for:', currentCompany, 'Tracking ID:', data.tracking_id);
-            alert(`✅ Email marked as sent!\n\nEmails remaining: ${data.emails_remaining}`);
+            alert(`✅ Email marked as sent!\n\nTracking ID: ${data.tracking_id}\nEmails remaining: ${data.emails_remaining}`);
+            
+            // Regenerate the email with the REAL tracking ID
             await refreshEmailPreview();
+            
         } catch (err) { logDebug('Error marking sent:', err.message); alert(`Error: ${err.message}`); }
     }
     
@@ -1146,15 +1156,16 @@
     function renderTrackerTable() {
         const tbody = document.getElementById('trackingBody');
         const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies.map(c => c.company_name)])].sort();
-        if (!allCompanies.length) { tbody.innerHTML = '<table><td colspan="6" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>'; return; }
+        if (!allCompanies.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>'; return; }
         tbody.innerHTML = '';
         for (const comp of allCompanies) {
             const e = campaignTracker[comp] || {};
             tbody.innerHTML += `<tr>
                 <td><strong>${escapeHtml(comp)}</strong></td>
                 <td>${e.sentDate || '-'}</td>
-                <td>${e.opened ? '✅' : '⏳'}</td><td>${e.clicked ? '✅' : '⏳'}
-                                <td>${e.replyReceived ? '✅' : '-'}</td>
+                <td>${e.opened ? '✅' : '⏳'}</td>
+                <td>${e.clicked ? '✅' : '⏳'}</td>
+                <td>${e.replyReceived ? '✅' : '-'}</td>
                 <td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td>
             </tr>`;
         }
