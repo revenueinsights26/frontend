@@ -306,7 +306,7 @@
 
         .trends-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 16px;
             margin: 0 28px 24px 28px;
         }
@@ -352,9 +352,11 @@
 
         .table-container {
             margin: 0 28px 28px 28px;
-            background: white;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
+            overflow: hidden; /* keeps border-radius visible */
+        }
+        .table-scroll-inner {
             overflow: auto;
             max-height: 500px;
         }
@@ -383,7 +385,7 @@
             left: 0;
             top: 0;
             background: #f0f4f8;
-            z-index: 30;
+            z-index: 30;   /* must be above both row-sticky and col-sticky */
             text-align: left;
         }
         .rate-table td {
@@ -392,6 +394,7 @@
             border-bottom: 1px solid #f1f5f9;
             border-right: 1px solid #f1f5f9;
             vertical-align: middle;
+            background: white;  /* needed so sticky cell doesn't show through */
         }
         .rate-table td:first-child {
             position: sticky;
@@ -400,12 +403,16 @@
             font-weight: 700;
             text-align: left;
             z-index: 5;
+            border-right: 2px solid #e2e8f0;
+            min-width: 180px;
+            max-width: 220px;
+            white-space: normal;
         }
         .rate-table tr:hover td {
             background: #f8fafc;
         }
         .rate-table tr:hover td:first-child {
-            background: #f8fafc;
+            background: #f0f7ff;
         }
         .date-header {
             display: flex;
@@ -1184,6 +1191,7 @@
             .ai-regen-btn { display: none !important; }
             .refresh-btn { display: none !important; }
             .table-container { max-height: none !important; overflow: visible !important; }
+            .table-scroll-inner { max-height: none !important; overflow: visible !important; }
             .rate-table th, .rate-table td { position: static !important; }
             .section-header, .kpi-grid, .movers-grid, .trends-grid,
             .table-container, .graph-section, .ai-commentary-section,
@@ -1371,8 +1379,9 @@
         <div class="hotel-compare-header">
             <div class="hotel-selector">
                 <label>🔍 Select your hotel:</label>
-                <input type="text" id="hotelSearchInput" class="hotel-search-input" placeholder="Type to search hotels..." autocomplete="off" list="hotelSuggestions">
-                <datalist id="hotelSuggestions"></datalist>
+                <select id="hotelSearchInput" class="hotel-search-input" style="min-width:280px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;background:white;cursor:pointer;">
+                    <option value="">— Select a hotel —</option>
+                </select>
                 <span class="compare-badge" id="selectedHotelBadge">Hospitality at Waterfall City</span>
             </div>
             <div class="date-range-selector">
@@ -1624,15 +1633,26 @@
     }
 
     function updateHotelDropdown() {
-        const datalist = document.getElementById('hotelSuggestions');
-        datalist.innerHTML = '';
+        const sel = document.getElementById('hotelSearchInput');
+        const prevVal = sel.value || selectedHotel;
+        sel.innerHTML = '<option value="">— Select a hotel —</option>';
         allHotelsList.forEach(hotel => {
-            const option = document.createElement('option');
-            option.value = hotel;
-            datalist.appendChild(option);
+            const opt = document.createElement('option');
+            opt.value = hotel;
+            opt.textContent = hotel;
+            sel.appendChild(opt);
         });
-        if (selectedHotel && allHotelsList.includes(selectedHotel)) {
-            document.getElementById('hotelSearchInput').value = selectedHotel;
+        // Restore selection: prefer previously selected, else first hotel
+        if (prevVal && allHotelsList.includes(prevVal)) {
+            sel.value = prevVal;
+            selectedHotel = prevVal;
+        } else if (allHotelsList.length > 0) {
+            sel.value = allHotelsList[0];
+            selectedHotel = allHotelsList[0];
+        }
+        const badge = document.getElementById('selectedHotelBadge');
+        if (selectedHotel) {
+            badge.textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
         }
     }
 
@@ -1648,7 +1668,9 @@
     }
 
     function onManualLoad() {
-        const val = document.getElementById('weekPicker').value;
+        const selectVal = document.getElementById('weekSelect').value;
+        const pickerVal = document.getElementById('weekPicker').value;
+        const val = selectVal || pickerVal;
         if (val) jumpToDate(val);
         else navigateDates('today');
     }
@@ -1665,9 +1687,9 @@
     }
 
     function setupHotelSearch() {
-        const input = document.getElementById('hotelSearchInput');
-        input.addEventListener('input', function() {
-            if (allHotelsList.includes(this.value)) {
+        const sel = document.getElementById('hotelSearchInput');
+        sel.addEventListener('change', function() {
+            if (this.value && allHotelsList.includes(this.value)) {
                 selectedHotel = this.value;
                 document.getElementById('selectedHotelBadge').textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
                 renderHotelComparison();
@@ -2176,9 +2198,14 @@
             </div>`;
         }).join('');
         
-        // Inject performance score before compare grid
-        const existingContent = document.getElementById('compareContent').innerHTML;
-        document.getElementById('compareContent').innerHTML = `
+        // Inject performance score into its own dedicated container (prevents duplication on re-render)
+        let perfContainer = document.getElementById('perfScoreContainer');
+        if (!perfContainer) {
+            perfContainer = document.createElement('div');
+            perfContainer.id = 'perfScoreContainer';
+            document.getElementById('compareContent').parentNode.insertBefore(perfContainer, document.getElementById('compareContent'));
+        }
+        perfContainer.innerHTML = `
             <div class="perf-score-ring">
                 ${perfSvg}
                 <div class="perf-score-info">
@@ -2187,7 +2214,7 @@
                     <div class="perf-score-desc">${perfGrade} · Ranked <strong>#${myRank}</strong> of <strong>${sorted.length}</strong> properties by average rate · ${hotelSoldOutDates.length} sold-out days in period</div>
                 </div>
             </div>
-        ` + existingContent;
+        `;
         
         document.getElementById('competitiveRankBars').innerHTML = rankBarsHtml;
     }
@@ -2324,7 +2351,7 @@
     }
 
     function renderTrends(data) {
-        const properties = data.properties.slice(0, 4);
+        const properties = data.properties; // show all, not just first 4
         const trendsHtml = properties.map(p => {
             const firstRate = p[`${data.days[0]}_current`] || 0;
             const lastRate = p[`${data.days[data.days.length - 1]}_current`] || 0;
@@ -2423,7 +2450,7 @@
         }
         
         tableHtml += `</tbody></table>`;
-        document.getElementById('tableContainer').innerHTML = tableHtml;
+        document.getElementById('tableContainer').innerHTML = `<div class="table-scroll-inner">${tableHtml}</div>`;
         
         if (dates.length >= 2) {
             document.getElementById('tableNote').innerHTML = `📌 Showing ${formatFullDate(dates[0])} — ${formatFullDate(dates[dates.length-1])} vs previous week | Use ‹ › arrows to navigate dates`;
