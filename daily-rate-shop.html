@@ -358,11 +358,11 @@
             margin: 0 28px 28px 28px;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
-            overflow: hidden;
+            overflow: hidden; /* keeps border-radius visible */
         }
         .table-scroll-inner {
             overflow-x: auto;
-            /* No max-height — table scrolls with the page so thead can stick below the nav */
+            /* No max-height — page scrolls vertically, thead pins to viewport */
         }
         .rate-table {
             width: 100%;
@@ -372,7 +372,7 @@
         }
         .rate-table th {
             position: sticky;
-            top: 122px; /* market-header (72px) + date-nav-bar (~50px) */
+            top: 122px; /* fallback: market-header(72) + date-nav(~50). JS corrects this dynamically */
             background: #f8fafc;
             padding: 14px 14px;
             text-align: center;
@@ -387,7 +387,7 @@
         .rate-table th:first-child {
             position: sticky;
             left: 0;
-            top: 122px;
+            top: 122px; /* same as above, JS corrects */
             background: #f0f4f8;
             z-index: 30;
             text-align: left;
@@ -1195,9 +1195,8 @@
             .ai-regen-btn { display: none !important; }
             .refresh-btn { display: none !important; }
             .table-container { overflow: visible !important; }
-            .table-scroll-inner { overflow: visible !important; }
-            .rate-table th { position: static !important; top: auto !important; }
-            .rate-table td { position: static !important; }
+            .table-scroll-inner { max-height: none !important; overflow: visible !important; }
+            .rate-table th, .rate-table td { position: static !important; top: auto !important; }
             .section-header, .kpi-grid, .movers-grid, .trends-grid,
             .table-container, .graph-section, .ai-commentary-section,
             .hotel-compare-section { break-inside: avoid; }
@@ -1304,17 +1303,10 @@
     <div class="date-nav-info" title="Shows 7 days per view. Use arrows or select a week below.">ℹ</div>
     <span id="dateRangeDisplay"></span>
     <div style="margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <div class="week-controls">
-            <label>📅 Jump to week:</label>
-            <input type="date" id="weekPicker" class="week-picker" onchange="onWeekPickerChange(this.value)">
-        </div>
-        <div class="week-controls">
-            <label>Saved weeks:</label>
-            <select id="weekSelect" class="week-select">
-                <option value="">— Select saved week —</option>
-            </select>
-        </div>
-        <button class="refresh-btn" onclick="onManualLoad()">Load</button>
+        <input type="date" id="weekPicker" class="week-picker" style="display:none;" onchange="onWeekPickerChange(this.value)">
+        <select id="weekSelect" class="week-select" style="display:none;">
+            <option value="">— Select saved week —</option>
+        </select>
     </div>
 </div>
 
@@ -1588,14 +1580,14 @@
         };
 
         renderTable(syntheticData, windowDates);
+        // Recalculate sticky offset now that both nav bars have final heights
+        setTimeout(updateStickyOffset, 0);
         renderChart(syntheticData, windowDates);
         renderKPIs(syntheticData);
         renderSoldOutAlert(syntheticData);
         renderFastMovers(syntheticData);
         generateAICommentary(syntheticData, windowDates);
         renderHotelComparison();
-        // Recalculate sticky offset now that nav bars have their final height
-        if (typeof updateStickyOffset === 'function') updateStickyOffset();
     }
 
     async function loadAvailableWeeks() {
@@ -2867,24 +2859,24 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
         setupHotelSearch();
     }
     
-    initialLoad();
-
-    // ── DYNAMIC STICKY OFFSET ───────────────────────────────────────────────
-    // Recalculate the exact height of the two sticky bars so the date header
-    // row always pins directly below them — even if date-nav-bar wraps on resize.
+    // ── DYNAMIC STICKY OFFSET ──────────────────────────────────────────────
+    // Measures the actual combined height of the two sticky nav bars so the
+    // date header row always pins directly below them — even when the nav wraps.
     function updateStickyOffset() {
         const header  = document.querySelector('.market-header');
         const dateNav = document.querySelector('.date-nav-bar');
         if (!header || !dateNav) return;
         const offset = header.offsetHeight + dateNav.offsetHeight;
+        // Pin date-nav directly below market-header
+        dateNav.style.top = header.offsetHeight + 'px';
+        // Pin all thead th cells below both bars
         document.querySelectorAll('.rate-table th').forEach(th => {
             th.style.top = offset + 'px';
         });
-        // Also keep date-nav-bar pinned directly below market-header
-        dateNav.style.top = header.offsetHeight + 'px';
     }
-    updateStickyOffset();
     window.addEventListener('resize', updateStickyOffset);
+
+    initialLoad();
 </script>
 </body>
 </html>
