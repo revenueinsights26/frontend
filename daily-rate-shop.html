@@ -89,10 +89,6 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
-            position: sticky;
-            top: 72px;
-            z-index: 90;
-            box-shadow: 0 1px 3px rgba(0,0,0,.04);
         }
         .date-nav-btn {
             width: 30px;
@@ -310,7 +306,7 @@
 
         .trends-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(4, 1fr);
             gap: 16px;
             margin: 0 28px 24px 28px;
         }
@@ -356,13 +352,11 @@
 
         .table-container {
             margin: 0 28px 28px 28px;
+            background: white;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
-            overflow: hidden; /* keeps border-radius visible */
-        }
-        .table-scroll-inner {
-            overflow-x: auto;
-            /* No max-height — page scrolls vertically, thead pins to viewport */
+            overflow: auto;
+            max-height: 500px;
         }
         .rate-table {
             width: 100%;
@@ -372,7 +366,7 @@
         }
         .rate-table th {
             position: sticky;
-            top: 122px; /* fallback: market-header(72) + date-nav(~50). JS corrects this dynamically */
+            top: 0;
             background: #f8fafc;
             padding: 14px 14px;
             text-align: center;
@@ -387,7 +381,7 @@
         .rate-table th:first-child {
             position: sticky;
             left: 0;
-            top: 122px; /* same as above, JS corrects */
+            top: 0;
             background: #f0f4f8;
             z-index: 30;
             text-align: left;
@@ -398,7 +392,6 @@
             border-bottom: 1px solid #f1f5f9;
             border-right: 1px solid #f1f5f9;
             vertical-align: middle;
-            background: white;  /* needed so sticky cell doesn't show through */
         }
         .rate-table td:first-child {
             position: sticky;
@@ -407,16 +400,12 @@
             font-weight: 700;
             text-align: left;
             z-index: 5;
-            border-right: 2px solid #e2e8f0;
-            min-width: 180px;
-            max-width: 220px;
-            white-space: normal;
         }
         .rate-table tr:hover td {
             background: #f8fafc;
         }
         .rate-table tr:hover td:first-child {
-            background: #f0f7ff;
+            background: #f8fafc;
         }
         .date-header {
             display: flex;
@@ -1194,9 +1183,8 @@
             .export-pdf-btn { display: none !important; }
             .ai-regen-btn { display: none !important; }
             .refresh-btn { display: none !important; }
-            .table-container { overflow: visible !important; }
-            .table-scroll-inner { max-height: none !important; overflow: visible !important; }
-            .rate-table th, .rate-table td { position: static !important; top: auto !important; }
+            .table-container { max-height: none !important; overflow: visible !important; }
+            .rate-table th, .rate-table td { position: static !important; }
             .section-header, .kpi-grid, .movers-grid, .trends-grid,
             .table-container, .graph-section, .ai-commentary-section,
             .hotel-compare-section { break-inside: avoid; }
@@ -1303,10 +1291,17 @@
     <div class="date-nav-info" title="Shows 7 days per view. Use arrows or select a week below.">ℹ</div>
     <span id="dateRangeDisplay"></span>
     <div style="margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-        <input type="date" id="weekPicker" class="week-picker" style="display:none;" onchange="onWeekPickerChange(this.value)">
-        <select id="weekSelect" class="week-select" style="display:none;">
-            <option value="">— Select saved week —</option>
-        </select>
+        <div class="week-controls">
+            <label>📅 Jump to week:</label>
+            <input type="date" id="weekPicker" class="week-picker" onchange="onWeekPickerChange(this.value)">
+        </div>
+        <div class="week-controls">
+            <label>Saved weeks:</label>
+            <select id="weekSelect" class="week-select">
+                <option value="">— Select saved week —</option>
+            </select>
+        </div>
+        <button class="refresh-btn" onclick="onManualLoad()">Load</button>
     </div>
 </div>
 
@@ -1376,9 +1371,8 @@
         <div class="hotel-compare-header">
             <div class="hotel-selector">
                 <label>🔍 Select your hotel:</label>
-                <select id="hotelSearchInput" class="hotel-search-input" style="min-width:280px;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:13px;font-family:inherit;background:white;cursor:pointer;">
-                    <option value="">— Select a hotel —</option>
-                </select>
+                <input type="text" id="hotelSearchInput" class="hotel-search-input" placeholder="Type to search hotels..." autocomplete="off" list="hotelSuggestions">
+                <datalist id="hotelSuggestions"></datalist>
                 <span class="compare-badge" id="selectedHotelBadge">Hospitality at Waterfall City</span>
             </div>
             <div class="date-range-selector">
@@ -1580,8 +1574,6 @@
         };
 
         renderTable(syntheticData, windowDates);
-        // Recalculate sticky offset now that both nav bars have final heights
-        setTimeout(updateStickyOffset, 0);
         renderChart(syntheticData, windowDates);
         renderKPIs(syntheticData);
         renderSoldOutAlert(syntheticData);
@@ -1632,26 +1624,15 @@
     }
 
     function updateHotelDropdown() {
-        const sel = document.getElementById('hotelSearchInput');
-        const prevVal = sel.value || selectedHotel;
-        sel.innerHTML = '<option value="">— Select a hotel —</option>';
+        const datalist = document.getElementById('hotelSuggestions');
+        datalist.innerHTML = '';
         allHotelsList.forEach(hotel => {
-            const opt = document.createElement('option');
-            opt.value = hotel;
-            opt.textContent = hotel;
-            sel.appendChild(opt);
+            const option = document.createElement('option');
+            option.value = hotel;
+            datalist.appendChild(option);
         });
-        // Restore selection: prefer previously selected, else first hotel
-        if (prevVal && allHotelsList.includes(prevVal)) {
-            sel.value = prevVal;
-            selectedHotel = prevVal;
-        } else if (allHotelsList.length > 0) {
-            sel.value = allHotelsList[0];
-            selectedHotel = allHotelsList[0];
-        }
-        const badge = document.getElementById('selectedHotelBadge');
-        if (selectedHotel) {
-            badge.textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
+        if (selectedHotel && allHotelsList.includes(selectedHotel)) {
+            document.getElementById('hotelSearchInput').value = selectedHotel;
         }
     }
 
@@ -1667,9 +1648,7 @@
     }
 
     function onManualLoad() {
-        const selectVal = document.getElementById('weekSelect').value;
-        const pickerVal = document.getElementById('weekPicker').value;
-        const val = selectVal || pickerVal;
+        const val = document.getElementById('weekPicker').value;
         if (val) jumpToDate(val);
         else navigateDates('today');
     }
@@ -1686,9 +1665,9 @@
     }
 
     function setupHotelSearch() {
-        const sel = document.getElementById('hotelSearchInput');
-        sel.addEventListener('change', function() {
-            if (this.value && allHotelsList.includes(this.value)) {
+        const input = document.getElementById('hotelSearchInput');
+        input.addEventListener('input', function() {
+            if (allHotelsList.includes(this.value)) {
                 selectedHotel = this.value;
                 document.getElementById('selectedHotelBadge').textContent = selectedHotel.length > 40 ? selectedHotel.substring(0, 37) + '...' : selectedHotel;
                 renderHotelComparison();
@@ -2197,14 +2176,9 @@
             </div>`;
         }).join('');
         
-        // Inject performance score into its own dedicated container (prevents duplication on re-render)
-        let perfContainer = document.getElementById('perfScoreContainer');
-        if (!perfContainer) {
-            perfContainer = document.createElement('div');
-            perfContainer.id = 'perfScoreContainer';
-            document.getElementById('compareContent').parentNode.insertBefore(perfContainer, document.getElementById('compareContent'));
-        }
-        perfContainer.innerHTML = `
+        // Inject performance score before compare grid
+        const existingContent = document.getElementById('compareContent').innerHTML;
+        document.getElementById('compareContent').innerHTML = `
             <div class="perf-score-ring">
                 ${perfSvg}
                 <div class="perf-score-info">
@@ -2213,7 +2187,7 @@
                     <div class="perf-score-desc">${perfGrade} · Ranked <strong>#${myRank}</strong> of <strong>${sorted.length}</strong> properties by average rate · ${hotelSoldOutDates.length} sold-out days in period</div>
                 </div>
             </div>
-        `;
+        ` + existingContent;
         
         document.getElementById('competitiveRankBars').innerHTML = rankBarsHtml;
     }
@@ -2350,7 +2324,7 @@
     }
 
     function renderTrends(data) {
-        const properties = data.properties; // show all, not just first 4
+        const properties = data.properties.slice(0, 4);
         const trendsHtml = properties.map(p => {
             const firstRate = p[`${data.days[0]}_current`] || 0;
             const lastRate = p[`${data.days[data.days.length - 1]}_current`] || 0;
@@ -2449,7 +2423,7 @@
         }
         
         tableHtml += `</tbody></table>`;
-        document.getElementById('tableContainer').innerHTML = `<div class="table-scroll-inner">${tableHtml}</div>`;
+        document.getElementById('tableContainer').innerHTML = tableHtml;
         
         if (dates.length >= 2) {
             document.getElementById('tableNote').innerHTML = `📌 Showing ${formatFullDate(dates[0])} — ${formatFullDate(dates[dates.length-1])} vs previous week | Use ‹ › arrows to navigate dates`;
@@ -2859,23 +2833,6 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
         setupHotelSearch();
     }
     
-    // ── DYNAMIC STICKY OFFSET ──────────────────────────────────────────────
-    // Measures the actual combined height of the two sticky nav bars so the
-    // date header row always pins directly below them — even when the nav wraps.
-    function updateStickyOffset() {
-        const header  = document.querySelector('.market-header');
-        const dateNav = document.querySelector('.date-nav-bar');
-        if (!header || !dateNav) return;
-        const offset = header.offsetHeight + dateNav.offsetHeight;
-        // Pin date-nav directly below market-header
-        dateNav.style.top = header.offsetHeight + 'px';
-        // Pin all thead th cells below both bars
-        document.querySelectorAll('.rate-table th').forEach(th => {
-            th.style.top = offset + 'px';
-        });
-    }
-    window.addEventListener('resize', updateStickyOffset);
-
     initialLoad();
 </script>
 </body>
