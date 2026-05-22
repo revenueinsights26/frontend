@@ -89,6 +89,10 @@
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            position: sticky;
+            top: 72px;
+            z-index: 90;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04);
         }
         .date-nav-btn {
             width: 30px;
@@ -354,11 +358,11 @@
             margin: 0 28px 28px 28px;
             border-radius: 20px;
             border: 1px solid #e2e8f0;
-            overflow: hidden; /* keeps border-radius visible */
+            overflow: hidden;
         }
         .table-scroll-inner {
-            overflow: auto;
-            max-height: 500px;
+            overflow-x: auto;
+            /* No max-height — table scrolls with the page so thead can stick below the nav */
         }
         .rate-table {
             width: 100%;
@@ -368,7 +372,7 @@
         }
         .rate-table th {
             position: sticky;
-            top: 0;
+            top: 122px; /* market-header (72px) + date-nav-bar (~50px) */
             background: #f8fafc;
             padding: 14px 14px;
             text-align: center;
@@ -383,9 +387,9 @@
         .rate-table th:first-child {
             position: sticky;
             left: 0;
-            top: 0;
+            top: 122px;
             background: #f0f4f8;
-            z-index: 30;   /* must be above both row-sticky and col-sticky */
+            z-index: 30;
             text-align: left;
         }
         .rate-table td {
@@ -1190,9 +1194,10 @@
             .export-pdf-btn { display: none !important; }
             .ai-regen-btn { display: none !important; }
             .refresh-btn { display: none !important; }
-            .table-container { max-height: none !important; overflow: visible !important; }
-            .table-scroll-inner { max-height: none !important; overflow: visible !important; }
-            .rate-table th, .rate-table td { position: static !important; }
+            .table-container { overflow: visible !important; }
+            .table-scroll-inner { overflow: visible !important; }
+            .rate-table th { position: static !important; top: auto !important; }
+            .rate-table td { position: static !important; }
             .section-header, .kpi-grid, .movers-grid, .trends-grid,
             .table-container, .graph-section, .ai-commentary-section,
             .hotel-compare-section { break-inside: avoid; }
@@ -1589,6 +1594,8 @@
         renderFastMovers(syntheticData);
         generateAICommentary(syntheticData, windowDates);
         renderHotelComparison();
+        // Recalculate sticky offset now that nav bars have their final height
+        if (typeof updateStickyOffset === 'function') updateStickyOffset();
     }
 
     async function loadAvailableWeeks() {
@@ -2861,6 +2868,23 @@ Respond ONLY with a valid JSON object (no markdown, no backticks) with this stru
     }
     
     initialLoad();
+
+    // ── DYNAMIC STICKY OFFSET ───────────────────────────────────────────────
+    // Recalculate the exact height of the two sticky bars so the date header
+    // row always pins directly below them — even if date-nav-bar wraps on resize.
+    function updateStickyOffset() {
+        const header  = document.querySelector('.market-header');
+        const dateNav = document.querySelector('.date-nav-bar');
+        if (!header || !dateNav) return;
+        const offset = header.offsetHeight + dateNav.offsetHeight;
+        document.querySelectorAll('.rate-table th').forEach(th => {
+            th.style.top = offset + 'px';
+        });
+        // Also keep date-nav-bar pinned directly below market-header
+        dateNav.style.top = header.offsetHeight + 'px';
+    }
+    updateStickyOffset();
+    window.addEventListener('resize', updateStickyOffset);
 </script>
 </body>
 </html>
