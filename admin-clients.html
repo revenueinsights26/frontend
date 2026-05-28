@@ -287,11 +287,45 @@
             color: #1e40af;
         }
 
-        .token-cell {
-            font-family: 'SF Mono', monospace;
-            font-size: 10px;
-            max-width: 200px;
-            word-break: break-all;
+        .btn-danger {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1.5px solid #fecaca;
+        }
+        .btn-danger:hover {
+            background: #fecaca;
+            border-color: #f87171;
+        }
+        .btn-warning {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1.5px solid #fde68a;
+        }
+        .btn-warning:hover {
+            background: #fde68a;
+            border-color: #fbbf24;
+        }
+        /* toast notification */
+        #adminToast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            background: #0f172a;
+            color: white;
+            padding: 12px 22px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.2s ease;
+            pointer-events: none;
+        }
+        #adminToast.show {
+            opacity: 1;
+            transform: translateY(0);
         }
 
         .copy-btn {
@@ -412,6 +446,8 @@
     </style>
 </head>
 <body>
+
+<div id="adminToast"></div>
 
 <div class="container">
     <!-- header with title upgrade -->
@@ -697,10 +733,12 @@
                     <div class="progress-bar" style="background:#e2e8f0; border-radius:8px; height:5px; width:100%; margin-top:4px;"><div style="width:${Math.min(usagePercent,100)}%; background:#10b981; height:5px; border-radius:8px;"></div></div>
                 </td>
                 <td style="font-size:11px;">📨 ${user.stats?.total_sent||0} sent | 👁️ ${user.stats?.opened||0} (${openRate}%) | 🔗 ${user.stats?.clicked||0}</td>
-                <td><div class="action-buttons" style="display:flex; gap:6px;">
+                <td><div class="action-buttons" style="display:flex; gap:6px; flex-wrap:wrap;">
                     <button class="btn-sm btn-outline" onclick="openEditModal('${user.user_id}', '${escapeHtml(user.full_name)}', ${user.email_limit}, ${user.emails_used}, ${user.is_active})">✏️ Edit</button>
-                    <button class="btn-sm btn-outline" onclick="copyUserLink('${user.user_id}')">🔗 Copy User URL</button>
+                    <button class="btn-sm btn-outline" onclick="copyUserLink('${user.user_id}')">🔗 Copy URL</button>
                     <button class="btn-sm btn-outline" onclick="resetLimits('${user.user_id}')">🔄 Reset emails</button>
+                    <button class="btn-sm btn-warning" onclick="regenToken('${user.user_id}', '${escapeHtml(user.full_name)}')">🔑 New Token</button>
+                    <button class="btn-sm btn-danger" onclick="deleteMarketingUser('${user.user_id}', '${escapeHtml(user.full_name)}')">🗑️ Delete</button>
                 </div></td>
             </tr>`;
         }
@@ -811,7 +849,85 @@
             alert(`Dashboard URL copied:\n${url}`);
         } else alert("User or token missing");
     }
-    function copyToClipboard(text) { if(text) navigator.clipboard.writeText(text); alert("Copied ✅"); }
+    // ---- DELETE MARKETING USER ----
+    async function deleteMarketingUser(userId, userName) {
+        if (!confirm(`⚠️ Delete "${userName}"?\n\nThis will permanently remove the user and their access token. They will no longer be able to log into the marketing dashboard.\n\nThis cannot be undone.`)) return;
+        try {
+            const res = await fetch(`${API}/marketing/users/${userId}`, {
+                method: 'DELETE',
+                headers: { 'X-Admin-Key': ADMIN_KEY }
+            });
+            if (res.ok) {
+                showToast(`🗑️ "${userName}" deleted successfully`);
+                fetchMarketingData();
+                setTimeout(() => updateUI(), 400);
+            } else {
+                const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                // Fallback: if DELETE endpoint doesn't exist yet, deactivate instead
+                if (res.status === 404 || res.status === 405) {
+                    if (confirm(`Delete endpoint not available. Deactivate "${userName}" instead?`)) {
+                        const res2 = await fetch(`${API}/marketing/users/${userId}`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json', 'X-Admin-Key': ADMIN_KEY },
+                            body: JSON.stringify({ is_active: 0 })
+                        });
+                        if (res2.ok) {
+                            showToast(`⚠️ "${userName}" deactivated (delete endpoint unavailable)`);
+                            fetchMarketingData(); setTimeout(() => updateUI(), 400);
+                        }
+                    }
+                } else {
+                    alert(`❌ Delete failed: ${err.detail}`);
+                }
+            }
+        } catch (e) { alert(`Network error: ${e.message}`); }
+    }
+
+    // ---- REGENERATE TOKEN ----
+    async function regenToken(userId, userName) {
+        if (!confirm(`🔑 Regenerate access token for "${userName}"?\n\nTheir current dashboard link will stop working immediately. You'll need to share the new URL with them.`)) return;
+        try {
+            const res = await fetch(`${API}/marketing/users/${userId}/regenerate-token`, {
+                method: 'POST',
+                headers: { 'X-Admin-Key': ADMIN_KEY }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                const newToken = data.access_token || data.token || data.new_token;
+                if (newToken) {
+                    const newUrl = `${window.location.origin}/frontend/marketing-dashboard.html?token=${newToken}`;
+                    navigator.clipboard.writeText(newUrl).catch(() => {});
+                    showToast('🔑 New token generated — URL copied to clipboard!');
+                    // Show the new URL in a prompt so they can copy it manually too
+                    setTimeout(() => {
+                        prompt(`✅ New dashboard URL for "${userName}" (also copied to clipboard):`, newUrl);
+                    }, 400);
+                    fetchMarketingData(); setTimeout(() => updateUI(), 400);
+                } else {
+                    alert('Token regenerated but no token returned. Refresh the page.');
+                    fetchMarketingData();
+                }
+            } else {
+                const err = await res.json().catch(() => ({ detail: 'Unknown error' }));
+                alert(`❌ Regenerate failed: ${err.detail}\n\nYour backend may need a /marketing/users/{id}/regenerate-token POST endpoint.`);
+            }
+        } catch (e) { alert(`Network error: ${e.message}`); }
+    }
+
+    // ---- TOAST (replaces alert for copy actions) ----
+    let toastTimer = null;
+    function showToast(msg) {
+        const t = document.getElementById('adminToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    function copyToClipboard(text) {
+        if (text) navigator.clipboard.writeText(text).catch(() => {});
+        showToast('✅ Copied to clipboard');
+    }
     function exportData() {
         if(currentProduct !== 'marketing') return;
         let csv = "User,Email,Company,Trial Expiry,Emails Sent,Limit,Opens,Clicks\n";
