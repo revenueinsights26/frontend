@@ -680,7 +680,7 @@
             const isTrialValid = user.trial_expiry && new Date(user.trial_expiry) > new Date();
             const usagePercent = (user.emails_used / user.email_limit) * 100;
             const openRate = user.stats?.total_sent > 0 ? Math.round((user.stats.opened / user.stats.total_sent) * 100) : 0;
-            const dashboardLink = `${window.location.origin}/marketing-dashboard.html?token=${user.access_token || ''}`;
+            const dashboardLink = `${window.location.origin}/frontend/marketing-dashboard.html?token=${user.access_token || ''}`;
             html += `<tr>
                 <td><strong>${escapeHtml(user.full_name)}</strong><br><span style="font-size:10px;">${escapeHtml(user.email)}</span></td>
                 <td>${escapeHtml(user.company_name || '—')}</td>
@@ -754,7 +754,7 @@
             });
             const data = await res.json();
             if(res.ok) {
-                const fullUrl = `${window.location.origin}/marketing-dashboard.html?token=${data.access_token}`;
+                const fullUrl = `${window.location.origin}/frontend/marketing-dashboard.html?token=${data.access_token}`;
                 alert(`✅ User Created!\n\nToken: ${data.access_token}\n\nDashboard URL: ${fullUrl}\n\nShare this URL with the user.`);
                 closeCreateModal();
                 fetchMarketingData();
@@ -806,7 +806,7 @@
     function copyUserLink(userId) {
         const user = marketingData.users.find(u => u.user_id === userId);
         if(user?.access_token) {
-            const url = `${window.location.origin}/marketing-dashboard.html?token=${user.access_token}`;
+            const url = `${window.location.origin}/frontend/marketing-dashboard.html?token=${user.access_token}`;
             copyToClipboard(url);
             alert(`Dashboard URL copied:\n${url}`);
         } else alert("User or token missing");
