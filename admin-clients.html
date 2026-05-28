@@ -4,15 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     
-    <!-- ✅ ONLY ADDED THIS CSP FIX - EVERYTHING ELSE IS YOUR ORIGINAL CODE -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        connect-src 'self' https://backend-x5sw.onrender.com https://api.openai.com https://api.anthropic.com;
-        img-src 'self' data: https:;
-        script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://api.anthropic.com;
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        font-src 'self' data: https://fonts.gstatic.com;
-    ">
+    <!-- ✅ ADDED CSP FIX - Allows backend connections -->
+    <meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://backend-x5sw.onrender.com https://api.anthropic.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
     
     <title>HotelIQ | Unified Client Management Dashboard</title>
     <style>
@@ -657,7 +650,7 @@
                                 🛏️ Rooms: ${hotel.rooms_available} · 💱 ${hotel.currency_code} (${hotel.currency_symbol})
                             </div>`;
                 }
-                html += `</div></div></td></tr>`;
+                html += `</div></div></tr></tr>`;
             }
         }
         html += `</tbody></table>`;
@@ -682,7 +675,7 @@
         }
         let html = `<table style="width:100%"><thead><tr>
             <th>User</th><th>Company / Email</th><th>Access Token & Dashboard URL</th><th>Trial & Usage</th><th>Stats</th><th>Actions</th>
-        </tr></thead><tbody>`;
+        <tr></thead><tbody>`;
         for(let user of filtered) {
             const isTrialValid = user.trial_expiry && new Date(user.trial_expiry) > new Date();
             const usagePercent = (user.emails_used / user.email_limit) * 100;
