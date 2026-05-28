@@ -945,7 +945,7 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         try {
             const res = await fetch(API + '/marketing/ai/generate-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-User-Token': userToken },
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
                 body: JSON.stringify({
                     company_name: currentCompany,
                     industry: industry,
@@ -1277,7 +1277,7 @@ Respond ONLY with valid JSON — no markdown, no preamble:
 
             const res = await fetch(API + '/marketing/ai/extract-toggles', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-User-Token': userToken },
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
                 body: JSON.stringify({ document_text: extractedText })
             });
             if (!res.ok) { const e = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(e.detail || res.statusText); }
