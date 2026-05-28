@@ -535,6 +535,12 @@
     async function fetchRevenueData() {
         try {
             const res = await fetch(`${API}/admin/clients`);
+            if (!res.ok) {
+                if (res.status === 404) console.warn('Revenue endpoint not found (404) — check API URL');
+                else console.warn(`Revenue fetch failed: HTTP ${res.status}`);
+                revenueData.owners = []; revenueData.hotels = [];
+                return;
+            }
             const data = await res.json();
             revenueData.owners = data.owners || [];
             revenueData.hotels = data.hotels || [];
@@ -544,6 +550,13 @@
     async function fetchMarketingData() {
         try {
             const res = await fetch(`${API}/marketing/users/list`, { headers: { "X-Admin-Key": ADMIN_KEY } });
+            if (!res.ok) {
+                if (res.status === 404) console.warn('Marketing endpoint not found (404) — check API URL');
+                else if (res.status === 401 || res.status === 403) console.warn('Marketing fetch: invalid or missing admin key');
+                else console.warn(`Marketing fetch failed: HTTP ${res.status}`);
+                marketingData.users = [];
+                return;
+            }
             const data = await res.json();
             marketingData.users = data.users || [];
         } catch(err) { console.error("Marketing error", err); marketingData.users = []; }
@@ -644,7 +657,7 @@
                                 🛏️ Rooms: ${hotel.rooms_available} · 💱 ${hotel.currency_code} (${hotel.currency_symbol})
                             </div>`;
                 }
-                html += `</div></div></tr></tr>`;
+                html += `</div></div></td></tr>`;
             }
         }
         html += `</tbody></table>`;
@@ -667,7 +680,7 @@
             container.innerHTML = '<div style="padding:60px; text-align:center;">📭 No marketing users. Click "Create Marketing User".</div>';
             return;
         }
-        let html = `<tr><thead><tr>
+        let html = `<table style="width:100%"><thead><tr>
             <th>User</th><th>Company / Email</th><th>Access Token & Dashboard URL</th><th>Trial & Usage</th><th>Stats</th><th>Actions</th>
         </tr></thead><tbody>`;
         for(let user of filtered) {
@@ -698,7 +711,7 @@
                 </div></td>
             </tr>`;
         }
-        html += `</tbody><table>`;
+        html += `</tbody></table>`;
         container.innerHTML = html;
     }
 
