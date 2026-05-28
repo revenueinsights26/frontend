@@ -185,17 +185,14 @@
         .c-status-lbl { font-size: 11px; color: var(--text-muted); }
 
         /* Table */
-        .track-table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .track-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; }
+        .track-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .track-table th {
             background: var(--surface); color: var(--text-muted);
             font-size: 11px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.5px; padding: 10px 12px; text-align: left;
-            position: sticky; top: 0; z-index: 1; white-space: nowrap;
+            position: sticky; top: 0; z-index: 1;
         }
-        .track-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .track-table td:first-child { max-width: 120px; }
-        .track-table td:nth-child(2) { max-width: 140px; font-size: 11px; color: var(--text-muted); }
+        .track-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
         .track-table tr:hover td { background: #fafcff; }
 
         /* Email Preview */
@@ -404,7 +401,7 @@
                         <span class="section-title">📋 Campaign Tracker</span>
                         <button onclick="resetTracker()" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
                     </div>
-                    <div class="track-table-wrap">
+                    <div style="overflow-x:auto;max-height:280px;">
                         <table class="track-table" id="trackingTable">
                             <thead>
                                 <tr><th>Company</th><th>Email</th><th>Sent</th><th>Opened</th><th>Clicked</th><th>Reply</th><th>Action</th></tr>
@@ -532,21 +529,12 @@
             });
             
             if (!response.ok) {
-                let errorDetail = 'Failed to load data';
-                try {
-                    const error = await response.json();
-                    errorDetail = error.detail || errorDetail;
-                } catch (_) { /* response body wasn't JSON */ }
-                
-                if (response.status === 404) {
-                    showError('Access token not found. Please check your link or contact your administrator.');
-                    return false;
-                }
+                const error = await response.json();
                 if (response.status === 401 || response.status === 403) {
                     showError('Invalid or expired access. Please contact your administrator.');
                     return false;
                 }
-                throw new Error(errorDetail);
+                throw new Error(error.detail || 'Failed to load data');
             }
             
             const data = await response.json();
