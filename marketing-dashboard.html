@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     
     <!-- ✅ FIXED CSP - Added default-src 'self' -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://backend-x5sw.onrender.com https://api.anthropic.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://backend-x5sw.onrender.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
     
     <title>Outreach Builder · Marketing Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -943,20 +943,22 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
 }`;
 
         try {
-            const res = await fetch('https://api.anthropic.com/v1/messages', {
+            const res = await fetch(API + '/marketing/ai/generate-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': userToken },
                 body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 1000,
-                    messages: [{ role: 'user', content: prompt }]
+                    company_name: currentCompany,
+                    industry: industry,
+                    tone: currentTone,
+                    sender_name: senderName,
+                    sender_tagline: brand?.tagline || '',
+                    sender_icon: brand?.brand_icon || '',
+                    toggles: activeToggles,
+                    today_str: todayStr
                 })
             });
-            
-            const data = await res.json();
-            const rawText = data.content?.map(b => b.text || '').join('') || '';
-            const clean = rawText.replace(/```json|```/g, '').trim();
-            const parsed = JSON.parse(clean);
+            if (!res.ok) { const e = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(e.detail || res.statusText); }
+            const parsed = await res.json();
             
             const benefitBlocksHtml = (parsed.benefit_blocks || activeToggles.map(t => ({ icon: t.icon, name: t.name, body: t.content }))).map(b => `
                 <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
@@ -1273,20 +1275,13 @@ Respond ONLY with valid JSON — no markdown, no preamble:
   ]
 }`;
 
-            const res = await fetch('https://api.anthropic.com/v1/messages', {
+            const res = await fetch(API + '/marketing/ai/extract-toggles', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 1000,
-                    messages: [{ role: 'user', content: prompt }]
-                })
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': userToken },
+                body: JSON.stringify({ document_text: extractedText })
             });
-            
-            const data = await res.json();
-            const rawText = data.content?.map(b => b.text || '').join('') || '';
-            const clean = rawText.replace(/```json|```/g, '').trim();
-            const parsed = JSON.parse(clean);
+            if (!res.ok) { const e = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(e.detail || res.statusText); }
+            const parsed = await res.json();
             
             if (parsed.toggles && parsed.toggles.length > 0) {
                 // Replace current toggles with AI-extracted ones (keep is_active = false)
