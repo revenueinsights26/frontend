@@ -6,7 +6,8 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://backend-x5sw.onrender.com https://api.anthropic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
     <title>Outreach Builder · Marketing Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"
+            onerror="console.warn('mammoth CDN failed, loading fallback'); var s=document.createElement('script'); s.src='https://unpkg.com/mammoth@1.6.0/mammoth.browser.min.js'; document.head.appendChild(s);"></script>
     <style>
         :root {
             --navy: #0d1b2e;
@@ -994,18 +995,16 @@ Based on this reading behaviour, provide:
 Be specific, direct, and confident. No generic advice. Respond in plain text, no markdown, no bullet points. Use paragraph breaks between the 3 parts.`;
 
         try {
-            const res = await fetch('https://api.anthropic.com/v1/messages', {
+            // AI insight is proxied through your backend — the Anthropic API key
+            // never touches the browser. The backend endpoint is /marketing/ai/read-insight.
+            const res = await fetch(`${API}/marketing/ai/read-insight`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: 'claude-sonnet-4-20250514',
-                    max_tokens: 1000,
-                    messages: [{ role: 'user', content: prompt }]
-                })
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
+                body: JSON.stringify({ prompt })
             });
             
             const data = await res.json();
-            const text = data.content?.map(b => b.text || '').join('') || 'Unable to generate insight.';
+            const text = data.text || 'Unable to generate insight.';
             const parts = text.trim().split(/\n\n+/);
             
             document.getElementById('aiInsightContent').innerHTML = `
