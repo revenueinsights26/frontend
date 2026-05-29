@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outreach Builder — User Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1b2e;
+    --paper: #faf8f4;
+    --cream: #f2ede4;
+    --teal: #0f6e56;
+    --teal-light: #1d9e75;
+    --teal-pale: #e6f5f0;
+    --gold: #c8851a;
+    --gold-pale: #fef3c7;
+    --red-pale: #fef2f2;
+    --red: #dc2626;
+    --border: #e0d8ce;
+    --muted: #6b7280;
+    --white: #ffffff;
+    --step-1: #0f6e56;
+    --step-2: #1a56db;
+    --step-3: #7c3aed;
+    --step-4: #b45309;
+    --step-5: #0f6e56;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--ink);
+    padding: 64px 40px 56px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 60% 80% at 80% 50%, rgba(15,110,86,0.35) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 60% at 10% 80%, rgba(26,86,219,0.2) 0%, transparent 60%);
+  }
+  .hero-inner { max-width: 860px; margin: 0 auto; position: relative; }
+  .hero-label {
+    display: inline-block;
+    background: rgba(15,110,86,0.25);
+    border: 1px solid rgba(15,110,86,0.5);
+    color: #6ee7b7;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 40px;
+    margin-bottom: 22px;
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(36px, 5vw, 58px);
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.1;
+    margin-bottom: 18px;
+  }
+  .hero h1 span { color: #6ee7b7; }
+  .hero-sub {
+    font-size: 17px;
+    color: #94a3b8;
+    max-width: 560px;
+    line-height: 1.65;
+    margin-bottom: 32px;
+  }
+  .hero-steps {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .hero-step-pill {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-step-pill .num {
+    width: 18px; height: 18px; border-radius: 50%;
+    background: var(--teal); color: white;
+    font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── NAV ── */
+  .toc-bar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .toc-bar-inner {
+    display: flex;
+    gap: 0;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  .toc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .toc-link:hover { color: var(--teal); border-bottom-color: var(--teal); }
+
+  /* ── CONTENT ── */
+  .content { max-width: 860px; margin: 0 auto; padding: 56px 40px; }
+
+  /* ── VALUE BOX ── */
+  .value-box {
+    background: var(--teal-pale);
+    border: 1px solid #a7f3d0;
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .value-item { text-align: center; }
+  .value-icon { font-size: 28px; margin-bottom: 8px; }
+  .value-title { font-weight: 700; font-size: 14px; color: var(--teal); }
+  .value-desc { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+  /* ── SECTION ── */
+  .section { margin-bottom: 64px; }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--border);
+  }
+  .section-num {
+    width: 40px; height: 40px; border-radius: 50%;
+    font-family: 'Fraunces', serif;
+    font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: white;
+  }
+  .num-teal { background: var(--step-1); }
+  .num-blue { background: var(--step-2); }
+  .num-purple { background: var(--step-3); }
+  .num-amber { background: var(--step-4); }
+  .num-green { background: var(--step-5); }
+
+  .section-title-text {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .section-title-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 20px; }
+  .step-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    transition: box-shadow 0.15s;
+  }
+  .step-card:hover { box-shadow: 0 4px 20px rgba(13,27,46,0.08); }
+  .step-bullet {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--cream);
+    border: 2px solid var(--border);
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--ink);
+    margin-top: 2px;
+  }
+  .step-body {}
+  .step-heading { font-weight: 700; font-size: 15px; margin-bottom: 5px; }
+  .step-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+  .step-desc strong { color: var(--ink); }
+
+  /* ── MOCK UI ── */
+  .mock-ui {
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 20px 0;
+    box-shadow: 0 2px 12px rgba(13,27,46,0.06);
+  }
+  .mock-topbar {
+    background: var(--ink);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mock-label {
+    margin-left: 8px;
+    font-size: 11px;
+    color: #64748b;
+    font-family: 'DM Mono', monospace;
+  }
+  .mock-body { padding: 20px; }
+
+  /* Settings modal mock */
+  .mock-modal {
+    background: #f7f9fc;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    max-width: 380px;
+  }
+  .mock-modal h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  .mock-modal-sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  .mock-field { margin-bottom: 12px; }
+  .mock-field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .mock-input {
+    width: 100%;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+  }
+  .mock-input.filled { border-color: var(--teal); color: var(--teal); }
+  .mock-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  .mock-btn {
+    padding: 8px 18px;
+    border-radius: 40px;
+    font-size: 12px;
+    font-weight: 700;
+    border: none;
+    cursor: default;
+  }
+  .mock-btn-teal { background: var(--teal); color: white; }
+  .mock-btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
+
+  /* Toggle mocks */
+  .mock-toggles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .mock-toggle {
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--border);
+    background: #f7f9fc;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .mock-toggle.on { background: var(--teal-pale); border-color: var(--teal); color: var(--teal); }
+  .mock-toggle-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); margin-left: auto; }
+  .mock-toggle.on .mock-toggle-dot { background: var(--teal); }
+
+  /* Company list mock */
+  .mock-company {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13px;
+  }
+  .mock-company:last-child { border-bottom: none; }
+  .mock-company.sel { background: var(--teal-pale); }
+  .mc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .mc-name { font-weight: 600; flex: 1; }
+  .mc-status { font-size: 11px; color: var(--muted); }
+
+  /* Tracker table mock */
+  .mock-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .mock-table th { background: #f7f9fc; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  .mock-table td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; color: var(--ink); }
+  .rt-tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+  .rt-green { background: #f0fdf4; color: #16a34a; }
+  .rt-yellow { background: #fffbeb; color: #b45309; }
+  .rt-red { background: #fef2f2; color: #dc2626; }
+
+  /* ── CALLOUTS ── */
+  .callout {
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .callout-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .callout-body { line-height: 1.6; }
+  .callout-body strong { display: block; margin-bottom: 3px; }
+  .callout.tip { background: var(--teal-pale); border-left: 4px solid var(--teal); }
+  .callout.warn { background: var(--gold-pale); border-left: 4px solid var(--gold); color: #78350f; }
+  .callout.danger { background: var(--red-pale); border-left: 4px solid var(--red); }
+  .callout.info { background: #eff6ff; border-left: 4px solid #3b82f6; }
+
+  /* ── GLOSSARY ── */
+  .glossary { display: flex; flex-direction: column; gap: 12px; }
+  .gloss-item { display: flex; gap: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; }
+  .gloss-term { font-weight: 700; font-size: 14px; min-width: 160px; color: var(--teal); }
+  .gloss-def { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+  /* ── FAQ ── */
+  .faq { display: flex; flex-direction: column; gap: 12px; }
+  .faq-item { background: var(--white); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .faq-q { padding: 14px 18px; font-weight: 600; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .faq-q::after { content: '›'; font-size: 18px; color: var(--muted); transform: rotate(90deg); display: inline-block; }
+  .faq-a { padding: 0 18px 14px; font-size: 13px; color: var(--muted); line-height: 1.65; }
+
+  /* ── PRICING CARD ── */
+  .pricing-note {
+    background: linear-gradient(135deg, var(--ink) 0%, #1e3a5f 100%);
+    border-radius: 16px;
+    padding: 28px 32px;
+    color: white;
+    margin-bottom: 40px;
+  }
+  .pricing-note h3 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 8px; color: #e2e8f0; }
+  .pricing-note p { font-size: 14px; color: #94a3b8; line-height: 1.65; }
+  .pricing-note strong { color: #6ee7b7; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: #64748b;
+    text-align: center;
+    font-size: 13px;
+    padding: 32px 24px;
+    margin-top: 64px;
+  }
+  footer span { color: #94a3b8; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 2px solid var(--border); margin: 48px 0; }
+
+  /* ══════════════════════════════════════════
+     MOBILE — full rewrite for phones
+  ══════════════════════════════════════════ */
+  @media (max-width: 700px) {
+
+    /* Body */
+    body { font-size: 14px; }
+
+    /* Hero */
+    .hero { padding: 36px 18px 40px; }
+    .hero h1 { font-size: 34px; line-height: 1.1; }
+    .hero-sub { font-size: 15px; margin-bottom: 24px; }
+    .hero-steps { gap: 8px; }
+    .hero-step-pill { font-size: 11px; padding: 5px 11px; }
+
+    /* TOC bar — scrollable, smaller text */
+    .toc-bar { padding: 0 10px; }
+    .toc-link { font-size: 11px; padding: 12px 10px; gap: 4px; }
+
+    /* Content */
+    .content { padding: 28px 16px 48px; }
+
+    /* Value box — single column */
+    .value-box {
+      grid-template-columns: 1fr 1fr;
+      padding: 20px 16px;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .value-icon { font-size: 22px; }
+    .value-title { font-size: 12px; }
+    .value-desc { font-size: 11px; }
+
+    /* Section header */
+    .section { margin-bottom: 48px; }
+    .section-header { gap: 10px; margin-bottom: 20px; padding-bottom: 14px; }
+    .section-num { width: 34px; height: 34px; font-size: 15px; }
+    .section-title-text { font-size: 20px; }
+    .section-title-sub { font-size: 12px; }
+
+    /* Steps */
+    .steps { gap: 14px; }
+    .step-card { padding: 16px; gap: 12px; border-radius: 12px; }
+    .step-bullet { width: 28px; height: 28px; font-size: 12px; }
+    .step-heading { font-size: 14px; }
+    .step-desc { font-size: 13px; }
+
+    /* Callouts */
+    .callout { padding: 13px 14px; gap: 10px; font-size: 13px; }
+    .callout-icon { font-size: 16px; }
+
+    /* Mock UI */
+    .mock-ui { border-radius: 10px; }
+    .mock-body { padding: 14px; overflow-x: auto; }
+    .mock-modal { max-width: 100%; }
+    .mock-input { font-size: 12px; padding: 7px 10px; }
+    .mock-btn { font-size: 11px; padding: 7px 14px; }
+
+    /* Toggles mock — single col on very small */
+    .mock-toggles { grid-template-columns: 1fr; gap: 6px; }
+    .mock-toggle { font-size: 11px; padding: 8px 10px; }
+
+    /* Company mock */
+    .mock-company { padding: 8px 10px; font-size: 12px; }
+
+    /* Table mock — scroll horizontally */
+    .mock-table { font-size: 11px; min-width: 520px; }
+    .mock-table th { padding: 7px 8px; font-size: 9px; }
+    .mock-table td { padding: 8px 8px; }
+    .rt-tag { font-size: 9px; padding: 2px 6px; }
+
+    /* Glossary */
+    .glossary { gap: 10px; }
+    .gloss-item { flex-direction: column; gap: 4px; padding: 12px 14px; }
+    .gloss-term { min-width: unset; font-size: 13px; }
+    .gloss-def { font-size: 12px; }
+
+    /* FAQ */
+    .faq { gap: 10px; }
+    .faq-q { padding: 13px 14px; font-size: 13px; }
+    .faq-a { padding: 0 14px 12px; font-size: 12px; }
+
+    /* Pricing note */
+    .pricing-note { padding: 22px 18px; border-radius: 12px; }
+    .pricing-note h3 { font-size: 17px; }
+    .pricing-note p { font-size: 13px; }
+
+    /* Cheat sheet — single column */
+    .cheat-grid { grid-template-columns: 1fr !important; }
+
+    /* Divider */
+    .divider { margin: 32px 0; }
+
+    /* Footer */
+    footer { padding: 24px 16px; margin-top: 40px; }
+  }
+
+  /* Extra-small phones (iPhone SE etc) */
+  @media (max-width: 380px) {
+    .hero h1 { font-size: 28px; }
+    .value-box { grid-template-columns: 1fr; }
+    .toc-link { font-size: 10px; padding: 11px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-label">📖 Official User Guide</div>
+    <h1>Outreach Builder<br><span>Step-by-Step</span></h1>
+    <p class="hero-sub">Everything you need to know to send personalised, AI-written sales emails and track who reads them — even if you've never used a tool like this before.</p>
+    <div class="hero-steps">
+      <div class="hero-step-pill"><span class="num">1</span> Setup your brand</div>
+      <div class="hero-step-pill"><span class="num">2</span> Upload your product doc</div>
+      <div class="hero-step-pill"><span class="num">3</span> Add prospects</div>
+      <div class="hero-step-pill"><span class="num">4</span> Generate & send emails</div>
+      <div class="hero-step-pill"><span class="num">5</span> Track results</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOC NAV -->
+<nav class="toc-bar">
+  <div class="toc-bar-inner">
+    <a class="toc-link" href="#what-is-it">🧭 What is this?</a>
+    <a class="toc-link" href="#step1">⚙️ Step 1: Brand</a>
+    <a class="toc-link" href="#step2">📝 Step 2: Upload doc</a>
+    <a class="toc-link" href="#step3">🏢 Step 3: Prospects</a>
+    <a class="toc-link" href="#step4">✉️ Step 4: Email</a>
+    <a class="toc-link" href="#step5">📊 Step 5: Tracking</a>
+    <a class="toc-link" href="#faq">❓ FAQ</a>
+  </div>
+</nav>
+
+<div class="content">
+
+  <!-- WHAT IS IT -->
+  <div class="section" id="what-is-it">
+    <div class="section-header">
+      <div class="section-num num-teal">🧭</div>
+      <div>
+        <div class="section-title-text">What does this tool do?</div>
+        <div class="section-title-sub">The big picture — before you touch anything</div>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px;">The <strong>Outreach Builder</strong> is an AI-powered sales email tool. You tell it about your product, give it a list of companies to reach out to, and it writes a <strong>personalised sales email for each company</strong> — automatically. Then it tracks exactly who opened it, how long they read it, and whether they clicked.</p>
+
+    <div class="value-box">
+      <div class="value-item">
+        <div class="value-icon">✍️</div>
+        <div class="value-title">AI Writes the Emails</div>
+        <div class="value-desc">No copy-pasting or manual writing needed</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">🎯</div>
+        <div class="value-title">Personalised Per Company</div>
+        <div class="value-desc">Each email is customised to the prospect's industry</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">⏱️</div>
+        <div class="value-title">Read-Time Tracking</div>
+        <div class="value-desc">See exactly how many seconds each person read your email</div>
+      </div>
+      <div class="value-item">
+        <div class="value-icon">📋</div>
+        <div class="value-title">Campaign Tracker</div>
+        <div class="value-desc">Know who opened, clicked, replied or needs a follow-up</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">🔗</span>
+      <div class="callout-body">
+        <strong>How do I open the tool?</strong>
+        You'll have received a unique link that looks like:<br>
+        <code style="background:#e0f2fe;padding:2px 8px;border-radius:4px;font-family:'DM Mono',monospace;font-size:12px;">https://yourdomain.com/dashboard?token=abc123xyz</code><br>
+        That <code style="font-family:'DM Mono',monospace;font-size:12px;">?token=</code> part is YOUR key. Bookmark the link. If you lose it, ask your administrator.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 1 -->
+  <div class="section" id="step1">
+    <div class="section-header">
+      <div class="section-num num-teal">1</div>
+      <div>
+        <div class="section-title-text">Set Up Your Brand (Do This First!)</div>
+        <div class="section-title-sub">Your company name, tagline, and icon that appears in every email</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <strong>Do this before anything else.</strong>
+        If you skip this step, all your emails will say "Your Company" instead of your actual business name.
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-bullet">1</div>
+        <div class="step-body">
+          <div class="step-heading">Click the ⚙️ Settings button</div>
+          <div class="step-desc">You'll find it in the <strong>top-right corner</strong> of the dashboard, next to the "Export CSV" button. It looks like a gear icon.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">2</div>
+        <div class="step-body">
+          <div class="step-heading">Fill in your Brand Name</div>
+          <div class="step-desc">This is your <strong>company name</strong> — e.g. <em>"Apex Solutions"</em> or <em>"Smith & Co"</em>. It will appear in the header of every email you send.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">3</div>
+        <div class="step-body">
+          <div class="step-heading">Add a Tagline</div>
+          <div class="step-desc">A short description of your team or product — e.g. <em>"Sales Team"</em>, <em>"Property Marketing"</em>, or <em>"Your Growth Partner"</em>. Keep it short (under 5 words works best).</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">4</div>
+        <div class="step-body">
+          <div class="step-heading">Pick a Brand Icon (Emoji)</div>
+          <div class="step-desc">Just type or paste any emoji — e.g. 🏠 for property, ⚖️ for legal, 🍕 for food. This shows next to your company name at the top of the dashboard. You can always change it later.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">5</div>
+        <div class="step-body">
+          <div class="step-heading">Click "Save"</div>
+          <div class="step-desc">The dashboard header will <strong>immediately update</strong> with your company name and icon. Done!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings mock -->
+    <div class="mock-ui" style="margin-top:24px;">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ff5f57;"></div>
+        <div class="mock-dot" style="background:#febc2e;"></div>
+        <div class="mock-dot" style="background:#28c840;"></div>
+        <span class="mock-label">⚙️ Settings Modal</span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-modal">
+          <h3>⚙️ Settings</h3>
+          <div class="mock-modal-sub">Update your brand details. Changes apply immediately.</div>
+          <div class="mock-field">
+            <label>Brand Name</label>
+            <input class="mock-input filled" value="Apex Solutions" readonly>
+          </div>
+          <div class="mock-field">
+            <label>Tagline</label>
+            <input class="mock-input filled" value="Sales Team" readonly>
+          </div>
+          <div class="mock-field">
+            <label>Brand Icon (emoji)</label>
+            <input class="mock-input filled" value="🚀" readonly style="width:80px;">
+          </div>
+          <div class="mock-actions">
+            <button class="mock-btn mock-btn-ghost">Cancel</button>
+            <button class="mock-btn mock-btn-teal">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <strong>Tip:</strong> You can go back to Settings at any time to update your brand name. All future emails will use the new name automatically.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 2 -->
+  <div class="section" id="step2">
+    <div class="section-header">
+      <div class="section-num num-blue">2</div>
+      <div>
+        <div class="section-title-text">Upload Your Product Document</div>
+        <div class="section-title-sub">The AI reads your Word doc and builds your "benefit toggles" automatically</div>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px;">This is where the magic starts. You give the tool a Word document that describes your product or service — things like features, benefits, pricing, use cases. The AI reads it and creates a set of <strong>"Benefit Toggles"</strong> that you can switch on or off for each email.</p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-bullet">1</div>
+        <div class="step-body">
+          <div class="step-heading">Prepare your Word document</div>
+          <div class="step-desc">Open Microsoft Word (or Google Docs → Download as .docx). Write paragraphs about your product: what it does, key benefits, who it's for, pricing if relevant. <strong>Plain paragraph text works best</strong> — no need for fancy formatting.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">2</div>
+        <div class="step-body">
+          <div class="step-heading">Find the "Upload Your Word Doc" section</div>
+          <div class="step-desc">Scroll down past the Campaign Tracker. You'll see a big dashed box labelled <strong>"Drop your Word doc here"</strong>. This is Step 1 on the dashboard.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">3</div>
+        <div class="step-body">
+          <div class="step-heading">Click "Browse .docx file" and select your document</div>
+          <div class="step-desc">Or simply <strong>drag and drop</strong> the file directly onto the dashed box. The tool accepts <strong>.doc</strong> and <strong>.docx</strong> files only.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">4</div>
+        <div class="step-body">
+          <div class="step-heading">Wait ~10 seconds for the AI to process</div>
+          <div class="step-desc">You'll see a message: <em>"AI is reading your document and building benefit toggles…"</em>. Don't close the browser. It will say <strong>✅ Done!</strong> when finished.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">5</div>
+        <div class="step-body">
+          <div class="step-heading">Review your auto-generated toggles</div>
+          <div class="step-desc">You'll now see coloured buttons on the right side — these are your <strong>benefit toggles</strong>. Each one represents a key point from your document. Click the <strong>✏️ pencil icon</strong> on any toggle to rename it or edit its content.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toggles mock -->
+    <div class="mock-ui" style="margin-top:24px;">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ff5f57;"></div>
+        <div class="mock-dot" style="background:#febc2e;"></div>
+        <div class="mock-dot" style="background:#28c840;"></div>
+        <span class="mock-label">Benefit Toggles — after uploading your doc</span>
+      </div>
+      <div class="mock-body">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:#94a3b8;margin-bottom:10px;">Benefit Toggles (click ✏️ to configure)</div>
+        <div class="mock-toggles">
+          <div class="mock-toggle on">🔗 <span style="flex:1">Channel Manager</span> <span class="mock-toggle-dot"></span></div>
+          <div class="mock-toggle on">📱 <span style="flex:1">Mobile App</span> <span class="mock-toggle-dot"></span></div>
+          <div class="mock-toggle">💳 <span style="flex:1">Billing Module</span> <span class="mock-toggle-dot"></span></div>
+          <div class="mock-toggle">📊 <span style="flex:1">Reports & Analytics</span> <span class="mock-toggle-dot"></span></div>
+          <div class="mock-toggle on">🛎️ <span style="flex:1">Guest Portal</span> <span class="mock-toggle-dot"></span></div>
+          <div class="mock-toggle">🔧 <span style="flex:1">Integrations</span> <span class="mock-toggle-dot"></span></div>
+        </div>
+        <div style="font-size:12px;color:#16a34a;margin-top:10px;">✅ Done! 6 benefit toggles auto-generated. Click toggles to activate, or ✏️ to edit.</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div class="callout-body">
+        <strong>What are toggles?</strong> Think of each toggle as a "topic" you can include or exclude from your email. Green (active) = included in the email. Grey (off) = skipped. You'll pick which ones to include for each prospect.
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">✏️</span>
+      <div class="callout-body">
+        <strong>You can also create toggles manually</strong> without uploading a document. Click the <strong>"+ Add toggle"</strong> button below the toggle grid and fill in the name, icon, and content yourself.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 3 -->
+  <div class="section" id="step3">
+    <div class="section-header">
+      <div class="section-num num-purple">3</div>
+      <div>
+        <div class="section-title-text">Add Your Prospect Companies</div>
+        <div class="section-title-sub">The companies you want to email — add one by one or in bulk</div>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px;">Now you tell the tool <strong>who to write emails for</strong>. Each "prospect" is a company you want to reach out to. The more info you give (industry, email address), the better the personalisation.</p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-bullet">1</div>
+        <div class="step-body">
+          <div class="step-heading">Find the "Prospect Companies" section (Step 2 on the dashboard)</div>
+          <div class="step-desc">It's in the left column below the toggle upload section. You'll see input fields for company name, email, and industry.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">2</div>
+        <div class="step-body">
+          <div class="step-heading">Type the company name in the first field</div>
+          <div class="step-desc">Example: <em>"Ocean View Hotel"</em> or <em>"ABC Law Firm"</em>. The name doesn't need to be perfect — it's just your label.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">3</div>
+        <div class="step-body">
+          <div class="step-heading">Type their email address (optional but recommended)</div>
+          <div class="step-desc">If you know who to email, type their address in the Email field. This helps the tracker match the email you send with the right company.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">4</div>
+        <div class="step-body">
+          <div class="step-heading">Type their industry in the Industry field</div>
+          <div class="step-desc">This is important! Type what they do — e.g. <em>"Restaurant"</em>, <em>"Property Management"</em>, <em>"Legal Practice"</em>, <em>"Retail"</em>. The AI uses this to personalise the email tone and examples.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">5</div>
+        <div class="step-body">
+          <div class="step-heading">Choose a Tone (the dropdown)</div>
+          <div class="step-desc">
+            <strong>😊 Friendly</strong> — conversational and warm, great for small businesses.<br>
+            <strong>🎩 Formal</strong> — professional and polished, great for legal, finance, corporate.<br>
+            <strong>🔥 Bold</strong> — direct and punchy, great for startups or fast-moving industries.
+          </div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">6</div>
+        <div class="step-body">
+          <div class="step-heading">Click "+ Add"</div>
+          <div class="step-desc">The company appears in the list below. Repeat for each prospect. You can add as many as you like.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prospect mock -->
+    <div class="mock-ui" style="margin-top:24px;">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ff5f57;"></div>
+        <div class="mock-dot" style="background:#febc2e;"></div>
+        <div class="mock-dot" style="background:#28c840;"></div>
+        <span class="mock-label">Prospect Companies List</span>
+      </div>
+      <div class="mock-body">
+        <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+          <div class="mock-company sel">
+            <div class="mc-dot" style="background:#1d9e75;"></div>
+            <div class="mc-name">Ocean View Hotel</div>
+            <div class="mc-status">Sent ✓</div>
+          </div>
+          <div class="mock-company">
+            <div class="mc-dot" style="background:#3b82f6;"></div>
+            <div class="mc-name">ABC Law Firm</div>
+            <div class="mc-status">Email sent</div>
+          </div>
+          <div class="mock-company">
+            <div class="mc-dot" style="background:#cbd5e1;"></div>
+            <div class="mc-name">Bella Cucina Restaurant</div>
+            <div class="mc-status">Not sent</div>
+          </div>
+          <div class="mock-company">
+            <div class="mc-dot" style="background:#cbd5e1;"></div>
+            <div class="mc-name">Sunrise Property Group</div>
+            <div class="mc-status">Not sent</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:28px;">
+      <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:14px;">Bulk Upload Options</div>
+      <p style="margin-bottom:16px;color:var(--muted);">If you have many companies, you don't have to type them one by one. Use these faster options:</p>
+
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-bullet">📁</div>
+          <div class="step-body">
+            <div class="step-heading">CSV Upload (for Excel users)</div>
+            <div class="step-desc">Create a spreadsheet with two columns: <strong>company_name</strong> and <strong>email</strong>. Save it as a .csv file. Click the <strong>"📁 CSV"</strong> button at the top of the Prospect Companies section and upload it.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-bullet">📄</div>
+          <div class="step-body">
+            <div class="step-heading">Bulk TXT (quickest method)</div>
+            <div class="step-desc">Click the <strong>"📄 Bulk TXT"</strong> button. A text box opens. Type or paste one company per line. Optionally add a comma and email address:<br>
+            <code style="background:#f1f5f9;padding:4px 8px;border-radius:4px;font-size:12px;font-family:'DM Mono',monospace;display:block;margin-top:8px;">Acme Corp,john@acme.com<br>Beta LLC<br>Gamma Inc,ceo@gamma.com</code>
+            Click "Add All Companies" when done.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 4 -->
+  <div class="section" id="step4">
+    <div class="section-header">
+      <div class="section-num num-amber">4</div>
+      <div>
+        <div class="section-title-text">Generate & Send Your Email</div>
+        <div class="section-title-sub">Select a prospect, choose your toggles, copy the email and send</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-bullet">1</div>
+        <div class="step-body">
+          <div class="step-heading">Click a company in the Prospects list</div>
+          <div class="step-desc">The company row highlights in green. This selects it as the target for your email. All following steps apply to this company.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">2</div>
+        <div class="step-body">
+          <div class="step-heading">Activate the benefit toggles you want to include</div>
+          <div class="step-desc">Look at the <strong>mini toggle grid</strong> below the prospect list (labelled "Active toggles for email"). Click any toggle to switch it <strong>on (green)</strong> or off. Only the green ones will appear in the email. Choose 2–4 for best results — don't overwhelm the reader.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">3</div>
+        <div class="step-body">
+          <div class="step-heading">Click "🔄 Rebuild Email"</div>
+          <div class="step-desc">The AI will generate a personalised email for the selected company using your active toggles, their industry, and the tone you set. This takes 5–15 seconds. A <strong>⏳ Generating…</strong> badge will show while it works.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">4</div>
+        <div class="step-body">
+          <div class="step-heading">Review the email in the Preview panel (Step 3)</div>
+          <div class="step-desc">The right-hand column shows the <strong>Email Preview</strong>. Read through it. If you want a different version, just click "🔄 Rebuild Email" again — the AI generates a fresh version each time.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">5</div>
+        <div class="step-body">
+          <div class="step-heading">Click "📋 Copy Email HTML"</div>
+          <div class="step-desc">This copies the full email (including the invisible read-time tracking pixel) to your clipboard. The email is formatted as HTML.</div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">6</div>
+        <div class="step-body">
+          <div class="step-heading">Paste into Gmail or Outlook and send</div>
+          <div class="step-desc">
+            <strong>In Gmail:</strong> Compose a new email → click the three dots menu (⋮) at the bottom → select <em>"Paste as HTML"</em> or just press Ctrl+V / ⌘+V in the body.<br>
+            <strong>In Outlook:</strong> Compose → Switch to HTML view → Paste.<br>
+            The email will look beautifully formatted when the recipient opens it.
+          </div>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-bullet">7</div>
+        <div class="step-body">
+          <div class="step-heading">Come back and click "✅ Mark Sent & Track"</div>
+          <div class="step-desc">After sending, return to the dashboard and click this button. It records the send date and activates tracking so you can monitor opens and read time.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-icon">🎯</span>
+      <div class="callout-body">
+        <strong>Pro tip from the dashboard:</strong> Paste into Gmail or Outlook in HTML mode. The read-time tracking pixels are automatically embedded — you'll see exactly how long each prospect spends reading your email.
+      </div>
+    </div>
+
+    <div style="margin-top:28px;">
+      <div style="font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:14px;">Follow-up Buttons</div>
+      <p style="margin-bottom:16px;color:var(--muted);">After sending the first email, use these buttons to stay organised:</p>
+      <div class="steps">
+        <div class="step-card">
+          <div class="step-bullet">📆</div>
+          <div class="step-body">
+            <div class="step-heading">Day 3 Follow-up</div>
+            <div class="step-desc">Click this 3 days after sending if you haven't heard back. It marks the follow-up as sent in your tracker so you know the sequence you're in.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-bullet">📅</div>
+          <div class="step-body">
+            <div class="step-heading">Day 7 Follow-up</div>
+            <div class="step-desc">Click this 7 days after the original send for your second follow-up attempt.</div>
+          </div>
+        </div>
+        <div class="step-card">
+          <div class="step-bullet">💬</div>
+          <div class="step-body">
+            <div class="step-heading">Mark Reply</div>
+            <div class="step-desc">When a prospect replies (in your actual inbox), come back here and click this. It marks them as "Replied" in the tracker and turns their dot green.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- STEP 5 -->
+  <div class="section" id="step5">
+    <div class="section-header">
+      <div class="section-num num-green">5</div>
+      <div>
+        <div class="section-title-text">Reading the Campaign Tracker</div>
+        <div class="section-title-sub">Your mission control — see what's working and who needs a follow-up</div>
+      </div>
+    </div>
+
+    <p style="margin-bottom:20px;">The <strong>Campaign Tracker</strong> sits at the very top of the dashboard. It shows you the status of every email you've sent at a glance.</p>
+
+    <!-- Table mock -->
+    <div class="mock-ui" style="margin-top:8px;margin-bottom:24px;">
+      <div class="mock-topbar">
+        <div class="mock-dot" style="background:#ff5f57;"></div>
+        <div class="mock-dot" style="background:#febc2e;"></div>
+        <div class="mock-dot" style="background:#28c840;"></div>
+        <span class="mock-label">Campaign Tracker Table</span>
+      </div>
+      <div class="mock-body" style="overflow-x:auto;">
+        <table class="mock-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Sent</th>
+              <th>Opened</th>
+              <th>Read Time</th>
+              <th>AI Insight</th>
+              <th>Clicked</th>
+              <th>Reply</th>
+              <th>Follow-up</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Ocean View Hotel</strong></td>
+              <td>2025-05-20</td>
+              <td>✅ Yes</td>
+              <td><span class="rt-tag rt-green">47s 🔥</span></td>
+              <td>🤖 Analyse</td>
+              <td>✅ Yes</td>
+              <td>💬 Yes</td>
+              <td>—</td>
+            </tr>
+            <tr>
+              <td><strong>ABC Law Firm</strong></td>
+              <td>2025-05-21</td>
+              <td>✅ Yes</td>
+              <td><span class="rt-tag rt-yellow">12s</span></td>
+              <td>🤖 Analyse</td>
+              <td>❌ No</td>
+              <td>❌ No</td>
+              <td>Day 3 ✓</td>
+            </tr>
+            <tr>
+              <td><strong>Bella Cucina</strong></td>
+              <td>2025-05-22</td>
+              <td>❌ No</td>
+              <td><span class="rt-tag rt-red">0s</span></td>
+              <td>—</td>
+              <td>❌ No</td>
+              <td>❌ No</td>
+              <td>Pending</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="glossary">
+      <div class="gloss-item">
+        <div class="gloss-term">📅 Sent</div>
+        <div class="gloss-def">The date you clicked "Mark Sent & Track" on the dashboard.</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">✅ Opened</div>
+        <div class="gloss-def">Whether the recipient has opened the email (tracked via a tiny invisible pixel in the email).</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">⏱ Read Time</div>
+        <div class="gloss-def">How many seconds the recipient spent reading your email. <span style="color:#16a34a;font-weight:700;">Green (30s+)</span> = deeply engaged. <span style="color:#b45309;font-weight:700;">Yellow (10–29s)</span> = skimmed. <span style="color:#dc2626;font-weight:700;">Red (0–9s)</span> = barely read it.</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">🤖 AI Insight</div>
+        <div class="gloss-def">Click the "Analyse" button next to any prospect that has read-time data. The AI will tell you what the read time likely means and what to do next (follow up, change your approach, etc.).</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">🔗 Clicked</div>
+        <div class="gloss-def">Whether they clicked any link in your email.</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">💬 Reply</div>
+        <div class="gloss-def">Whether you've manually marked them as replied (you do this yourself after receiving their reply in your inbox).</div>
+      </div>
+      <div class="gloss-item">
+        <div class="gloss-term">📎 Export CSV</div>
+        <div class="gloss-def">Downloads all your tracker data as a spreadsheet you can open in Excel. Great for reporting or sharing with your team.</div>
+      </div>
+    </div>
+
+    <div class="callout tip" style="margin-top:24px;">
+      <span class="callout-icon">🤖</span>
+      <div class="callout-body">
+        <strong>Use the AI Insight feature!</strong> If a prospect opened your email and spent 47 seconds reading it, that's a hot lead. Click the "🤖 Analyse" button in their row and the AI will tell you exactly how to follow up for the best chance of a reply.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- PRICING NOTE -->
+  <div class="pricing-note">
+    <h3>💳 About Your Usage Limit</h3>
+    <p>The yellow banner at the top of the dashboard shows how many AI-generated emails you have left this month. On the <strong>free trial</strong>, you get a set number of emails to try the tool. Once you're ready to send more, click <strong>"Upgrade Now"</strong> in that banner and follow the payment instructions. The current upgrade price is <strong>R1,200/month</strong> — send proof of payment to the upgrades email address shown in the popup and your account will be activated within 24 hours.</p>
+  </div>
+
+  <hr class="divider">
+
+  <!-- FAQ -->
+  <div class="section" id="faq">
+    <div class="section-header">
+      <div class="section-num num-teal">❓</div>
+      <div>
+        <div class="section-title-text">Frequently Asked Questions</div>
+        <div class="section-title-sub">The things people ask most often</div>
+      </div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q">I opened the link and it says "No access token found" — what do I do?</div>
+        <div class="faq-a">Your unique link must include <code style="font-family:'DM Mono',monospace;background:#f1f5f9;padding:1px 6px;border-radius:4px;">?token=</code> at the end. Check that you're using the full link as sent to you. If the link is broken or expired, contact your administrator to get a new one.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I change the company name on the email after generating it?</div>
+        <div class="faq-a">Yes — go to ⚙️ Settings, update your Brand Name, save, then click "🔄 Rebuild Email" again. The new email will use your updated name.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">The AI generated the wrong toggles from my document — what can I do?</div>
+        <div class="faq-a">Click the ✏️ pencil icon on any toggle to edit its name and content manually. You can also delete a toggle and create a new one by clicking "+ Add toggle" and filling in the details yourself.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How does the read-time tracking work?</div>
+        <div class="faq-a">When you copy the email HTML and send it, a tiny invisible image is included in the email. When the recipient opens it and loads images, the tool records the time. This works in Gmail, Outlook, and most email clients that load images by default.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I use this for WhatsApp or SMS instead of email?</div>
+        <div class="faq-a">The tool is designed for email (HTML format). The generated text can be copied and manually adapted for other channels, but tracking only works via email.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">I accidentally clicked "Reset all" on the tracker — is my data gone?</div>
+        <div class="faq-a">Yes — the tracker data resets. However, your companies, toggles, and brand settings are saved to the server and will still be there. Only the campaign tracking history (opened, read time, etc.) is cleared by the reset button. It's a good idea to click "📎 Export CSV" regularly to keep a backup.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How many toggles should I activate for each email?</div>
+        <div class="faq-a">2 to 4 is the sweet spot. Too many benefits in one email overwhelms the reader. Pick the ones most relevant to that specific company's industry and pain points.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can multiple team members use the same account?</div>
+        <div class="faq-a">The token link is unique per user. If your whole team needs access, each person should have their own token. Contact your administrator to set this up.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- QUICK REFERENCE -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num num-blue">⚡</div>
+      <div>
+        <div class="section-title-text">Quick Reference Cheat Sheet</div>
+        <div class="section-title-sub">Print this or keep it open in another tab</div>
+      </div>
+    </div>
+
+    <div class="cheat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--teal);">⚙️ First-Time Setup</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          1. Open your unique ?token= link<br>
+          2. Click ⚙️ Settings<br>
+          3. Enter company name + tagline + emoji<br>
+          4. Click Save
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#1a56db;">📝 Load Your Benefits</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          1. Prepare your product .docx<br>
+          2. Drop or browse to the file<br>
+          3. Wait ~10s for AI to process<br>
+          4. Edit any toggle with ✏️
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#7c3aed;">🏢 Add Prospects</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          1. Type company name<br>
+          2. Add email (optional)<br>
+          3. Add industry<br>
+          4. Choose tone → click + Add
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#b45309;">✉️ Send an Email</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          1. Click the company name<br>
+          2. Toggle 2–4 benefits ON<br>
+          3. Click 🔄 Rebuild Email<br>
+          4. Copy HTML → Paste in Gmail<br>
+          5. Send → click ✅ Mark Sent
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#0f6e56;">📊 Track Results</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          🟢 Green dot = read 30s+<br>
+          🟡 Yellow dot = skimmed<br>
+          🔴 Red = not really read<br>
+          Click 🤖 Analyse for AI advice<br>
+          Export CSV for your records
+        </div>
+      </div>
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:18px;">
+        <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:#dc2626;">🆘 Troubleshooting</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.9;">
+          No token? → Contact admin<br>
+          Wrong toggles? → Edit with ✏️<br>
+          Email looks plain? → Use HTML mode<br>
+          No tracking data? → Check images load<br>
+          Limit reached? → Upgrade banner
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span>Outreach Builder — User Guide</span><br>
+  <span style="font-size:12px;margin-top:6px;display:block;">Generated to help you get the most out of your AI-powered sales email tool.</span>
+</footer>
+
+</body>
+</html>
