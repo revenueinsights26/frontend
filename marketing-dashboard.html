@@ -3,13 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    
-    <!-- ✅ FIXED CSP - Added default-src 'self' -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://backend-x5sw.onrender.com; img-src 'self' data: https:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
-    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://backend-x5sw.onrender.com https://api.anthropic.com; img-src 'self' data: https: blob:; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com;">
     <title>Outreach Builder · Marketing Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         :root {
             --navy: #0d1b2e;
@@ -48,60 +45,23 @@
 
         /* Header */
         .app-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 16px;
+            display: flex; justify-content: space-between; align-items: flex-start;
+            margin-bottom: 32px; flex-wrap: wrap; gap: 16px;
         }
-        .app-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 30px;
-            font-weight: 700;
-            color: var(--navy);
-            letter-spacing: -0.3px;
-        }
-        .app-title span {
-            background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+        .app-title { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: var(--navy); letter-spacing: -0.3px; }
+        .app-title span { background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .app-subtitle { color: var(--text-secondary); font-size: 13px; font-weight: 400; margin-top: 4px; }
 
         /* Cards */
-        .card {
-            background: var(--white);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--border);
-            padding: 26px 28px;
-            box-shadow: var(--shadow);
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .card { background: var(--white); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 26px 28px; box-shadow: var(--shadow); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
         .section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 600; color: var(--navy); }
 
         /* Grid */
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 
         /* Buttons */
-        button, .btn {
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.18s ease;
-            border-radius: 40px;
-            padding: 10px 20px;
-        }
+        button, .btn { font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13px; border: none; cursor: pointer; transition: all 0.18s ease; border-radius: 40px; padding: 10px 20px; }
         .btn-primary { background: var(--navy); color: var(--white); }
         .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); }
         .btn-teal { background: var(--teal); color: var(--white); }
@@ -113,58 +73,24 @@
 
         /* Form Controls */
         select, input[type="text"], input[type="email"], input[type="number"], textarea {
-            padding: 10px 14px;
-            border-radius: var(--radius-sm);
-            border: 1.5px solid var(--border);
-            background: var(--white);
-            font-size: 13px;
-            font-family: 'DM Sans', sans-serif;
-            color: var(--text-primary);
-            transition: border-color 0.15s;
-            width: 100%;
+            padding: 10px 14px; border-radius: var(--radius-sm); border: 1.5px solid var(--border);
+            background: var(--white); font-size: 13px; font-family: 'DM Sans', sans-serif;
+            color: var(--text-primary); transition: border-color 0.15s; width: 100%;
         }
         select:focus, input:focus, textarea:focus { outline: none; border-color: var(--teal); }
 
         /* Badge */
-        .badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            background: #e6f5f0; color: var(--teal);
-            padding: 4px 12px; border-radius: 40px;
-            font-size: 11px; font-weight: 700; letter-spacing: 0.3px;
-        }
+        .badge { display: inline-flex; align-items: center; gap: 5px; background: #e6f5f0; color: var(--teal); padding: 4px 12px; border-radius: 40px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; }
 
         /* Dropzone */
-        .dropzone {
-            border: 2px dashed #cbd5e1;
-            border-radius: var(--radius-md);
-            padding: 36px;
-            text-align: center;
-            cursor: pointer;
-            background: #fafcff;
-            transition: all 0.2s;
-        }
+        .dropzone { border: 2px dashed #cbd5e1; border-radius: var(--radius-md); padding: 36px; text-align: center; cursor: pointer; background: #fafcff; transition: all 0.2s; }
         .dropzone:hover, .drag-active { border-color: var(--teal); background: #f0faf7; }
         .dropzone-icon { font-size: 36px; margin-bottom: 10px; }
         .dropzone-label { color: var(--text-secondary); font-size: 14px; }
 
         /* Toggle Grid */
         .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
-        .toggle-btn {
-            padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            border: 1.5px solid var(--border);
-            background: var(--surface);
-            color: var(--text-secondary);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 12px;
-            font-weight: 600;
-            text-align: left;
-            transition: all 0.18s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
+        .toggle-btn { padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-secondary); font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; text-align: left; transition: all 0.18s; display: flex; align-items: center; gap: 6px; }
         .toggle-btn:hover { border-color: var(--teal-light); color: var(--teal); background: #f0faf7; }
         .toggle-btn.active { background: #e6f5f0; border-color: var(--teal); color: var(--teal); }
         .toggle-btn .toggle-icon { font-size: 15px; }
@@ -173,11 +99,7 @@
 
         /* Company List */
         .company-list-wrap { max-height: 300px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .company-item {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
-            cursor: pointer; transition: background 0.12s;
-        }
+        .company-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.12s; }
         .company-item:last-child { border-bottom: none; }
         .company-item:hover { background: #f7faf9; }
         .company-item.selected { background: #e6f5f0; }
@@ -189,33 +111,38 @@
         .c-status-lbl { font-size: 11px; color: var(--text-muted); }
 
         /* Table */
-        .track-table-wrap { overflow-x: auto; max-height: 280px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .track-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; }
-        .track-table th {
-            background: var(--surface); color: var(--text-muted);
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.5px; padding: 10px 12px; text-align: left;
-            position: sticky; top: 0; z-index: 1; white-space: nowrap;
-        }
+        .track-table-wrap { overflow-x: auto; max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .track-table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 13px; }
+        .track-table th { background: var(--surface); color: var(--text-muted); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px; text-align: left; position: sticky; top: 0; z-index: 1; white-space: nowrap; }
         .track-table td { padding: 10px 12px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .track-table td:first-child { max-width: 120px; }
-        .track-table td:nth-child(2) { max-width: 140px; font-size: 11px; color: var(--text-muted); }
         .track-table tr:hover td { background: #fafcff; }
 
-        /* Email Preview */
-        .email-preview {
-            background: #fafcff; border: 1px solid var(--border);
-            border-radius: var(--radius-md); padding: 20px;
-            max-height: 560px; overflow-y: auto;
+        /* Read time badges */
+        .rt-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .rt-red { background: #fef2f2; color: #dc2626; }
+        .rt-yellow { background: #fffbeb; color: #b45309; }
+        .rt-green { background: #f0fdf4; color: #16a34a; }
+        .rt-blue { background: #eff6ff; color: #1d4ed8; }
+
+        /* AI Insight Card */
+        .ai-insight-card {
+            background: linear-gradient(135deg, #f0faf7 0%, #e6f5f0 100%);
+            border: 1px solid #a7f3d0; border-radius: var(--radius-md);
+            padding: 16px 18px; margin: 12px 0;
+            position: relative; overflow: hidden;
         }
+        .ai-insight-card::before {
+            content: '🤖';
+            position: absolute; right: 14px; top: 12px; font-size: 22px; opacity: 0.35;
+        }
+        .ai-insight-card .ai-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--teal); margin-bottom: 6px; }
+        .ai-insight-card .ai-text { font-size: 13px; line-height: 1.65; color: var(--text-primary); padding-right: 32px; }
+
+        /* Email Preview */
+        .email-preview { background: #fafcff; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; max-height: 560px; overflow-y: auto; }
 
         /* Step Dot */
-        .step-dot {
-            display: inline-flex; align-items: center; justify-content: center;
-            width: 24px; height: 24px; border-radius: 50%;
-            background: var(--navy); color: white;
-            font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0;
-        }
+        .step-dot { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: white; font-size: 11px; font-weight: 700; margin-right: 8px; flex-shrink: 0; }
 
         /* Insight Block */
         .insight-block { border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 12px; font-size: 13px; line-height: 1.65; }
@@ -224,48 +151,22 @@
         .insight-block.danger { background: #fef2f2; border-left: 4px solid var(--danger); }
 
         /* Usage Bar */
-        .usage-bar {
-            background: #e2e8f0;
-            border-radius: 20px;
-            height: 8px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-        .usage-fill {
-            background: var(--teal);
-            height: 100%;
-            border-radius: 20px;
-            transition: width 0.3s;
-        }
+        .usage-bar { background: #e2e8f0; border-radius: 20px; height: 8px; overflow: hidden; margin: 10px 0; }
+        .usage-fill { background: var(--teal); height: 100%; border-radius: 20px; transition: width 0.3s; }
         .usage-fill.warning { background: var(--gold); }
         .usage-fill.danger { background: var(--danger); }
 
         /* Modal */
-        .modal-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(13,27,46,0.55);
-            z-index: 100; align-items: center; justify-content: center;
-        }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(13,27,46,0.55); z-index: 100; align-items: center; justify-content: center; }
         .modal-overlay.open { display: flex; }
-        .modal-box {
-            background: var(--white); border-radius: var(--radius-lg); padding: 28px 32px;
-            width: 90%; max-width: 600px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto;
-        }
+        .modal-box { background: var(--white); border-radius: var(--radius-lg); padding: 28px 32px; width: 90%; max-width: 600px; box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
         .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 18px; margin-bottom: 6px; color: var(--navy); }
+        .modal-sub { color: var(--text-muted); font-size: 12px; margin-bottom: 18px; }
+        .modal-box label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 14px 0 6px; text-transform: uppercase; letter-spacing: 0.4px; }
         .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
 
         /* Upgrade Banner */
-        .upgrade-banner {
-            background: linear-gradient(135deg, #fef3c7, #fffbeb);
-            border: 1px solid #fcd34d;
-            border-radius: var(--radius-md);
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
+        .upgrade-banner { background: linear-gradient(135deg, #fef3c7, #fffbeb); border: 1px solid #fcd34d; border-radius: var(--radius-md); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
         .upgrade-banner .upgrade-text { font-size: 13px; color: #92400e; }
         .upgrade-banner .upgrade-text strong { font-size: 15px; }
 
@@ -273,22 +174,48 @@
         @media (max-width: 1024px) { .grid-2 { grid-template-columns: 1fr; } }
         @media (max-width: 700px) { body { padding: 16px 14px; } .toggle-grid { grid-template-columns: 1fr; } }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
         /* Brand Banner */
-        .brand-banner {
-            background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
-            border-radius: var(--radius-lg);
-            padding: 20px 28px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+        .brand-banner { background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%); border-radius: var(--radius-lg); padding: 20px 28px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .brand-icon { font-size: 32px; }
         .brand-info { flex: 1; }
         .brand-name { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: white; }
         .brand-meta { font-size: 12px; color: #94a3b8; margin-top: 3px; }
+
+        /* Reading Time Hero */
+        .rt-hero {
+            background: linear-gradient(135deg, #0d1b2e 0%, #0f3460 50%, #0f6e56 100%);
+            border-radius: var(--radius-lg); padding: 24px 28px; margin-bottom: 24px;
+            display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+        }
+        .rt-hero-title { font-family: 'Playfair Display', serif; font-size: 18px; color: white; font-weight: 700; }
+        .rt-hero-sub { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+        .rt-stat-grid { display: flex; gap: 20px; flex-wrap: wrap; }
+        .rt-stat { text-align: center; }
+        .rt-stat-num { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: white; }
+        .rt-stat-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.6px; }
+
+        /* Tracker card full-width */
+        .tracker-card-full { margin-bottom: 24px; }
+
+        /* Section label */
+        .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 12px; }
+
+        /* Inline edit */
+        .edit-inline-btn { background: none; border: none; cursor: pointer; padding: 2px 5px; font-size: 13px; color: #cbd5e1; border-radius: 4px; }
+        .edit-inline-btn:hover { color: var(--teal); background: #e6f5f0; }
+
+        /* AI Analyze button */
+        .btn-analyze { background: linear-gradient(135deg, #0f6e56, #1a56db); color: white; border: none; border-radius: 40px; padding: 10px 18px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-analyze:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(15,110,86,0.35); }
+        .btn-analyze:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* Tracker summary stats */
+        .tracker-stats { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+        .t-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 16px; text-align: center; min-width: 80px; }
+        .t-stat-num { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--navy); }
+        .t-stat-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
     </style>
 </head>
 <body>
@@ -300,7 +227,7 @@
         <div>Loading your dashboard...</div>
     </div>
 
-    <!-- Main Dashboard (hidden until loaded) -->
+    <!-- Main Dashboard -->
     <div id="mainDashboard" style="display:none;">
 
         <!-- Header -->
@@ -328,30 +255,74 @@
             </div>
         </div>
 
+        <!-- ★ CAMPAIGN TRACKER — Full Width, At Top -->
+        <div class="card tracker-card-full" id="trackerCard">
+            <div class="card-header">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span class="section-title">📋 Campaign Tracker</span>
+                    <span class="badge" style="background:#eff6ff;color:#1d4ed8;">⏱ Read Time Enabled</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button onclick="resetTracker()" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
+                    <button id="exportTrackerBtn2" class="btn-secondary" style="padding:6px 14px;font-size:12px;">📎 Export CSV</button>
+                </div>
+            </div>
+
+            <!-- Tracker Stats -->
+            <div class="tracker-stats" id="trackerStats"></div>
+
+            <!-- Reading Time Hero -->
+            <div class="rt-hero" id="rtHero" style="display:none;">
+                <div>
+                    <div class="rt-hero-title">⏱ Reading Time Intelligence</div>
+                    <div class="rt-hero-sub">Track exactly how long prospects spend reading your emails</div>
+                </div>
+                <div class="rt-stat-grid" id="rtStatGrid"></div>
+            </div>
+
+            <div class="track-table-wrap">
+                <table class="track-table" id="trackingTable">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Email</th>
+                            <th>Sent</th>
+                            <th>Opened</th>
+                            <th>Read Time</th>
+                            <th>AI Insight</th>
+                            <th>Clicked</th>
+                            <th>Reply</th>
+                            <th>Follow-up</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trackingBody"></tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Step 1: Setup -->
         <div class="card" style="margin-bottom:24px;">
             <div class="card-header">
                 <div style="display:flex;align-items:center;gap:8px;">
                     <span class="step-dot">1</span>
-                    <span class="section-title">Upload Your Product PDF / Doc</span>
+                    <span class="section-title">Upload Your Word Doc</span>
                 </div>
-                <span class="badge">Extract benefits from your PDF</span>
+                <span class="badge">AI auto-builds your benefit toggles</span>
             </div>
 
             <div class="grid-2" style="gap:20px;">
                 <div>
                     <div class="dropzone" id="dropzone">
-                        <div class="dropzone-icon">📄</div>
-                        <div class="dropzone-label">Drop your <strong>PDF or Word doc</strong> here — <span style="color:var(--teal);font-weight:600;">AI will auto-build your benefit toggles</span></div>
-                        <input type="file" id="pdfFileInput" accept=".pdf,.txt" style="display:none;">
-                        <button id="choosePdfBtn" type="button" style="margin-top:14px;background:var(--surface);color:var(--text-primary);border:1.5px solid var(--border);">Browse file</button>
+                        <div class="dropzone-icon">📝</div>
+                        <div class="dropzone-label">Drop your <strong>Word doc</strong> here — <span style="color:var(--teal);font-weight:600;">AI will auto-build your benefit toggles</span></div>
+                        <input type="file" id="docFileInput" accept=".doc,.docx" style="display:none;">
+                        <button id="chooseDocBtn" type="button" style="margin-top:14px;background:var(--surface);color:var(--text-primary);border:1.5px solid var(--border);border-radius:40px;padding:8px 18px;font-size:12px;cursor:pointer;">Browse .docx file</button>
                     </div>
-                    <div id="pdfInfo" style="margin-top:10px;font-size:13px;color:var(--success);display:none;">
-                        ✅ Loaded: <strong><span id="pdfFileName"></span></strong>
-                    </div>
+                    <div id="docInfo" style="margin-top:10px;font-size:13px;color:var(--success);display:none;"></div>
                     <div class="insight-block info" style="margin-top:14px;">
                         <strong>How it works:</strong><br>
-                        Upload your product PDF → AI <strong>automatically builds benefit toggles</strong> from your content. Then add a prospect, select their industry and tone, activate toggles — and AI writes a <strong>fully personalised email</strong> for their specific industry. No generic templates.
+                        Upload your product Word doc → AI <strong>automatically builds benefit toggles</strong>. Add a prospect, pick their industry and tone, activate toggles — AI writes a <strong>fully personalised email</strong> with built-in read-time tracking pixels.
                     </div>
                 </div>
 
@@ -360,7 +331,7 @@
                         <div class="section-label" style="margin:0;">Benefit Toggles (click ✏️ to configure)</div>
                     </div>
                     <div class="toggle-grid" id="toggleGrid"></div>
-                    <button id="addToggleBtn" class="btn-ghost" style="width:100%;margin-top:4px;">+ Add toggle (up to 8)</button>
+                    <button id="addToggleBtn" class="btn-ghost" style="width:100%;margin-top:4px;">+ Add toggle (up to 20)</button>
                 </div>
             </div>
         </div>
@@ -375,7 +346,10 @@
                             <span class="step-dot">2</span>
                             <span class="section-title">Prospect Companies</span>
                         </div>
-                        <button onclick="openUploadCsvModal()" class="btn-ghost" style="padding:6px 12px;font-size:11px;">📁 Upload CSV</button>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button onclick="openUploadCsvModal()" class="btn-ghost" style="padding:6px 12px;font-size:11px;">📁 CSV</button>
+                            <button onclick="openBulkTxtModal()" class="btn-ghost" style="padding:6px 12px;font-size:11px;">📄 Bulk TXT</button>
+                        </div>
                     </div>
 
                     <div style="display:flex;gap:8px;margin-bottom:8px;">
@@ -401,22 +375,6 @@
                         <button onclick="refreshEmailPreview()" class="btn-teal" style="background:var(--teal);width:100%;margin-top:8px;">🔄 Rebuild Email</button>
                     </div>
                 </div>
-
-                <!-- Campaign Tracker -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="section-title">📋 Campaign Tracker</span>
-                        <button onclick="resetTracker()" class="btn-ghost" style="padding:6px 12px;font-size:12px;">Reset all</button>
-                    </div>
-                    <div class="track-table-wrap">
-                        <table class="track-table" id="trackingTable">
-                            <thead>
-                                <tr><th>Company</th><th>Email</th><th>Sent</th><th>Opened</th><th>Clicked</th><th>Reply</th><th>Action</th></tr>
-                            </thead>
-                            <tbody id="trackingBody"></tbody>
-                        </table>
-                    </div>
-                </div>
             </div>
 
             <!-- Right Column: Email Preview -->
@@ -438,7 +396,7 @@
                         <button id="markReplyBtn" class="btn-secondary">💬 Mark Reply</button>
                     </div>
                     <div class="insight-block info" style="margin-top:12px;">
-                        💡 <strong>Pro tip:</strong> Paste into Gmail or Outlook in HTML mode. Tracking pixels and click links are automatically embedded.
+                        💡 <strong>Pro tip:</strong> Paste into Gmail or Outlook in HTML mode. Read-time tracking pixels are automatically embedded — you'll see exactly how long each prospect reads your email.
                     </div>
                 </div>
             </div>
@@ -450,7 +408,7 @@
 <div id="toggleModal" class="modal-overlay">
     <div class="modal-box">
         <h2 id="modalTitle">Configure Toggle</h2>
-        <div class="modal-sub">Paste the key benefit paragraph from your product PDF into the content box below.</div>
+        <div class="modal-sub">Paste the key benefit paragraph from your product doc into the content box below.</div>
         <label>Toggle name</label>
         <input type="text" id="modalToggleName" placeholder="e.g. Channel Manager">
         <label>Icon (emoji)</label>
@@ -495,9 +453,59 @@
     </div>
 </div>
 
+<!-- Bulk TXT Modal -->
+<div id="bulkTxtModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>📄 Bulk Upload Companies (TXT)</h2>
+        <div class="modal-sub">One company per line. Optionally add a comma + email.</div>
+        <div style="background:#f7f9fc;border-radius:8px;padding:12px;font-size:12px;font-family:monospace;color:#4a5568;margin-bottom:14px;border:1px solid var(--border);">
+            Acme Corp,john@acme.com<br>
+            Beta LLC<br>
+            Gamma Inc,ceo@gamma.com
+        </div>
+        <textarea id="bulkTxtArea" rows="10" placeholder="Paste your company list here..."></textarea>
+        <div id="bulkTxtPreview" style="font-size:12px;color:var(--text-muted);margin-top:8px;"></div>
+        <div class="modal-actions" style="margin-top:16px;">
+            <button onclick="closeBulkTxtModal()" class="btn-ghost">Cancel</button>
+            <button onclick="uploadBulkTxt()" class="btn-teal">Add All Companies</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Company Modal -->
+<div id="editCompanyModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2>✏️ Edit Company</h2>
+        <div class="modal-sub">Update name or email. All tracking data will be preserved.</div>
+        <input type="hidden" id="editCompanyOriginal">
+        <label>Company Name</label>
+        <input type="text" id="editCompanyName" placeholder="Company name">
+        <label>Email Address</label>
+        <input type="email" id="editCompanyEmail" placeholder="Email (optional)">
+        <label>Industry</label>
+        <input type="text" id="editCompanyIndustry" placeholder="Industry">
+        <div class="modal-actions">
+            <button onclick="closeEditCompanyModal()" class="btn-ghost">Cancel</button>
+            <button onclick="saveEditCompany()" class="btn-teal">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- AI Read-Time Insight Modal -->
+<div id="aiInsightModal" class="modal-overlay">
+    <div class="modal-box" style="max-width:520px;">
+        <h2>🤖 AI Reading Intelligence</h2>
+        <div class="modal-sub" id="aiInsightCompanyName">Prospect analysis</div>
+        <div id="aiInsightContent" style="margin-top:12px;"></div>
+        <div class="modal-actions">
+            <button onclick="closeAiInsightModal()" class="btn-teal">Got it</button>
+        </div>
+    </div>
+</div>
+
 <script>
     // ============================================================
-    // Get token from URL
+    // Token & API
     // ============================================================
     const urlParams = new URLSearchParams(window.location.search);
     const USER_TOKEN = urlParams.get('token');
@@ -508,8 +516,7 @@
                 <div style="font-size:48px;margin-bottom:16px;">🔒</div>
                 <div>No access token found.</div>
                 <div style="font-size:13px;margin-top:8px;">Please contact your administrator for your unique dashboard link.</div>
-            </div>
-        `;
+            </div>`;
         throw new Error('No token provided');
     }
     
@@ -537,19 +544,9 @@
             
             if (!response.ok) {
                 let errorDetail = 'Failed to load data';
-                try {
-                    const error = await response.json();
-                    errorDetail = error.detail || errorDetail;
-                } catch (_) { /* response body wasn't JSON */ }
-                
-                if (response.status === 404) {
-                    showError('Access token not found. Please check your link or contact your administrator.');
-                    return false;
-                }
-                if (response.status === 401 || response.status === 403) {
-                    showError('Invalid or expired access. Please contact your administrator.');
-                    return false;
-                }
+                try { const error = await response.json(); errorDetail = error.detail || errorDetail; } catch (_) {}
+                if (response.status === 404) { showError('Access token not found. Please check your link or contact your administrator.'); return false; }
+                if (response.status === 401 || response.status === 403) { showError('Invalid or expired access. Please contact your administrator.'); return false; }
                 throw new Error(errorDetail);
             }
             
@@ -559,12 +556,10 @@
             brand = data.brand || { brand_name: userData.company_name || 'Your Company', tagline: 'Sales Email Builder', brand_icon: '🚀' };
             companies = data.companies || [];
             
-            // Load local campaign tracker (or create from backend data)
             const savedTracker = localStorage.getItem(`ob_tracker_${userData.user_id}`);
             if (savedTracker) {
                 campaignTracker = JSON.parse(savedTracker);
             } else {
-                // Initialize from backend emails
                 campaignTracker = {};
                 if (data.recent_emails) {
                     for (const email of data.recent_emails) {
@@ -591,9 +586,6 @@
         }
     }
     
-    // ============================================================
-    // Save user data to backend
-    // ============================================================
     async function saveUserData() {
         try {
             await fetch(`${API}/marketing/user/save`, {
@@ -601,15 +593,14 @@
                 headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
                 body: JSON.stringify({ toggles, brand, companies })
             });
-        } catch (err) {
-            console.error('Failed to save:', err);
-        }
+        } catch (err) { console.error('Failed to save:', err); }
     }
     
     function saveTracker() {
         localStorage.setItem(`ob_tracker_${userData.user_id}`, JSON.stringify(campaignTracker));
         renderTrackerTable();
         renderCompanyList();
+        updateTrackerStats();
     }
     
     // ============================================================
@@ -621,8 +612,7 @@
                 <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
                 <div>${escapeHtml(msg)}</div>
                 <button onclick="location.reload()" class="btn-teal" style="margin-top:20px;">Try Again</button>
-            </div>
-        `;
+            </div>`;
     }
     
     function escapeHtml(str) {
@@ -632,67 +622,36 @@
     
     function formatDate(dateStr) {
         if (!dateStr) return '-';
-        try {
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-ZA');
-        } catch { return dateStr; }
+        try { return new Date(dateStr).toLocaleDateString('en-ZA'); } catch { return dateStr; }
     }
-    
+
     // ============================================================
     // Usage & Trial UI
     // ============================================================
     function updateUsageUI() {
         if (!userData) return;
-        
         const remaining = userData.email_limit - userData.emails_used;
         const percent = (userData.emails_used / userData.email_limit) * 100;
         const fillClass = percent > 90 ? 'danger' : (percent > 70 ? 'warning' : '');
-        
         const banner = document.getElementById('usageBanner');
         const isTrialValid = userData.trial_active;
         const daysLeft = userData.trial_days_remaining;
         
         if (!isTrialValid && userData.emails_used >= userData.email_limit) {
-            banner.innerHTML = `
-                <div class="upgrade-text">
-                    <strong>⚠️ Trial expired & email limit reached!</strong><br>
-                    You've used ${userData.emails_used}/${userData.email_limit} emails.
-                </div>
-                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>
-            `;
+            banner.innerHTML = `<div class="upgrade-text"><strong>⚠️ Trial expired &amp; email limit reached!</strong><br>You've used ${userData.emails_used}/${userData.email_limit} emails.</div><button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>`;
         } else if (!isTrialValid) {
-            banner.innerHTML = `
-                <div class="upgrade-text">
-                    <strong>⚠️ Your trial has expired.</strong><br>
-                    You have ${remaining} email${remaining !== 1 ? 's' : ''} remaining from your limit.
-                </div>
-                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>
-            `;
+            banner.innerHTML = `<div class="upgrade-text"><strong>⚠️ Your trial has expired.</strong><br>You have ${remaining} email${remaining !== 1 ? 's' : ''} remaining.</div><button class="btn-primary" onclick="showUpgradeModal()">Upgrade Now →</button>`;
         } else if (remaining <= 5 && remaining > 0) {
-            banner.innerHTML = `
-                <div class="upgrade-text">
-                    <strong>📊 Low on emails!</strong><br>
-                    You have ${remaining} email${remaining !== 1 ? 's' : ''} remaining (${userData.emails_used}/${userData.email_limit} used). Trial ends in ${daysLeft} days.
-                </div>
-                <button class="btn-primary" onclick="showUpgradeModal()">Upgrade →</button>
-            `;
+            banner.innerHTML = `<div class="upgrade-text"><strong>📊 Low on emails!</strong><br>You have ${remaining} remaining (${userData.emails_used}/${userData.email_limit} used). Trial ends in ${daysLeft} days.</div><button class="btn-primary" onclick="showUpgradeModal()">Upgrade →</button>`;
         } else {
-            banner.innerHTML = `
-                <div class="upgrade-text">
-                    <strong>${isTrialValid ? `✨ Free trial · ${daysLeft} days remaining` : 'Paid plan'}</strong><br>
-                    You've used ${userData.emails_used} of ${userData.email_limit} emails this month.
-                </div>
-                <div style="width:200px;">
-                    <div class="usage-bar"><div class="usage-fill ${fillClass}" style="width:${Math.min(100, percent)}%"></div></div>
-                </div>
-            `;
+            banner.innerHTML = `<div class="upgrade-text"><strong>${isTrialValid ? `✨ Free trial · ${daysLeft} days remaining` : 'Paid plan'}</strong><br>You've used ${userData.emails_used} of ${userData.email_limit} emails this month.</div><div style="width:200px;"><div class="usage-bar"><div class="usage-fill ${fillClass}" style="width:${Math.min(100, percent)}%"></div></div></div>`;
         }
         
         document.getElementById('toggleCountPill').innerHTML = `${toggles.filter(t => t.is_active).length} benefit${toggles.filter(t => t.is_active).length !== 1 ? 's' : ''} active`;
     }
     
     function showUpgradeModal() {
-        alert("📧 To upgrade:\n\n1. Send proof of payment to: upgrades@yourdomain.com\n2. Amount: R349/month\n3. We'll activate your account within 24 hours\n\nBank details will be provided upon request.");
+        alert("📧 To upgrade:\n\n1. Send proof of payment to: upgrades@yourdomain.com\n2. Amount: R1,200/month\n3. We'll activate your account within 24 hours");
     }
     
     // ============================================================
@@ -720,15 +679,11 @@
                 <span class="toggle-icon">${escapeHtml(t.icon || '✨')}</span>
                 <span style="flex:1;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(t.name)}</span>
                 <button onclick="event.stopPropagation();openToggleModal(${i})" style="background:none;border:none;cursor:pointer;padding:2px 6px;">✏️</button>
-                <span class="toggle-dot"></span>
-            `;
+                <span class="toggle-dot"></span>`;
             btn.addEventListener('click', (e) => {
                 if (e.target.closest('button')) return;
                 toggles[i].is_active = !toggles[i].is_active;
-                saveUserData();
-                renderToggleGrid();
-                renderMiniToggles();
-                updateUsageUI();
+                saveUserData(); renderToggleGrid(); renderMiniToggles(); updateUsageUI();
             });
             grid.appendChild(btn);
         });
@@ -740,15 +695,11 @@
         toggles.forEach((t, i) => {
             const btn = document.createElement('div');
             btn.className = `toggle-btn${t.is_active ? ' active' : ''}`;
-            btn.style.fontSize = '11px';
-            btn.style.padding = '7px 10px';
+            btn.style.fontSize = '11px'; btn.style.padding = '7px 10px';
             btn.innerHTML = `<span>${escapeHtml(t.icon || '✨')}</span><span style="flex:1;">${escapeHtml(t.name)}</span><span class="toggle-dot"></span>`;
             btn.addEventListener('click', () => {
                 toggles[i].is_active = !toggles[i].is_active;
-                saveUserData();
-                renderToggleGrid();
-                renderMiniToggles();
-                updateUsageUI();
+                saveUserData(); renderToggleGrid(); renderMiniToggles(); updateUsageUI();
             });
             grid.appendChild(btn);
         });
@@ -764,34 +715,23 @@
         document.getElementById('toggleModal').classList.add('open');
     }
     
-    function closeToggleModal() {
-        document.getElementById('toggleModal').classList.remove('open');
-        editingToggleIndex = null;
-    }
+    function closeToggleModal() { document.getElementById('toggleModal').classList.remove('open'); editingToggleIndex = null; }
     
     function saveToggle() {
         const name = document.getElementById('modalToggleName').value.trim();
         const icon = document.getElementById('modalToggleIcon').value.trim() || '✨';
         const content = document.getElementById('modalToggleContent').value.trim();
         if (!name) { alert('Please enter a toggle name.'); return; }
-        
         toggles[editingToggleIndex].name = name;
         toggles[editingToggleIndex].icon = icon;
         toggles[editingToggleIndex].content = content;
-        
-        saveUserData();
-        renderToggleGrid();
-        renderMiniToggles();
-        closeToggleModal();
-        refreshEmailPreview();
+        saveUserData(); renderToggleGrid(); renderMiniToggles(); closeToggleModal(); refreshEmailPreview();
     }
     
     document.getElementById('addToggleBtn').addEventListener('click', () => {
-        if (toggles.length >= 8) { alert('Maximum 8 toggles reached.'); return; }
+        if (toggles.length >= 20) { alert('Maximum 20 toggles reached.'); return; }
         toggles.push({ toggle_index: toggles.length, name: 'New Benefit', icon: '✨', content: 'Describe your benefit here...', is_active: false });
-        saveUserData();
-        renderToggleGrid();
-        renderMiniToggles();
+        saveUserData(); renderToggleGrid(); renderMiniToggles();
     });
     
     // ============================================================
@@ -816,12 +756,13 @@
             
             const item = document.createElement('div');
             item.className = `company-item${currentCompany === comp.company_name ? ' selected' : ''}`;
+            const safeName = escapeHtml(comp.company_name).replace(/'/g, "\\'");
             item.innerHTML = `
                 <div class="c-dot ${dotClass}"></div>
                 <div class="c-name">${escapeHtml(comp.company_name)}</div>
                 <div class="c-status-lbl">${statusLabel}</div>
-                <button onclick="event.stopPropagation();removeCompany('${escapeHtml(comp.company_name).replace(/'/g, "\\'")}');" style="background:none;border:none;cursor:pointer;font-size:14px;color:#cbd5e1;">✕</button>
-            `;
+                <button class="edit-inline-btn" onclick="event.stopPropagation();openEditCompany('${safeName}');" title="Edit">✏️</button>
+                <button onclick="event.stopPropagation();removeCompany('${safeName}');" style="background:none;border:none;cursor:pointer;font-size:14px;color:#cbd5e1;">✕</button>`;
             item.addEventListener('click', () => selectCompany(comp.company_name));
             wrap.appendChild(item);
         });
@@ -845,12 +786,8 @@
     function removeCompany(name) {
         companies = companies.filter(c => c.company_name !== name);
         saveUserData();
-        if (currentCompany === name) {
-            currentCompany = null;
-            clearEmailPreview();
-        }
-        renderCompanyList();
-        renderTrackerTable();
+        if (currentCompany === name) { currentCompany = null; clearEmailPreview(); }
+        renderCompanyList(); renderTrackerTable();
     }
     
     function selectCompany(name) {
@@ -858,9 +795,241 @@
         renderCompanyList();
         refreshEmailPreview();
     }
+
+    // ---- Edit Company ----
+    function openEditCompany(name) {
+        const comp = companies.find(c => c.company_name === name);
+        if (!comp) return;
+        document.getElementById('editCompanyOriginal').value = name;
+        document.getElementById('editCompanyName').value = comp.company_name;
+        document.getElementById('editCompanyEmail').value = comp.email_address || '';
+        document.getElementById('editCompanyIndustry').value = comp.industry || '';
+        document.getElementById('editCompanyModal').classList.add('open');
+    }
+    
+    function closeEditCompanyModal() { document.getElementById('editCompanyModal').classList.remove('open'); }
+    
+    function saveEditCompany() {
+        const original = document.getElementById('editCompanyOriginal').value;
+        const newName = document.getElementById('editCompanyName').value.trim();
+        const newEmail = document.getElementById('editCompanyEmail').value.trim();
+        const newIndustry = document.getElementById('editCompanyIndustry').value.trim();
+        if (!newName) { alert('Company name is required'); return; }
+        
+        const idx = companies.findIndex(c => c.company_name === original);
+        if (idx === -1) { alert('Company not found'); return; }
+        
+        // Transfer tracking data to new name if name changed
+        if (original !== newName && campaignTracker[original]) {
+            campaignTracker[newName] = { ...campaignTracker[original] };
+            delete campaignTracker[original];
+        }
+        
+        companies[idx].company_name = newName;
+        companies[idx].email_address = newEmail || null;
+        companies[idx].industry = newIndustry || null;
+        
+        if (currentCompany === original) currentCompany = newName;
+        
+        saveUserData();
+        saveTracker();
+        closeEditCompanyModal();
+        renderCompanyList();
+        renderTrackerTable();
+    }
+
+    // ---- Bulk TXT Upload ----
+    function openBulkTxtModal() {
+        document.getElementById('bulkTxtArea').value = '';
+        document.getElementById('bulkTxtPreview').innerHTML = '';
+        document.getElementById('bulkTxtModal').classList.add('open');
+    }
+    
+    function closeBulkTxtModal() { document.getElementById('bulkTxtModal').classList.remove('open'); }
+    
+    document.getElementById('bulkTxtArea').addEventListener('input', function() {
+        const lines = this.value.split('\n').map(l => l.trim()).filter(Boolean);
+        document.getElementById('bulkTxtPreview').innerHTML = `${lines.length} companies detected`;
+    });
+    
+    function uploadBulkTxt() {
+        const text = document.getElementById('bulkTxtArea').value;
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        if (!lines.length) { alert('Please paste at least one company'); return; }
+        
+        let added = 0;
+        for (const line of lines) {
+            const parts = line.split(',');
+            const name = parts[0]?.trim();
+            const email = parts[1]?.trim() || null;
+            if (!name) continue;
+            if (companies.find(c => c.company_name === name)) continue;
+            companies.push({ company_name: name, email_address: email, industry: null });
+            added++;
+        }
+        
+        saveUserData();
+        renderCompanyList();
+        closeBulkTxtModal();
+        alert(`✅ Added ${added} companies! (${lines.length - added} duplicates skipped)`);
+    }
     
     // ============================================================
-    // Email Generation with Tracking
+    // ★★★ READING TIME TRACKING ★★★
+    // ============================================================
+    
+    // Generate dual-pixel tracking HTML for email insertion
+    function buildReadTimePixels(trackingId) {
+        const topPixel = `<img src="${API}/marketing/track/read-start/${trackingId}" width="1" height="1" style="display:block;max-height:1px;overflow:hidden;" alt="" data-rt="top">`;
+        const bottomPixel = `<img src="${API}/marketing/track/read-end/${trackingId}" width="1" height="1" style="display:block;max-height:1px;overflow:hidden;" alt="" data-rt="bottom">`;
+        return { topPixel, bottomPixel };
+    }
+    
+    // Calculate read time color class
+    function getReadTimeBadge(seconds) {
+        if (!seconds || seconds <= 0) return { html: '<span style="color:#a0aec0;font-size:12px;">—</span>', class: '' };
+        const s = Math.round(seconds);
+        let label, cls;
+        if (s < 5)       { label = `${s}s · Glanced`; cls = 'rt-red'; }
+        else if (s < 15) { label = `${s}s · Skimmed`; cls = 'rt-yellow'; }
+        else if (s < 30) { label = `${s}s · Read`; cls = 'rt-green'; }
+        else             { label = `${s}s · Deep Read`; cls = 'rt-blue'; }
+        return { html: `<span class="rt-badge ${cls}">${label}</span>`, class: cls };
+    }
+
+    // Store read time in tracker (called when we get it from backend or simulate)
+    function recordReadTime(companyName, seconds) {
+        if (!campaignTracker[companyName]) campaignTracker[companyName] = {};
+        campaignTracker[companyName].read_time_seconds = seconds;
+        campaignTracker[companyName].read_time_recorded_at = new Date().toISOString();
+        saveTracker();
+    }
+    
+    // Demo: Simulate a read time for testing (remove in production)
+    function simulateReadTime(companyName) {
+        const demoTimes = [3, 8, 22, 45, 67];
+        const t = demoTimes[Math.floor(Math.random() * demoTimes.length)];
+        recordReadTime(companyName, t);
+        renderTrackerTable();
+    }
+    
+    // ============================================================
+    // Tracker Stats & Reading Time Hero
+    // ============================================================
+    function updateTrackerStats() {
+        const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies.map(c => c.company_name)])];
+        let sent = 0, opened = 0, replied = 0, withReadTime = 0, totalReadTime = 0;
+        
+        for (const comp of allCompanies) {
+            const e = campaignTracker[comp] || {};
+            if (e.sentDate) sent++;
+            if (e.opened) opened++;
+            if (e.replyReceived) replied++;
+            if (e.read_time_seconds) { withReadTime++; totalReadTime += e.read_time_seconds; }
+        }
+        
+        const avgRead = withReadTime > 0 ? Math.round(totalReadTime / withReadTime) : 0;
+        const openRate = sent > 0 ? Math.round((opened / sent) * 100) : 0;
+        const replyRate = sent > 0 ? Math.round((replied / sent) * 100) : 0;
+        
+        document.getElementById('trackerStats').innerHTML = `
+            <div class="t-stat"><div class="t-stat-num">${sent}</div><div class="t-stat-label">Sent</div></div>
+            <div class="t-stat"><div class="t-stat-num">${opened}</div><div class="t-stat-label">Opened</div></div>
+            <div class="t-stat" style="border-color:${openRate > 30 ? '#a7f3d0' : 'var(--border)'}"><div class="t-stat-num" style="color:${openRate > 30 ? 'var(--teal)' : 'var(--navy)'}">${openRate}%</div><div class="t-stat-label">Open Rate</div></div>
+            <div class="t-stat"><div class="t-stat-num">${replied}</div><div class="t-stat-label">Replies</div></div>
+            <div class="t-stat" style="border-color:${replyRate > 10 ? '#a7f3d0' : 'var(--border)'}"><div class="t-stat-num" style="color:${replyRate > 10 ? 'var(--teal)' : 'var(--navy)'}">${replyRate}%</div><div class="t-stat-label">Reply Rate</div></div>
+            <div class="t-stat" style="border-color:#bfdbfe;"><div class="t-stat-num" style="color:#1d4ed8;">${avgRead > 0 ? avgRead + 's' : '—'}</div><div class="t-stat-label">Avg Read Time</div></div>
+        `;
+
+        // Reading Time Hero
+        if (withReadTime > 0) {
+            const deepReads = allCompanies.filter(c => (campaignTracker[c]?.read_time_seconds || 0) >= 30).length;
+            const rtHero = document.getElementById('rtHero');
+            rtHero.style.display = 'flex';
+            document.getElementById('rtStatGrid').innerHTML = `
+                <div class="rt-stat"><div class="rt-stat-num">${withReadTime}</div><div class="rt-stat-label">Tracked</div></div>
+                <div class="rt-stat"><div class="rt-stat-num">${avgRead}s</div><div class="rt-stat-label">Avg Read</div></div>
+                <div class="rt-stat"><div class="rt-stat-num">${deepReads}</div><div class="rt-stat-label">Deep Reads</div></div>
+            `;
+        }
+    }
+    
+    // ============================================================
+    // AI Read-Time Insight (calls Anthropic API directly)
+    // ============================================================
+    async function generateAiInsight(companyName) {
+        const entry = campaignTracker[companyName] || {};
+        const rt = entry.read_time_seconds;
+        const company = companies.find(c => c.company_name === companyName);
+        const industry = company?.industry || 'unknown industry';
+        const activeToggles = toggles.filter(t => t.is_active).map(t => t.name).join(', ');
+        
+        const modal = document.getElementById('aiInsightModal');
+        document.getElementById('aiInsightCompanyName').innerText = `Analysis for ${companyName}`;
+        document.getElementById('aiInsightContent').innerHTML = `<div style="text-align:center;padding:24px;color:var(--text-muted);"><div style="font-size:28px;margin-bottom:8px;animation:spin 1s linear infinite;">⚙️</div><div>Analysing reading behaviour...</div></div>`;
+        modal.classList.add('open');
+        
+        let readProfile = '';
+        if (!rt || rt <= 0) readProfile = 'No read time recorded yet — email may not have been opened or tracking pixel not loaded.';
+        else if (rt < 5) readProfile = `The prospect spent only ${rt} seconds — they glanced at the subject and possibly the first line, then moved on.`;
+        else if (rt < 15) readProfile = `The prospect spent ${rt} seconds — they skimmed the email, likely reading the subject, opener, and scanning the benefit blocks without reading in detail.`;
+        else if (rt < 30) readProfile = `The prospect spent ${rt} seconds — they read a solid portion of the email, including likely reading 2-3 benefit sections.`;
+        else readProfile = `The prospect spent ${rt} seconds — this is a deep read. They likely read the email top-to-bottom, studying the benefit blocks carefully.`;
+        
+        const prompt = `You are an elite B2B sales coach. A sales rep sent a cold email to ${companyName} (${industry} industry).
+
+Email reading data:
+- Read time: ${rt ? rt + ' seconds' : 'not yet recorded'}
+- Reading profile: ${readProfile}
+- Email features highlighted: ${activeToggles || 'standard benefits'}
+- Email was opened: ${entry.opened ? 'Yes' : 'Not confirmed'}
+- Reply received: ${entry.replyReceived ? 'Yes' : 'Not yet'}
+- Email sent: ${entry.sentDate || 'Not yet'}
+
+Based on this reading behaviour, provide:
+1. A 2-sentence interpretation of what their reading behaviour signals about their interest level
+2. A specific, actionable follow-up recommendation (what to say, what angle to take)
+3. One personalised follow-up message opening line (just the first sentence) they could use
+
+Be specific, direct, and confident. No generic advice. Respond in plain text, no markdown, no bullet points. Use paragraph breaks between the 3 parts.`;
+
+        try {
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514',
+                    max_tokens: 1000,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+            
+            const data = await res.json();
+            const text = data.content?.map(b => b.text || '').join('') || 'Unable to generate insight.';
+            const parts = text.trim().split(/\n\n+/);
+            
+            document.getElementById('aiInsightContent').innerHTML = `
+                <div style="margin-bottom:14px;">
+                    ${getReadTimeBadge(rt).html}
+                    <span style="font-size:12px;color:var(--text-muted);margin-left:8px;">${rt ? rt + ' seconds reading time' : 'No read time'}</span>
+                </div>
+                ${parts.map((p, i) => {
+                    const labels = ['📊 Reading Signal', '🎯 Follow-up Strategy', '✉️ Opening Line'];
+                    return `<div style="margin-bottom:14px;padding:14px;background:${i === 2 ? '#f0faf7' : 'var(--surface)'};border-radius:10px;border:1px solid ${i === 2 ? '#a7f3d0' : 'var(--border)'};">
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.6px;color:var(--teal);margin-bottom:6px;">${labels[i] || 'Insight'}</div>
+                        <div style="font-size:13px;line-height:1.65;color:var(--text-primary);">${escapeHtml(p)}</div>
+                    </div>`;
+                }).join('')}
+            `;
+        } catch (err) {
+            document.getElementById('aiInsightContent').innerHTML = `<div class="insight-block warning">Unable to generate AI insight: ${escapeHtml(err.message)}</div>`;
+        }
+    }
+    
+    function closeAiInsightModal() { document.getElementById('aiInsightModal').classList.remove('open'); }
+    
+    // ============================================================
+    // Email Generation
     // ============================================================
     function clearEmailPreview() {
         document.getElementById('emailPreviewContainer').innerHTML = `
@@ -877,8 +1046,7 @@
         
         const activeToggles = toggles.filter(t => t.is_active && t.content);
         if (activeToggles.length === 0) {
-            document.getElementById('emailPreviewContainer').innerHTML = `
-                <div class="insight-block warning">⚠️ No benefit toggles are active. Turn on at least one toggle to generate an email.</div>`;
+            document.getElementById('emailPreviewContainer').innerHTML = `<div class="insight-block warning">⚠️ No benefit toggles are active. Turn on at least one toggle to generate an email.</div>`;
             return;
         }
         
@@ -889,9 +1057,7 @@
         lastTrackingId = trackingId;
         const senderName = brand?.brand_name || 'Our Company';
         const todayStr = new Date().toLocaleDateString('en-ZA', { year: 'numeric', month: 'long', day: 'numeric' });
-        const trackingPixel = `<img src="${API}/marketing/track/open/${trackingId}" width="1" height="1" style="display:none;" alt="">`;
         
-        // Show AI generating state
         const badge = document.getElementById('aiStatusBadge');
         badge.style.display = 'inline-flex';
         badge.innerHTML = '⏳ Generating…';
@@ -902,59 +1068,14 @@
                 <div style="font-size:12px;margin-top:6px;">${industry ? `Tailoring for ${industry} industry` : 'Analysing your benefit content'}</div>
             </div>`;
         
-        // Build prompt for Claude
-        const benefitSummary = activeToggles.map(t => `- ${t.name}: ${t.content}`).join('\n');
-        const toneInstructions = {
-            friendly: 'warm, conversational and approachable — like a helpful colleague reaching out',
-            formal: 'professional, respectful and polished — appropriate for corporate or legal contexts',
-            bold: 'direct, confident and punchy — short sentences, high energy, strong CTA'
-        }[tone];
-        
-        const prompt = `You are a world-class B2B sales copywriter. Write a cold outreach email for the following:
-
-SENDER COMPANY: ${senderName}
-SENDER TAGLINE: ${brand?.tagline || ''}
-PROSPECT COMPANY: ${currentCompany}
-PROSPECT INDUSTRY: ${industry || 'unknown — infer from company name if possible'}
-TONE: ${toneInstructions}
-DATE: ${todayStr}
-
-BENEFITS TO HIGHLIGHT (these are the seller's product/service benefits):
-${benefitSummary}
-
-REQUIREMENTS:
-1. Write a compelling subject line specific to the prospect's industry
-2. Write an opening line that references a real pain point for their specific industry (not generic "manual processes")
-3. Use the benefit content naturally — don't just copy it, weave it into the email naturally
-4. Each benefit should be presented as a styled HTML block (green left border, light background)
-5. End with a clear, industry-appropriate CTA
-6. Keep total body under 200 words (excluding benefit blocks)
-7. The email must feel like it was written specifically for someone in the ${industry || 'their'} industry
-
-RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
-{
-  "subject": "...",
-  "opening": "...",
-  "intro_paragraph": "...",
-  "benefit_blocks": [{"icon": "...", "name": "...", "body": "..."}],
-  "closing_paragraph": "...",
-  "cta_text": "...",
-  "sign_off": "..."
-}`;
-
         try {
             const res = await fetch(API + '/marketing/ai/generate-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
                 body: JSON.stringify({
-                    company_name: currentCompany,
-                    industry: industry,
-                    tone: tone,
-                    sender_name: senderName,
-                    sender_tagline: brand?.tagline || '',
-                    sender_icon: brand?.brand_icon || '',
-                    toggles: activeToggles,
-                    today_str: todayStr
+                    company_name: currentCompany, industry, tone,
+                    sender_name: senderName, sender_tagline: brand?.tagline || '',
+                    sender_icon: brand?.brand_icon || '', toggles: activeToggles, today_str: todayStr
                 })
             });
             if (!res.ok) { const e = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(e.detail || res.statusText); }
@@ -964,10 +1085,10 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
                 <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
                     <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${escapeHtml(b.icon || '✨')} ${escapeHtml(b.name)}</div>
                     <div style="font-size:13px;line-height:1.65;color:#2d3748;">${escapeHtml(b.body)}</div>
-                </div>
-            `).join('');
+                </div>`).join('');
             
             const badgeRow = `<div style="margin:14px 0;">${activeToggles.map(t => `<span style="background:#e6f5f0;color:#0f6e56;border-radius:20px;font-size:11px;padding:3px 10px;margin:3px;display:inline-block;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</span>`).join('')}</div>`;
+            const { topPixel, bottomPixel } = buildReadTimePixels(trackingId);
             
             const htmlEmail = `
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
@@ -979,48 +1100,47 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         <span style="font-size:11px;color:#a0aec0;">Subject: </span>
         <span style="font-size:13px;font-weight:600;color:#0d1b2e;">${escapeHtml(parsed.subject || '')}</span>
     </div>
+    ${topPixel}
     <p style="margin:0 0 12px;font-size:14px;color:#0d1b2e;">${escapeHtml(parsed.opening || `Dear ${currentCompany} team,`)}</p>
     <p style="margin:0 0 16px;font-size:14px;color:#2d3748;line-height:1.7;">${escapeHtml(parsed.intro_paragraph || '')}</p>
     ${benefitBlocksHtml}
     ${badgeRow}
     <p style="margin:16px 0;font-size:14px;color:#2d3748;line-height:1.7;">${escapeHtml(parsed.closing_paragraph || '')}</p>
     <div style="background:#0d1b2e;border-radius:14px;padding:18px;margin:20px 0;text-align:center;">
-        <div style="color:white;font-size:14px;line-height:1.6;">${escapeHtml(parsed.cta_text || 'Reply YES and I\'ll set up a free 20-minute walkthrough.')}</div>
+        <div style="color:white;font-size:14px;line-height:1.6;">${escapeHtml(parsed.cta_text || "Reply YES and I'll set up a free 20-minute walkthrough.")}</div>
     </div>
     <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+    ${bottomPixel}
     <div style="font-size:12px;color:#718096;">
         ${escapeHtml(parsed.sign_off || senderName + ' Sales Team')}<br>
         <span style="color:#a0aec0;">${escapeHtml(brand?.tagline || '')}</span>
     </div>
-    ${trackingPixel}
 </div>`;
             
             document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
             currentEmailHtml = htmlEmail;
             badge.innerHTML = '✅ AI Generated';
-            badge.style.background = '#e6f5f0';
-            badge.style.color = '#0f6e56';
+            badge.style.background = '#e6f5f0'; badge.style.color = '#0f6e56';
             setTimeout(() => { badge.style.display = 'none'; }, 3000);
             
         } catch (err) {
             console.error('AI email generation failed:', err);
             badge.innerHTML = '⚠️ Fallback mode';
-            badge.style.background = '#fef3c7';
-            badge.style.color = '#92400e';
+            badge.style.background = '#fef3c7'; badge.style.color = '#92400e';
             
-            // Fallback to basic template if AI fails
             const benefitBlocksHtml = activeToggles.map(t => `
                 <div style="background:#f0faf7;border-radius:12px;padding:16px;margin:12px 0;border-left:4px solid #1d9e75;">
                     <div style="font-weight:700;font-size:14px;margin-bottom:6px;">${escapeHtml(t.icon)} ${escapeHtml(t.name)}</div>
                     <div style="font-size:13px;line-height:1.65;">${escapeHtml(t.content)}</div>
-                </div>
-            `).join('');
+                </div>`).join('');
+            const { topPixel, bottomPixel } = buildReadTimePixels(trackingId);
             const htmlEmail = `
 <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;padding:28px 24px;border-radius:20px;">
     <div style="background:#f7f9fc;border-radius:8px;padding:10px 14px;margin-bottom:18px;">
         <span style="font-size:11px;color:#a0aec0;">Subject: </span>
         <span style="font-size:13px;color:#0d1b2e;">A quick note for ${escapeHtml(currentCompany)}</span>
     </div>
+    ${topPixel}
     <p>Dear <strong>${escapeHtml(currentCompany)}</strong> team,</p>
     <p>I wanted to reach out about how <strong>${escapeHtml(senderName)}</strong> can help your business:</p>
     ${benefitBlocksHtml}
@@ -1028,28 +1148,22 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         <div style="color:white;font-size:14px;">Reply <strong style="color:#5dcaa5;">"YES"</strong> for a free walkthrough.</div>
     </div>
     <hr style="margin:20px 0;border:none;border-top:1px solid #e1e8f0;">
+    ${bottomPixel}
     <div style="font-size:12px;color:#718096;">${escapeHtml(senderName)} Sales Team</div>
-    ${trackingPixel}
 </div>`;
             document.getElementById('emailPreviewContainer').innerHTML = htmlEmail;
             currentEmailHtml = htmlEmail;
         }
     }
     
+    // ============================================================
+    // Mark Sent / Tracking
+    // ============================================================
     async function markSentAndTrack() {
         if (!currentCompany) { alert('Select a prospect first.'); return; }
-        
-        // Check if user has email limit remaining
         if (userData.emails_used >= userData.email_limit) {
             alert(`❌ Email limit reached (${userData.email_limit}/${userData.email_limit}). Please upgrade to continue.`);
-            showUpgradeModal();
-            return;
-        }
-        
-        if (!userData.trial_active && userData.emails_used >= userData.email_limit) {
-            alert('Trial expired and email limit reached. Please upgrade.');
-            showUpgradeModal();
-            return;
+            showUpgradeModal(); return;
         }
         
         const company = companies.find(c => c.company_name === currentCompany);
@@ -1064,17 +1178,11 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
             
             if (!response.ok) {
                 const error = await response.json();
-                if (response.status === 403) {
-                    alert(error.detail);
-                    showUpgradeModal();
-                    return;
-                }
+                if (response.status === 403) { alert(error.detail); showUpgradeModal(); return; }
                 throw new Error(error.detail);
             }
             
             const data = await response.json();
-            
-            // Update local tracker
             if (!campaignTracker[currentCompany]) campaignTracker[currentCompany] = {};
             campaignTracker[currentCompany].sentDate = new Date().toISOString().split('T')[0];
             campaignTracker[currentCompany].trackingId = data.tracking_id;
@@ -1082,19 +1190,12 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
             campaignTracker[currentCompany].clicked = false;
             
             saveTracker();
-            
-            // Update user data locally
             userData.emails_used += 1;
             updateUsageUI();
-            
-            alert(`✅ Email marked as sent!\n\nEmails remaining: ${data.emails_remaining}\nTracking pixel automatically included.`);
-            
-            // Regenerate email with real tracking ID
+            alert(`✅ Email marked as sent!\n\nEmails remaining: ${data.emails_remaining}\n⏱ Read-time tracking pixels included — you'll see exactly how long they read.`);
             await refreshEmailPreview();
             
-        } catch (err) {
-            alert(`Error: ${err.message}`);
-        }
+        } catch (err) { alert(`Error: ${err.message}`); }
     }
     
     function markFollowup(company, day) {
@@ -1120,7 +1221,7 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         const allCompanies = [...new Set([...Object.keys(campaignTracker), ...companies.map(c => c.company_name)])].sort();
         
         if (!allCompanies.length) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;">No tracked emails yet</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--text-muted);">No tracked emails yet — add a prospect and click "Mark Sent"</td></tr>';
             return;
         }
         
@@ -1129,15 +1230,28 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
             const e = campaignTracker[comp] || {};
             const companyObj = companies.find(c => c.company_name === comp);
             const email = companyObj?.email_address || '-';
+            const rtBadge = getReadTimeBadge(e.read_time_seconds);
+            const safeName = escapeHtml(comp).replace(/'/g, "\\'");
+            const hasReadTime = e.read_time_seconds > 0;
             
             tbody.innerHTML += `<tr>
                 <td><strong>${escapeHtml(comp)}</strong></td>
-                <td style="font-size:11px;">${escapeHtml(email)}</td>
+                <td style="font-size:11px;color:var(--text-muted);">${escapeHtml(email)}</td>
                 <td>${e.sentDate || '-'}</td>
                 <td>${e.opened ? '✅' : '⏳'}</td>
+                <td>${rtBadge.html}</td>
+                <td>
+                    <button class="btn-analyze" style="padding:5px 12px;font-size:11px;${!hasReadTime ? 'opacity:0.5;' : ''}" onclick="generateAiInsight('${safeName}')" title="AI reading analysis">
+                        🤖 Analyse
+                    </button>
+                </td>
                 <td>${e.clicked ? '✅' : '⏳'}</td>
-                <td>${e.replyReceived ? '✅' : '-'}</td>
-                <td><button class="btn-ghost" style="padding:4px 10px;font-size:11px;" onclick="markReply('${escapeHtml(comp).replace(/'/g, "\\'")}')">💬 Reply</button></td>
+                <td>${e.replyReceived ? '<span style="color:var(--success);font-weight:700;">✅</span>' : '-'}</td>
+                <td style="font-size:11px;">${e.followup1Sent ? '📆 D3' : ''} ${e.followup2Sent ? '📅 D7' : ''}</td>
+                <td style="white-space:nowrap;">
+                    <button class="btn-ghost" style="padding:4px 8px;font-size:11px;margin-right:3px;" onclick="markReply('${safeName}')">💬</button>
+                    <button class="btn-ghost" style="padding:4px 8px;font-size:11px;margin-right:3px;" onclick="simulateReadTime('${safeName}')" title="Simulate read time (demo)">⏱</button>
+                </td>
             </tr>`;
         }
     }
@@ -1146,21 +1260,14 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         if (confirm('Delete all tracking data for this account?')) {
             campaignTracker = {};
             saveTracker();
-            renderTrackerTable();
-            renderCompanyList();
         }
     }
     
     // ============================================================
     // CSV Upload
     // ============================================================
-    function openUploadCsvModal() {
-        document.getElementById('uploadCsvModal').classList.add('open');
-    }
-    
-    function closeUploadCsvModal() {
-        document.getElementById('uploadCsvModal').classList.remove('open');
-    }
+    function openUploadCsvModal() { document.getElementById('uploadCsvModal').classList.add('open'); }
+    function closeUploadCsvModal() { document.getElementById('uploadCsvModal').classList.remove('open'); }
     
     async function uploadCSV() {
         const file = document.getElementById('csvFileInput').files[0];
@@ -1171,24 +1278,80 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         
         try {
             const response = await fetch(`${API}/marketing/user/companies/upload`, {
-                method: 'POST',
-                headers: { 'X-User-Token': USER_TOKEN },
-                body: formData
+                method: 'POST', headers: { 'X-User-Token': USER_TOKEN }, body: formData
             });
-            
             const data = await response.json();
             if (response.ok) {
                 alert(`✅ ${data.companies_added} companies uploaded successfully!`);
                 closeUploadCsvModal();
                 await loadUserData();
                 renderCompanyList();
-            } else {
-                alert(`Error: ${data.detail}`);
-            }
-        } catch (err) {
-            alert(`Upload failed: ${err.message}`);
-        }
+            } else { alert(`Error: ${data.detail}`); }
+        } catch (err) { alert(`Upload failed: ${err.message}`); }
     }
+    
+    // ============================================================
+    // Word Doc Upload (mammoth.js)
+    // ============================================================
+    document.getElementById('chooseDocBtn').addEventListener('click', () => document.getElementById('docFileInput').click());
+    document.getElementById('docFileInput').addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const infoEl = document.getElementById('docInfo');
+        infoEl.style.display = 'block';
+        infoEl.innerHTML = `⏳ Reading <strong>${escapeHtml(file.name)}</strong>…`;
+        
+        try {
+            let extractedText = '';
+            
+            if (file.name.endsWith('.docx') && typeof mammoth !== 'undefined') {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                extractedText = result.value;
+            } else {
+                extractedText = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (ev) => resolve(ev.target.result);
+                    reader.onerror = () => reject(new Error('Read failed'));
+                    reader.readAsText(file);
+                });
+            }
+            
+            infoEl.innerHTML = `⏳ <strong>AI is reading your document</strong> and building benefit toggles… (~10 seconds)`;
+            
+            const res = await fetch(API + '/marketing/ai/extract-toggles', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
+                body: JSON.stringify({ document_text: extractedText })
+            });
+            if (!res.ok) { const er = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(er.detail || res.statusText); }
+            const parsed = await res.json();
+            
+            if (parsed.toggles && parsed.toggles.length > 0) {
+                toggles = parsed.toggles.map((t, i) => ({
+                    toggle_index: i, name: t.name, icon: t.icon || '✨',
+                    content: t.content, is_active: false
+                }));
+                saveUserData(); renderToggleGrid(); renderMiniToggles(); updateUsageUI();
+                infoEl.innerHTML = `✅ <strong>Done!</strong> ${parsed.toggles.length} benefit toggles auto-generated from <strong>${escapeHtml(file.name)}</strong>. Click toggles to activate, or ✏️ to edit.`;
+            } else { throw new Error('No toggles returned'); }
+            
+        } catch (err) {
+            infoEl.innerHTML = `⚠️ AI extraction failed: ${escapeHtml(err.message)}. Please configure toggles manually.`;
+        }
+    });
+    
+    // Dropzone
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-active'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault(); dropzone.classList.remove('drag-active');
+        const f = e.dataTransfer.files[0];
+        if (f) { document.getElementById('docFileInput').files = e.dataTransfer.files; document.getElementById('docFileInput').dispatchEvent(new Event('change')); }
+    });
+    dropzone.addEventListener('click', () => document.getElementById('docFileInput').click());
     
     // ============================================================
     // Settings
@@ -1199,129 +1362,14 @@ RESPOND WITH VALID JSON ONLY — no markdown, no explanation:
         document.getElementById('settingsIcon').value = brand?.brand_icon || '🚀';
         document.getElementById('settingsModal').classList.add('open');
     }
-    
-    function closeSettingsModal() {
-        document.getElementById('settingsModal').classList.remove('open');
-    }
+    function closeSettingsModal() { document.getElementById('settingsModal').classList.remove('open'); }
     
     async function saveSettings() {
         brand.brand_name = document.getElementById('settingsBrandName').value.trim() || 'Your Company';
         brand.tagline = document.getElementById('settingsTagline').value.trim() || 'Sales Team';
         brand.brand_icon = document.getElementById('settingsIcon').value.trim() || '🚀';
-        await saveUserData();
-        applyBranding();
-        refreshEmailPreview();
-        closeSettingsModal();
+        await saveUserData(); applyBranding(); refreshEmailPreview(); closeSettingsModal();
     }
-    
-    // ============================================================
-    // PDF Upload (using PDF.js)
-    // ============================================================
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-    
-    async function extractPdfText(file) {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        let fullText = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(' ');
-            fullText += pageText + '\n\n';
-        }
-        return fullText;
-    }
-    
-    document.getElementById('choosePdfBtn').addEventListener('click', () => document.getElementById('pdfFileInput').click());
-    document.getElementById('pdfFileInput').addEventListener('change', async function(e) {
-        const file = e.target.files[0];
-        if (!file) return;
-        
-        document.getElementById('pdfFileName').innerText = file.name;
-        document.getElementById('pdfInfo').style.display = 'block';
-        document.getElementById('pdfInfo').innerHTML = `⏳ Reading file… extracting text…`;
-        
-        try {
-            let extractedText = '';
-            if (file.type === 'application/pdf') {
-                extractedText = await extractPdfText(file);
-            } else {
-                extractedText = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = (ev) => resolve(ev.target.result);
-                    reader.onerror = () => reject(new Error('Read failed'));
-                    reader.readAsText(file);
-                });
-            }
-            
-            document.getElementById('pdfInfo').innerHTML = `⏳ <strong>AI is reading your document</strong> and building toggles… (this takes ~10 seconds)`;
-            
-            // Ask Claude to extract benefit toggles from the document
-            const prompt = `You are a marketing strategist. Read the following product/service document and extract 4-6 key selling benefits that would work well in a B2B cold email campaign.
-
-DOCUMENT TEXT:
-${extractedText.slice(0, 6000)}
-
-For each benefit, create a toggle with:
-- A short punchy name (2-4 words)
-- A relevant emoji icon
-- A concise benefit description (2-4 sentences) that clearly explains the value to a prospect
-
-Respond ONLY with valid JSON — no markdown, no preamble:
-{
-  "toggles": [
-    {"name": "...", "icon": "...", "content": "..."},
-    ...
-  ]
-}`;
-
-            const res = await fetch(API + '/marketing/ai/extract-toggles', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-User-Token': USER_TOKEN },
-                body: JSON.stringify({ document_text: extractedText })
-            });
-            if (!res.ok) { const e = await res.json().catch(()=>({detail:'Unknown error'})); throw new Error(e.detail || res.statusText); }
-            const parsed = await res.json();
-            
-            if (parsed.toggles && parsed.toggles.length > 0) {
-                // Replace current toggles with AI-extracted ones (keep is_active = false)
-                toggles = parsed.toggles.map((t, i) => ({
-                    toggle_index: i,
-                    name: t.name,
-                    icon: t.icon || '✨',
-                    content: t.content,
-                    is_active: false
-                }));
-                
-                saveUserData();
-                renderToggleGrid();
-                renderMiniToggles();
-                updateUsageUI();
-                
-                document.getElementById('pdfInfo').innerHTML = `✅ <strong>Done!</strong> ${parsed.toggles.length} benefit toggles auto-generated from <strong>${escapeHtml(file.name)}</strong>. Click the toggles to activate them, or ✏️ to edit.`;
-            } else {
-                throw new Error('No toggles returned');
-            }
-            
-        } catch (err) {
-            document.getElementById('pdfInfo').innerHTML = `⚠️ AI extraction failed: ${escapeHtml(err.message)}. Please configure toggles manually.`;
-        }
-    });
-    
-    // Dropzone
-    const dropzone = document.getElementById('dropzone');
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-active'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-active'));
-    dropzone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropzone.classList.remove('drag-active');
-        const f = e.dataTransfer.files[0];
-        if (f) {
-            document.getElementById('pdfFileInput').files = e.dataTransfer.files;
-            document.getElementById('pdfFileInput').dispatchEvent(new Event('change'));
-        }
-    });
-    dropzone.addEventListener('click', () => document.getElementById('pdfFileInput').click());
     
     // ============================================================
     // Button Handlers
@@ -1332,15 +1380,11 @@ Respond ONLY with valid JSON — no markdown, no preamble:
         alert('Email HTML copied!');
     });
     
-    document.getElementById('markSentBtn').addEventListener('click', markSentAndTrack);
-    document.getElementById('markFollowup1Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 1); else alert('Select a prospect'); });
-    document.getElementById('markFollowup2Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 2); else alert('Select a prospect'); });
-    document.getElementById('markReplyBtn').addEventListener('click', () => { if (currentCompany) markReply(currentCompany); else alert('Select a prospect'); });
-    document.getElementById('exportTrackerBtn').addEventListener('click', () => {
-        let csv = 'Company,Email,Sent Date,Opened,Clicked,Reply Received,Followup1,Followup2\n';
+    const exportFn = () => {
+        let csv = 'Company,Email,Sent Date,Opened,Read Time (seconds),Clicked,Reply Received,Followup1,Followup2\n';
         for (const [comp, data] of Object.entries(campaignTracker)) {
             const companyObj = companies.find(c => c.company_name === comp);
-            csv += `"${comp}","${companyObj?.email_address || ''}","${data.sentDate || ''}",${data.opened ? 'Yes' : 'No'},${data.clicked ? 'Yes' : 'No'},${data.replyReceived ? 'Yes' : 'No'},${data.followup1Sent ? 'Yes' : 'No'},${data.followup2Sent ? 'Yes' : 'No'}\n`;
+            csv += `"${comp}","${companyObj?.email_address || ''}","${data.sentDate || ''}",${data.opened ? 'Yes' : 'No'},${data.read_time_seconds || ''},${data.clicked ? 'Yes' : 'No'},${data.replyReceived ? 'Yes' : 'No'},${data.followup1Sent ? 'Yes' : 'No'},${data.followup2Sent ? 'Yes' : 'No'}\n`;
         }
         const blob = new Blob([csv], { type: 'text/csv' });
         const a = document.createElement('a');
@@ -1348,7 +1392,14 @@ Respond ONLY with valid JSON — no markdown, no preamble:
         a.download = `${brand?.brand_name || 'outreach'}_tracker.csv`;
         a.click();
         URL.revokeObjectURL(a.href);
-    });
+    };
+    
+    document.getElementById('exportTrackerBtn').addEventListener('click', exportFn);
+    document.getElementById('exportTrackerBtn2').addEventListener('click', exportFn);
+    document.getElementById('markSentBtn').addEventListener('click', markSentAndTrack);
+    document.getElementById('markFollowup1Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 1); else alert('Select a prospect'); });
+    document.getElementById('markFollowup2Btn').addEventListener('click', () => { if (currentCompany) markFollowup(currentCompany, 2); else alert('Select a prospect'); });
+    document.getElementById('markReplyBtn').addEventListener('click', () => { if (currentCompany) markReply(currentCompany); else alert('Select a prospect'); });
     
     // ============================================================
     // Initialization
@@ -1356,14 +1407,8 @@ Respond ONLY with valid JSON — no markdown, no preamble:
     async function init() {
         const success = await loadUserData();
         if (!success) return;
-        
         applyBranding();
-        renderToggleGrid();
-        renderMiniToggles();
-        renderCompanyList();
-        renderTrackerTable();
-        updateUsageUI();
-        
+        renderToggleGrid(); renderMiniToggles(); renderCompanyList(); renderTrackerTable(); updateUsageUI(); updateTrackerStats();
         document.getElementById('loadingState').style.display = 'none';
         document.getElementById('mainDashboard').style.display = 'block';
     }
