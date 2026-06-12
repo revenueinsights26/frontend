@@ -502,10 +502,14 @@
         <input type="text" id="userFullName" placeholder="Full Name">
         <input type="email" id="userEmail" placeholder="Email Address">
         <input type="text" id="userCompany" placeholder="Company Name (optional)">
-        <select id="userProduct">
+        <select id="userProduct" onchange="toggleOwnerFields()">
             <option value="marketing">Marketing Tool</option>
             <option value="revenue">Revenue Insights (Owner)</option>
         </select>
+        <div id="ownerIdField" style="display:none;">
+            <label>Owner ID (e.g. OWNER123)</label>
+            <input type="text" id="userOwnerId" placeholder="Owner ID (unique identifier)">
+        </div>
         <label>🌿 Trial Period</label>
         <select id="trialDays">
             <option value="7">7 days free trial</option>
@@ -543,6 +547,30 @@
         <div class="modal-buttons">
             <button class="btn btn-primary" onclick="updateUser()">Save Changes</button>
             <button class="btn btn-outline" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Add Hotel -->
+<div id="addHotelModal" class="modal">
+    <div class="modal-content">
+        <h3>🏨 Add Hotel</h3>
+        <input type="hidden" id="addHotelOwnerId">
+        <label>Owner</label>
+        <input type="text" id="addHotelOwnerLabel" disabled style="background:#f8fafc; color:#5b6e8c;">
+        <label>Hotel ID (unique, e.g. HOTEL001)</label>
+        <input type="text" id="addHotelHotelId" placeholder="Hotel ID">
+        <label>Hotel Name</label>
+        <input type="text" id="addHotelName" placeholder="Hotel Name">
+        <label>Rooms Available</label>
+        <input type="number" id="addHotelRooms" placeholder="e.g. 50" value="0">
+        <label>Currency Code</label>
+        <input type="text" id="addHotelCurrency" placeholder="e.g. ZAR" value="ZAR">
+        <label>Currency Symbol</label>
+        <input type="text" id="addHotelSymbol" placeholder="e.g. R" value="R">
+        <div class="modal-buttons">
+            <button class="btn btn-primary" onclick="submitAddHotel()">🏨 Add Hotel</button>
+            <button class="btn btn-outline" onclick="closeAddHotelModal()">Cancel</button>
         </div>
     </div>
 </div>
@@ -747,6 +775,10 @@
     }
 
     // ---------- MODAL & CREATE logic (marketing + revenue fallback) ----------
+    function toggleOwnerFields() {
+        const product = document.getElementById('userProduct').value;
+        document.getElementById('ownerIdField').style.display = product === 'revenue' ? 'block' : 'none';
+    }
     function showCreateModal() {
         document.getElementById('modalTitle').innerText = currentProduct === 'revenue' ? 'Create Revenue Owner' : 'Create Marketing User';
         document.getElementById('userFullName').value = '';
@@ -755,6 +787,8 @@
         document.getElementById('userProduct').value = currentProduct;
         document.getElementById('trialDays').value = '7';
         document.getElementById('emailLimit').value = '30';
+        document.getElementById('userOwnerId').value = '';
+        toggleOwnerFields();
         document.getElementById('createModal').style.display = 'flex';
     }
     function closeCreateModal() { document.getElementById('createModal').style.display = 'none'; }
@@ -762,11 +796,9 @@
     async function createUser() {
         const product = document.getElementById('userProduct').value;
         if(product === 'revenue') {
-            alert("Revenue Owner creation: please use the dedicated owner creation inside Revenue tab (coming soon manual). But you can add via backend. For now we'll open simplified? \n\nHint: Use 'Add Owner' later from owner list. We'll implement direct via endpoint.");
-            // Fallback: we could call owners/create endpoint.
-            const ownerId = prompt("Enter Owner ID (e.g., OWNER123):");
             const ownerName = document.getElementById('userFullName').value.trim();
             const email = document.getElementById('userEmail').value.trim();
+            const ownerId = document.getElementById('userOwnerId').value.trim();
             if(!ownerId || !ownerName) { alert("Owner ID & Name required"); return; }
             try {
                 const resp = await fetch(`${API}/owners/create`, { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ owner_id: ownerId, owner_name: ownerName, email: email, service_tier: 'pro' }) });
@@ -936,10 +968,40 @@
     }
     function filterTable() { renderTable(); }
     function selectProduct(product) { currentProduct = product; document.getElementById('tileRevenue').classList.toggle('active', product==='revenue'); document.getElementById('tileMarketing').classList.toggle('active', product==='marketing'); updateUI(); }
-    function showAddHotelForOwner(ownerId) { alert(`Add Hotel feature: use endpoint /hotels/create. \nOwner: ${ownerId}\nWill be fully integrated soon.`); }
+    function showAddHotelForOwner(ownerId) {
+        document.getElementById('addHotelOwnerId').value = ownerId;
+        document.getElementById('addHotelOwnerLabel').innerText = ownerId;
+        document.getElementById('addHotelHotelId').value = '';
+        document.getElementById('addHotelName').value = '';
+        document.getElementById('addHotelRooms').value = '';
+        document.getElementById('addHotelCurrency').value = 'ZAR';
+        document.getElementById('addHotelSymbol').value = 'R';
+        document.getElementById('addHotelModal').style.display = 'flex';
+    }
+    function closeAddHotelModal() { document.getElementById('addHotelModal').style.display = 'none'; }
+    async function submitAddHotel() {
+        const ownerId = document.getElementById('addHotelOwnerId').value;
+        const hotelId = document.getElementById('addHotelHotelId').value.trim();
+        const hotelName = document.getElementById('addHotelName').value.trim();
+        const rooms = parseInt(document.getElementById('addHotelRooms').value);
+        const currency = document.getElementById('addHotelCurrency').value.trim();
+        const symbol = document.getElementById('addHotelSymbol').value.trim();
+        if(!hotelId || !hotelName) { alert("Hotel ID and Name are required"); return; }
+        try {
+            const res = await fetch(`${API}/hotels/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ owner_id: ownerId, hotel_id: hotelId, hotel_name: hotelName, rooms_available: rooms || 0, currency_code: currency, currency_symbol: symbol })
+            });
+            const data = await res.json();
+            if(res.ok) { showToast(`✅ Hotel "${hotelName}" added!`); closeAddHotelModal(); fetchRevenueData(); setTimeout(() => updateUI(), 400); }
+            else alert(`❌ Error: ${data.detail}`);
+        } catch(e) { alert("Network error: "+e.message); }
+    }
     // modal close outsides
     document.getElementById('createModal')?.addEventListener('click', (e) => { if(e.target === e.currentTarget) closeCreateModal(); });
     document.getElementById('editModal')?.addEventListener('click', (e) => { if(e.target === e.currentTarget) closeEditModal(); });
+    document.getElementById('addHotelModal')?.addEventListener('click', (e) => { if(e.target === e.currentTarget) closeAddHotelModal(); });
     // initial load
     selectProduct('revenue');
     fetchAllData();
